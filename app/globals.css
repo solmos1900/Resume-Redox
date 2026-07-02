@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.resume-document {
+  max-width: 8.5in;
+  min-height: 11in;
+  padding: 0.6in 0.75in;
+  font-family: Arial, Helvetica, sans-serif;
+  line-height: 1.4;
+  overflow: visible;
+}
+
+/* Hanging-indent bullets: wrapped lines align with first line of text, not the bullet */
+.resume-document ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.resume-document li {
+  position: relative;
+  padding-left: 1.15em;
+  margin-bottom: 0.3em;
+}
+
+.resume-document li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-weight: bold;
+}
+
+@media print {
+  @page {
+    size: letter;
+    margin: 0.5in;
+  }
+
+  body {
+    background: white !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only-preview {
+    display: block !important;
+    width: 100% !important;
+    overflow: visible !important;
+    background: white !important;
+    padding: 0 !important;
+  }
+
+  .resume-document {
+    box-shadow: none !important;
+    max-width: 100% !important;
+    min-height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    color: black !important;
+  }
+
+  .resume-document * {
+    color: black !important;
+  }
+}
