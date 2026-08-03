@@ -78,8 +78,8 @@ export function applyRecommendationToVersion(
   if (rec.section === "education" && rec.targetId && rec.fieldPath) {
     const edu = updated.education.find((e) => e.id === rec.targetId);
     if (!edu) return null;
-    if (["institution", "location", "details"].includes(rec.fieldPath)) {
-      edu[rec.fieldPath as "institution" | "location" | "details"] =
+    if (["institution", "location", "details", "graduationDate"].includes(rec.fieldPath)) {
+      edu[rec.fieldPath as "institution" | "location" | "details" | "graduationDate"] =
         rec.suggestedText;
       return updated;
     }

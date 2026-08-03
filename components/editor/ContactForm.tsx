@@ -6,9 +6,6 @@ import { CollapsibleSection } from "./CollapsibleSection";
 export function ContactForm() {
   const version = useResumeStore((s) => s.getActiveVersion());
   const updateActiveVersion = useResumeStore((s) => s.updateActiveVersion);
-  const issueCount = useResumeStore((s) =>
-    s.getOpenRecommendationCount("contact")
-  );
 
   if (!version) return null;
 
@@ -20,6 +17,11 @@ export function ContactForm() {
 
   const fields = [
     { key: "fullName", label: "Full Name", placeholder: "Alex Rivera" },
+    {
+      key: "headline",
+      label: "Headline / Tagline",
+      placeholder: "Technical PM | Enterprise Integrations | Data Platforms",
+    },
     { key: "phone", label: "Phone", placeholder: "+1 (555) 010-2000" },
     { key: "email", label: "Email", placeholder: "you@email.com" },
     { key: "linkedIn", label: "LinkedIn", placeholder: "linkedin.com/in/..." },
@@ -30,7 +32,6 @@ export function ContactForm() {
     <CollapsibleSection
       title="Contact"
       sectionId="editor-section-contact"
-      issueCount={issueCount}
     >
       <div className="grid gap-3">
         {fields.map(({ key, label, placeholder }) => (

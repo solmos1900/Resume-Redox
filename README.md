@@ -1,16 +1,17 @@
 # Resume Redox
 
-A local-first resume builder with live ATS-friendly preview, ChatGPT-style resume sidebar, AI Coach, and role-specific versions saved in your browser.
+A local-first resume builder with live ATS-friendly preview and role-specific versions saved in your browser.
 
 ## Features
 
 - **Live preview** — edit in the center, see the resume update instantly
-- **Resume sidebar** — collapsible list of all resumes (like ChatGPT conversations)
-- **AI Coach tab** — roast, spell check, recommendations, and job tailoring in one panel
-- **Independent Save & Print** — Save downloads a PDF; Print opens the print dialog. Both use filename `{Resume Name} - {Your Name}`
-- **Job description tailoring** — pick any existing resume as source, paste a JD, create tailored copy or adjust current
-- **Grouped skills** — organize skills by category
+- **Resume sidebar** — collapsible list of all resumes
+- **Templates** — switch ATS-safe layouts per resume version
+- **Save PDF / Print** — opens a print preview; use your browser’s “Save as PDF”
+- **Backup & Import** — download/upload a JSON backup of all resumes
 - **No account required** — all data persists in localStorage
+
+AI Coach, job-URL fetch, server PDF (Puppeteer), and disk sync are **archived** under [`_archived/`](_archived/README.md) for later re-enable.
 
 ## Setup
 
@@ -21,60 +22,41 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-### AI features (OpenAI)
+## Deploy on Vercel
 
-Copy `.env.example` to `.env.local` and add your OpenAI API key:
+1. Push this repo to GitHub.
+2. Import the project at [vercel.com/new](https://vercel.com/new).
+3. Framework preset: **Next.js** (auto-detected). Build command `npm run build`, output default.
+4. No environment variables required for core features.
+5. Deploy.
+
+Or from the CLI:
 
 ```bash
-cp .env.example .env.local
-# Add OPENAI_API_KEY=sk-...
+npm i -g vercel
+vercel
 ```
 
-Restart the dev server after adding the key. Without it, tailoring falls back to keyword-based skill reordering; roast, spell check, and recommendations require the key.
+Hobby plan supports multiple personal projects under one account (shared usage limits).
 
-## Creating & tailoring resumes
+## Creating resumes
 
-### New resume (sidebar → + New resume)
-1. Choose **Blank** or **From existing resume**
-2. Optionally check **Add target role context** and paste/fetch a job description
-3. Resume name is **auto-suggested** from the job (like ChatGPT conversation titles) — edit before creating
-4. With job context + existing source → creates an AI-tailored copy
-
-### Tailor for role (sidebar → hover resume → Tailor for role)
-Creates a new resume tailored to a job posting from the selected source. Name is auto-suggested from the JD.
-
-### Target Role Context (editor)
-Stores the job description for the **current** resume. Used by AI Recommendations and optional **Refine this resume in place**.
-
-## AI Coach workflow
-
-1. Select a resume from the sidebar
-2. Switch to the **AI Coach** tab (right panel)
-3. Run **Roast**, **Spell Check**, or **Recommendations**
-4. Tailor cards appear here after using **Tailor for role** from the sidebar
-5. Use **Apply Fix**, **Jump to Field**, or **Dismiss** on each card
-6. Switch to **Preview** tab → **Save PDF** or **Print**
-
-## Role-tailoring workflow
-
-1. Hover an existing resume → **Tailor for role**, or **+ New resume** with job context
-2. Paste job description → name auto-fills (e.g. "Product Manager @ Acme")
-3. Edit name if needed → **Create tailored resume**
-4. Fine-tune in editor; run AI Coach for feedback
-5. **Save PDF** or **Print**
+1. Sidebar → **+ New resume**
+2. Choose **Blank** or **From existing resume**
+3. Name it and create
+4. Edit in the center panel; switch templates in Preview
+5. **Save PDF** or **Print** → choose “Save as PDF” in the browser dialog
 
 ## Save vs Print
 
 | Button | Action |
 |--------|--------|
-| **Save PDF** | Downloads a PDF file directly |
-| **Print** | Opens browser print dialog (use "Save as PDF" there) |
+| **Save PDF** | Opens print preview; choose “Save as PDF” in the dialog |
+| **Print** | Same print preview flow |
 
-Both prefill the filename as `{resume version name} - {full name}`.
+Both use filename `{Resume Name} - {Your Name}` via the browser’s save dialog where supported.
 
 ## Resume templates
-
-Five ATS-safe templates — switch in the **Preview** tab. Each resume version remembers its template.
 
 | Template | Best for |
 |----------|----------|
@@ -86,8 +68,6 @@ Five ATS-safe templates — switch in the **Preview** tab. Each resume version r
 
 All templates use single-column layout, semantic HTML, system fonts, and no tables/images — optimized for applicant tracking systems.
 
-## ATS formatting notes
+## Re-enabling archived features
 
-- Semantic HTML, system fonts, single column
-- No tables, columns, images, or icons in the resume output
-- Skills as `Category: item, item, item` lines
+See [`_archived/README.md`](_archived/README.md) for restore steps (AI Coach, Puppeteer PDF, server file sync).

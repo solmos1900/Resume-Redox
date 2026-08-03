@@ -9,6 +9,7 @@ export function createSeedVersion(): ResumeVersion {
     updatedAt: now,
     contact: {
       fullName: "Alex Rivera",
+      headline: "",
       phone: "+1 (555) 010-2000",
       email: "alex.rivera@example.com",
       location: "Austin, TX",
@@ -90,6 +91,7 @@ export function createSeedVersion(): ResumeVersion {
         location: "Austin, TX",
         details:
           "B.B.A. Computer Science, Entrepreneurship Certificate",
+        graduationDate: "May 2023",
       },
     ],
     jobDescription: { url: "", text: "" },

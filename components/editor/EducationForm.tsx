@@ -7,15 +7,18 @@ import { CollapsibleSection } from "./CollapsibleSection";
 import { RepeatableControls } from "./RepeatableControls";
 
 function emptyEducation(): Education {
-  return { id: generateId(), institution: "", location: "", details: "" };
+  return {
+    id: generateId(),
+    institution: "",
+    location: "",
+    details: "",
+    graduationDate: "",
+  };
 }
 
 export function EducationForm() {
   const version = useResumeStore((s) => s.getActiveVersion());
   const updateActiveVersion = useResumeStore((s) => s.updateActiveVersion);
-  const issueCount = useResumeStore((s) =>
-    s.getOpenRecommendationCount("education")
-  );
 
   if (!version) return null;
 
@@ -41,7 +44,6 @@ export function EducationForm() {
     <CollapsibleSection
       title="Education"
       sectionId="editor-section-education"
-      issueCount={issueCount}
       action={
         <button
           type="button"
@@ -104,6 +106,18 @@ export function EducationForm() {
               type="text"
               value={edu.details}
               onChange={(e) => updateItem(edu.id, { details: e.target.value })}
+              className="mt-1 w-full rounded border px-2 py-1.5 text-sm"
+            />
+          </label>
+          <label className="block">
+            <span className="text-xs text-gray-600">Graduation Date</span>
+            <input
+              type="text"
+              value={edu.graduationDate}
+              onChange={(e) =>
+                updateItem(edu.id, { graduationDate: e.target.value })
+              }
+              placeholder="May 2023"
               className="mt-1 w-full rounded border px-2 py-1.5 text-sm"
             />
           </label>

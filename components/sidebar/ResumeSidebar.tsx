@@ -120,15 +120,6 @@ export function ResumeSidebar({ collapsed, onToggle }: Props) {
                       <div className="hidden group-hover:flex flex-wrap px-2 pb-2 gap-1">
                         <button
                           type="button"
-                          onClick={() =>
-                            openNewResumeDialog("tailor", version.id)
-                          }
-                          className="text-xs px-2 py-0.5 rounded bg-blue-800 hover:bg-blue-700"
-                        >
-                          Tailor for role
-                        </button>
-                        <button
-                          type="button"
                           onClick={() => startRename(version.id, version.name)}
                           className="text-xs px-2 py-0.5 rounded bg-gray-600 hover:bg-gray-500"
                         >

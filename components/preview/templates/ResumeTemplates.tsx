@@ -1,4 +1,6 @@
+import type { ReactNode } from "react";
 import type { ResumeContent } from "@/lib/templates/types";
+import { ContactLine } from "@/components/preview/ContactLine";
 import {
   EducationBlock,
   ExperienceBlock,
@@ -7,11 +9,11 @@ import {
 } from "@/lib/templates/sections";
 
 const articleClass =
-  "resume-document bg-white text-black mx-auto shadow-lg print:shadow-none";
+  "resume-document bg-white text-black print:shadow-none";
 
 export function ClassicTemplate({ data }: { data: ResumeContent }) {
   const { contact, summary } = data;
-  const { contactLine, hasSummary, hasExperience, hasSkills, hasEducation } =
+  const { hasSummary, hasExperience, hasSkills, hasEducation } =
     useResumeSections(data);
   const heading =
     "text-sm font-bold uppercase tracking-wider border-b border-gray-800 pb-1 mb-2";
@@ -23,9 +25,7 @@ export function ClassicTemplate({ data }: { data: ResumeContent }) {
           <h1 className="text-2xl font-bold tracking-wide uppercase">
             {contact.fullName}
           </h1>
-          {contactLine && (
-            <p className="text-sm text-gray-800 mt-1">{contactLine}</p>
-          )}
+          <ContactLine contact={contact} className="text-sm text-gray-800 mt-1" />
         </header>
       )}
       {hasSummary && (
@@ -58,7 +58,7 @@ export function ClassicTemplate({ data }: { data: ResumeContent }) {
 
 export function ModernTemplate({ data }: { data: ResumeContent }) {
   const { contact, summary } = data;
-  const { contactLine, hasSummary, hasExperience, hasSkills, hasEducation } =
+  const { hasSummary, hasExperience, hasSkills, hasEducation } =
     useResumeSections(data);
   const heading = "text-xs font-bold uppercase tracking-[0.2em] text-gray-600 mb-2";
 
@@ -69,9 +69,7 @@ export function ModernTemplate({ data }: { data: ResumeContent }) {
           <h1 className="text-3xl font-light text-gray-900">
             {contact.fullName}
           </h1>
-          {contactLine && (
-            <p className="text-sm text-gray-600 mt-2">{contactLine}</p>
-          )}
+          <ContactLine contact={contact} className="text-sm text-gray-600 mt-2" />
         </header>
       )}
       {hasSummary && (
@@ -93,7 +91,11 @@ export function ModernTemplate({ data }: { data: ResumeContent }) {
       {hasSkills && (
         <section className="mb-6">
           <h2 className={heading}>Skills</h2>
-          <SkillsBlock data={data} labelClass="font-medium text-gray-800" />
+          <SkillsBlock
+            data={data}
+            labelClass="font-semibold text-gray-900"
+            lineClass="text-sm text-gray-700"
+          />
         </section>
       )}
       {hasEducation && (
@@ -111,7 +113,7 @@ export function ModernTemplate({ data }: { data: ResumeContent }) {
 
 export function ProfessionalTemplate({ data }: { data: ResumeContent }) {
   const { contact, summary } = data;
-  const { contactLine, hasSummary, hasExperience, hasSkills, hasEducation } =
+  const { hasSummary, hasExperience, hasSkills, hasEducation } =
     useResumeSections(data);
   const heading = "text-sm font-bold text-gray-900 mb-1";
 
@@ -123,9 +125,10 @@ export function ProfessionalTemplate({ data }: { data: ResumeContent }) {
       {contact.fullName.trim() && (
         <header className="mb-3">
           <h1 className="text-xl font-bold">{contact.fullName}</h1>
-          {contactLine && (
-            <p className="text-[13px] text-gray-800 mt-0.5">{contactLine}</p>
-          )}
+          <ContactLine
+            contact={contact}
+            className="text-[13px] text-gray-800 mt-0.5"
+          />
         </header>
       )}
       {hasSummary && (
@@ -171,7 +174,7 @@ export function ProfessionalTemplate({ data }: { data: ResumeContent }) {
 
 export function ExecutiveTemplate({ data }: { data: ResumeContent }) {
   const { contact, summary } = data;
-  const { contactLine, hasSummary, hasExperience, hasSkills, hasEducation } =
+  const { hasSummary, hasExperience, hasSkills, hasEducation } =
     useResumeSections(data);
   const heading =
     "text-sm font-bold uppercase text-center tracking-widest border-b border-gray-400 pb-1 mb-3 mt-1";
@@ -183,9 +186,7 @@ export function ExecutiveTemplate({ data }: { data: ResumeContent }) {
           <h1 className="text-2xl font-bold tracking-wide">
             {contact.fullName}
           </h1>
-          {contactLine && (
-            <p className="text-sm text-gray-700 mt-2">{contactLine}</p>
-          )}
+          <ContactLine contact={contact} className="text-sm text-gray-700 mt-2" />
         </header>
       )}
       {hasSummary && (
@@ -223,7 +224,7 @@ export function ExecutiveTemplate({ data }: { data: ResumeContent }) {
 
 export function StructuredTemplate({ data }: { data: ResumeContent }) {
   const { contact, summary } = data;
-  const { contactLine, hasSummary, hasExperience, hasSkills, hasEducation } =
+  const { hasSummary, hasExperience, hasSkills, hasEducation } =
     useResumeSections(data);
   const heading =
     "text-sm font-bold uppercase bg-gray-100 px-2 py-1 mb-2 border-l-4 border-gray-800";
@@ -233,9 +234,10 @@ export function StructuredTemplate({ data }: { data: ResumeContent }) {
       {contact.fullName.trim() && (
         <header className="mb-4 pb-3 border-b-2 border-gray-800">
           <h1 className="text-2xl font-bold">{contact.fullName}</h1>
-          {contactLine && (
-            <p className="text-sm text-gray-700 mt-1.5">{contactLine}</p>
-          )}
+          <ContactLine
+            contact={contact}
+            className="text-sm text-gray-700 mt-1.5"
+          />
         </header>
       )}
       {hasSummary && (
@@ -256,7 +258,11 @@ export function StructuredTemplate({ data }: { data: ResumeContent }) {
         <section className="mb-4">
           <h2 className={heading}>Skills</h2>
           <div className="pl-2">
-            <SkillsBlock data={data} bulleted labelClass="font-bold uppercase text-xs tracking-wide" />
+            <SkillsBlock
+              data={data}
+              bulleted
+              labelClass="font-bold uppercase text-xs tracking-wide"
+            />
           </div>
         </section>
       )}
@@ -271,6 +277,142 @@ export function StructuredTemplate({ data }: { data: ResumeContent }) {
             />
           </div>
         </section>
+      )}
+    </article>
+  );
+}
+
+const accentArticleClass =
+  "resume-document template-accent bg-white text-gray-900 print:shadow-none";
+
+function AccentSection({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="mb-3.5">
+      <h2 className="accent-section-title">{title}</h2>
+      {children}
+    </section>
+  );
+}
+
+export function AccentTemplate({ data }: { data: ResumeContent }) {
+  const { contact, summary } = data;
+  const { hasSummary, hasExperience, hasSkills, hasEducation } =
+    useResumeSections(data);
+
+  return (
+    <article id="resume-preview" className={accentArticleClass}>
+      {contact.fullName.trim() && (
+        <header className="mb-4">
+          <h1 className="text-[22px] font-bold tracking-wide text-gray-900 uppercase">
+            {contact.fullName}
+          </h1>
+          {contact.headline?.trim() && (
+            <p className="accent-headline text-sm mt-1 leading-snug">
+              {contact.headline}
+            </p>
+          )}
+          <ContactLine
+            contact={contact}
+            className="text-xs text-gray-600 mt-1.5 leading-relaxed"
+          />
+        </header>
+      )}
+      {hasSummary && (
+        <AccentSection title="Summary">
+          <p className="text-sm leading-relaxed text-gray-800">{summary}</p>
+        </AccentSection>
+      )}
+      {hasExperience && (
+        <AccentSection title="Experience">
+          <ExperienceBlock
+            data={data}
+            jobSpacing="space-y-3.5"
+            companyClass="text-sm font-bold text-gray-900"
+            titleClass="text-sm font-medium text-gray-800 not-italic"
+            dateClass="text-sm text-gray-700 shrink-0 ml-4"
+            bulletClass="text-sm leading-snug text-gray-800"
+          />
+        </AccentSection>
+      )}
+      {hasSkills && (
+        <AccentSection title="Skills">
+          <div className="space-y-1.5">
+            {data.skillGroups.map((group) => {
+              if (!group.category.trim() && !group.items.trim()) return null;
+              return (
+                <p key={group.id} className="text-sm leading-snug text-gray-800">
+                  {group.category.trim() && (
+                    <span className="font-semibold text-gray-900">
+                      {group.category}{" "}
+                    </span>
+                  )}
+                  {group.items.trim()}
+                </p>
+              );
+            })}
+          </div>
+        </AccentSection>
+      )}
+      {hasEducation && (
+        <AccentSection title="Education">
+          <div className="space-y-2">
+            {data.education.map((edu) => {
+              if (!edu.institution.trim() && !edu.details.trim()) return null;
+              const detailParts = edu.details
+                .split(",")
+                .map((part) => part.trim())
+                .filter(Boolean);
+              const degree = detailParts[0] ?? "";
+              const extras = detailParts.slice(1);
+
+              return (
+                <div key={edu.id}>
+                  <div className="flex justify-between gap-4">
+                    {edu.institution.trim() && (
+                      <span className="text-sm font-bold text-gray-900">
+                        {edu.institution}
+                      </span>
+                    )}
+                    {edu.location.trim() && (
+                      <span className="text-sm text-gray-700 shrink-0">
+                        {edu.location}
+                      </span>
+                    )}
+                  </div>
+                  {(degree || edu.graduationDate.trim()) && (
+                    <div className="flex justify-between gap-4 mt-0.5">
+                      {degree ? (
+                        <span className="text-sm text-gray-800">{degree}</span>
+                      ) : (
+                        <span />
+                      )}
+                      {edu.graduationDate.trim() && (
+                        <span className="text-sm text-gray-700 shrink-0">
+                          {edu.graduationDate}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  {extras.length > 0 && (
+                    <ul className="mt-1 space-y-0.5">
+                      {extras.map((part, index) => (
+                        <li key={index} className="text-sm text-gray-800">
+                          {part}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </AccentSection>
       )}
     </article>
   );

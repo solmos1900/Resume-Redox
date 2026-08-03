@@ -2,13 +2,7 @@
 
 import type { TemplateId } from "@/lib/templates/types";
 import type { ResumeContent } from "@/lib/templates/types";
-import {
-  ClassicTemplate,
-  ModernTemplate,
-  ProfessionalTemplate,
-  ExecutiveTemplate,
-  StructuredTemplate,
-} from "./ResumeTemplates";
+import { ResumeTemplateSwitch } from "./ResumeTemplateSwitch";
 
 type Props = {
   templateId: TemplateId;
@@ -16,17 +10,5 @@ type Props = {
 };
 
 export function TemplateRenderer({ templateId, data }: Props) {
-  switch (templateId) {
-    case "modern":
-      return <ModernTemplate data={data} />;
-    case "professional":
-      return <ProfessionalTemplate data={data} />;
-    case "executive":
-      return <ExecutiveTemplate data={data} />;
-    case "structured":
-      return <StructuredTemplate data={data} />;
-    case "classic":
-    default:
-      return <ClassicTemplate data={data} />;
-  }
+  return <ResumeTemplateSwitch templateId={templateId} data={data} />;
 }

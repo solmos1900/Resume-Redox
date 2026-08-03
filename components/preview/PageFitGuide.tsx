@@ -1,0 +1,131 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useResumeStore } from "@/lib/store";
+import {
+  formatOverflowMessage,
+  LETTER_HEIGHT_PX,
+  LETTER_WIDTH_PX,
+  measurePrintPageFit,
+  PAGE_MARGIN_X_IN,
+  PAGE_MARGIN_TOP_IN,
+  PRINT_CONTENT_AREA_BOTTOM_PX,
+  PX_PER_IN,
+  type PageFitResult,
+} from "@/lib/page-fit";
+import { ResumePreview } from "./ResumePreview";
+
+function PageFitBanner({ result }: { result: PageFitResult }) {
+  const styles = {
+    fits: "border-green-200 bg-green-50 text-green-900",
+    tight: "border-amber-200 bg-amber-50 text-amber-900",
+    overflow: "border-red-200 bg-red-50 text-red-900",
+    margin: "border-orange-200 bg-orange-50 text-orange-900",
+  } as const;
+
+  const labels = {
+    fits: "One page",
+    tight: "Nearly full",
+    overflow: "Page 2 overflow",
+    margin: "Margin warning",
+  } as const;
+
+  return (
+    <div
+      className={`no-print mb-3 rounded-lg border px-3 py-2 text-xs ${styles[result.status]}`}
+    >
+      <div className="flex items-center justify-between gap-3">
+        <span className="font-semibold">{labels[result.status]}</span>
+        <span className="text-[11px] opacity-80">
+          US Letter · 8.5×11 in · 0.5 in margins (PDF/print)
+        </span>
+      </div>
+      <p className="mt-1 leading-relaxed">{formatOverflowMessage(result)}</p>
+    </div>
+  );
+}
+
+export function PageFitGuide() {
+  const activeVersionId = useResumeStore((s) => s.activeVersionId);
+  const templateId = useResumeStore((s) => s.getActiveVersion()?.templateId);
+  const [result, setResult] = useState<PageFitResult | null>(null);
+
+  useEffect(() => {
+    const measure = () => {
+      const element = document.getElementById("resume-preview");
+      if (!element) return;
+      setResult(measurePrintPageFit(element));
+    };
+
+    measure();
+
+    const element = document.getElementById("resume-preview");
+    if (!element) return;
+
+    const resizeObserver = new ResizeObserver(measure);
+    resizeObserver.observe(element);
+
+    const mutationObserver = new MutationObserver(measure);
+    mutationObserver.observe(element, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+    });
+
+    window.addEventListener("resize", measure);
+
+    return () => {
+      resizeObserver.disconnect();
+      mutationObserver.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [activeVersionId, templateId]);
+
+  const marginX = PAGE_MARGIN_X_IN * PX_PER_IN;
+  const marginTop = PAGE_MARGIN_TOP_IN * PX_PER_IN;
+
+  return (
+    <div className="flex flex-col items-center">
+      {result && <PageFitBanner result={result} />}
+      <div
+        className="page-fit-frame relative"
+        style={{ width: LETTER_WIDTH_PX, minHeight: LETTER_HEIGHT_PX }}
+      >
+        <div
+          className="page-fit-margin-guide pointer-events-none absolute border border-dashed border-blue-300/70 rounded-sm"
+          style={{
+            top: marginTop,
+            left: marginX,
+            right: marginX,
+            bottom: marginTop,
+          }}
+          aria-hidden
+        />
+        {result && !result.fitsOnePage && result.overflowPx > 0 && (
+          <>
+            <div
+              className="page-fit-break-line pointer-events-none absolute left-0 right-0 z-20 border-t-2 border-dashed border-red-500"
+              style={{ top: PRINT_CONTENT_AREA_BOTTOM_PX }}
+              aria-hidden
+            />
+            <div
+              className="page-fit-overflow-region pointer-events-none absolute left-0 right-0 z-10 bg-red-200/35"
+              style={{
+                top: PRINT_CONTENT_AREA_BOTTOM_PX,
+                height: result.overflowPx,
+              }}
+              aria-hidden
+            />
+            <div
+              className="page-fit-page-label pointer-events-none absolute z-20 rounded bg-red-600 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white"
+              style={{ top: PRINT_CONTENT_AREA_BOTTOM_PX + 8, right: 12 }}
+            >
+              Page 2
+            </div>
+          </>
+        )}
+        <ResumePreview />
+      </div>
+    </div>
+  );
+}

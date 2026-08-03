@@ -61,6 +61,18 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
       "Black text on white",
     ],
   },
+  {
+    id: "accent",
+    name: "Accent Clean",
+    tagline: "Colored headers & readable",
+    description:
+      "Inspired by modern PM resumes: bold name, accent-blue section headers, headline tagline, and clean single-column flow that's easy to scan.",
+    atsNotes: [
+      "Single column",
+      "System fonts",
+      "Accent color on headings only",
+    ],
+  },
 ];
 
 export function getTemplateById(id: string): TemplateDefinition {

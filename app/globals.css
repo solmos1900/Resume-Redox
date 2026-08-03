@@ -12,12 +12,27 @@ body {
 }
 
 .resume-document {
-  max-width: 8.5in;
-  min-height: 11in;
-  padding: 0.6in 0.75in;
+  width: 8.5in;
+  padding: 0.5in 0.75in;
   font-family: Arial, Helvetica, sans-serif;
   line-height: 1.4;
   overflow: visible;
+  box-sizing: border-box;
+}
+
+.resume-document a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.page-fit-frame {
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+  background: white;
+}
+
+.page-fit-frame .resume-document {
+  box-shadow: none !important;
+  margin: 0;
 }
 
 /* Hanging-indent bullets: wrapped lines align with first line of text, not the bullet */
@@ -41,18 +56,128 @@ body {
   font-weight: bold;
 }
 
+.template-accent {
+  --accent: #1e5aa8;
+}
+
+.template-accent .accent-section-title {
+  color: var(--accent);
+  font-size: 0.875rem;
+  font-weight: 700;
+  border-bottom: 2px solid var(--accent);
+  padding-bottom: 0.125rem;
+  margin-bottom: 0.5rem;
+}
+
+.template-accent .accent-headline {
+  color: var(--accent);
+}
+
+.page-fit-print-measure {
+  width: 7.5in !important;
+  max-width: 7.5in !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  box-sizing: border-box;
+}
+
+body:has(.export-layout) {
+  background: white !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.export-layout {
+  min-height: 100vh;
+  background: white;
+  display: flex;
+  justify-content: center;
+  padding: 24px 0;
+}
+
+.resume-export-root {
+  width: 8.5in;
+  background: white;
+  box-sizing: border-box;
+}
+
+.resume-export-root .resume-document {
+  width: 100%;
+  max-width: 8.5in;
+  padding: 0.5in 0.75in;
+  box-sizing: border-box;
+  box-shadow: none;
+  margin: 0;
+}
+
+.export-timestamp {
+  font-size: 9px;
+  line-height: 1.3;
+  color: #6b7280;
+  text-align: right;
+  padding: 0 0.75in 0.25in;
+  margin: 0;
+}
+
 @media print {
   @page {
     size: letter;
-    margin: 0.5in;
+    margin: 0;
   }
 
   body {
+    background: white !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  body:has(.export-layout) {
     background: white !important;
   }
 
   .no-print {
     display: none !important;
+  }
+
+  .export-layout {
+    padding: 0 !important;
+    display: block !important;
+    min-height: auto !important;
+  }
+
+  .resume-export-root {
+    width: 8.5in !important;
+    margin: 0 auto !important;
+    break-inside: avoid;
+  }
+
+  .resume-export-root .resume-document {
+    width: 8.5in !important;
+    max-width: 8.5in !important;
+    min-height: auto !important;
+    padding: 0.5in 0.75in !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    color: black !important;
+    box-sizing: border-box !important;
+  }
+
+  .resume-export-root .resume-document * {
+    color: black !important;
+  }
+
+  .resume-export-root .resume-document.template-accent .accent-section-title,
+  .resume-export-root .resume-document.template-accent .accent-headline {
+    color: #1e5aa8 !important;
+  }
+
+  .resume-export-root .resume-document.template-accent .accent-section-title {
+    border-bottom-color: #1e5aa8 !important;
+  }
+
+  .export-timestamp {
+    color: #6b7280 !important;
+    padding: 0 0.75in 0.2in !important;
   }
 
   .print-only-preview {
@@ -63,16 +188,29 @@ body {
     padding: 0 !important;
   }
 
+  .page-fit-frame,
+  .page-fit-margin-guide,
+  .page-fit-break-line,
+  .page-fit-overflow-region,
+  .page-fit-page-label {
+    display: none !important;
+  }
+
   .resume-document {
     box-shadow: none !important;
-    max-width: 100% !important;
-    min-height: auto !important;
-    padding: 0 !important;
-    margin: 0 !important;
     color: black !important;
   }
 
   .resume-document * {
     color: black !important;
+  }
+
+  .resume-document.template-accent .accent-section-title,
+  .resume-document.template-accent .accent-headline {
+    color: #1e5aa8 !important;
+  }
+
+  .resume-document.template-accent .accent-section-title {
+    border-bottom-color: #1e5aa8 !important;
   }
 }

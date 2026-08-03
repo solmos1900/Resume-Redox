@@ -22,9 +22,6 @@ function emptyExperience(): Experience {
 export function ExperienceForm() {
   const version = useResumeStore((s) => s.getActiveVersion());
   const updateActiveVersion = useResumeStore((s) => s.updateActiveVersion);
-  const issueCount = useResumeStore((s) =>
-    s.getOpenRecommendationCount("experience")
-  );
 
   if (!version) return null;
 
@@ -80,7 +77,6 @@ export function ExperienceForm() {
     <CollapsibleSection
       title="Experience"
       sectionId="editor-section-experience"
-      issueCount={issueCount}
       action={
         <button
           type="button"

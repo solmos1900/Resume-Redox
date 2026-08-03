@@ -13,9 +13,6 @@ function emptySkillGroup(): SkillGroup {
 export function SkillGroupsForm() {
   const version = useResumeStore((s) => s.getActiveVersion());
   const updateActiveVersion = useResumeStore((s) => s.updateActiveVersion);
-  const issueCount = useResumeStore((s) =>
-    s.getOpenRecommendationCount("skills")
-  );
 
   if (!version) return null;
 
@@ -41,7 +38,6 @@ export function SkillGroupsForm() {
     <CollapsibleSection
       title="Skills"
       sectionId="editor-section-skills"
-      issueCount={issueCount}
       action={
         <button
           type="button"

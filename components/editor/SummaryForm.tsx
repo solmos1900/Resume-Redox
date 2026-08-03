@@ -6,9 +6,6 @@ import { CollapsibleSection } from "./CollapsibleSection";
 export function SummaryForm() {
   const version = useResumeStore((s) => s.getActiveVersion());
   const updateActiveVersion = useResumeStore((s) => s.updateActiveVersion);
-  const issueCount = useResumeStore((s) =>
-    s.getOpenRecommendationCount("summary")
-  );
 
   if (!version) return null;
 
@@ -16,7 +13,6 @@ export function SummaryForm() {
     <CollapsibleSection
       title="Summary"
       sectionId="editor-section-summary"
-      issueCount={issueCount}
     >
       <textarea
         value={version.summary}

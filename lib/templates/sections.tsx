@@ -172,8 +172,8 @@ export function EducationBlock({
                 <span className={locationClass}>{edu.location}</span>
               )}
             </div>
-            {edu.details.trim() &&
-              (detailsAsList && detailParts.length > 1 ? (
+            {(edu.details.trim() || edu.graduationDate.trim()) &&
+              (detailsAsList && detailParts.length > 1 && !edu.graduationDate.trim() ? (
                 <ul className="mt-1 space-y-0.5">
                   {detailParts.map((part, i) => (
                     <li key={i} className={detailsClass}>
@@ -182,7 +182,16 @@ export function EducationBlock({
                   ))}
                 </ul>
               ) : (
-                <p className={detailsClass}>{edu.details}</p>
+                <div className="flex justify-between mt-0.5">
+                  {edu.details.trim() ? (
+                    <span className={detailsClass}>{edu.details}</span>
+                  ) : (
+                    <span />
+                  )}
+                  {edu.graduationDate.trim() && (
+                    <span className={locationClass}>{edu.graduationDate}</span>
+                  )}
+                </div>
               ))}
           </div>
         );

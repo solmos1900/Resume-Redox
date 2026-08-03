@@ -1,13 +1,11 @@
 "use client";
 
-import { useState, useEffect, type ReactNode } from "react";
-import { useUiStore } from "@/lib/ui-store";
+import { useState, type ReactNode } from "react";
 
 type Props = {
   title: string;
   sectionId?: string;
   defaultOpen?: boolean;
-  issueCount?: number;
   action?: ReactNode;
   children: ReactNode;
 };
@@ -16,30 +14,10 @@ export function CollapsibleSection({
   title,
   sectionId,
   defaultOpen = true,
-  issueCount = 0,
   action,
   children,
 }: Props) {
   const [open, setOpen] = useState(defaultOpen);
-  const highlightSection = useUiStore((s) => s.highlightSection);
-  const openAiCoachForSection = useUiStore((s) => s.openAiCoachForSection);
-  const clearScrollTarget = useUiStore((s) => s.clearScrollTarget);
-
-  const sectionKey = sectionId?.replace("editor-section-", "") as
-    | "contact"
-    | "summary"
-    | "experience"
-    | "skills"
-    | "education"
-    | "overall"
-    | undefined;
-
-  useEffect(() => {
-    if (highlightSection && sectionKey === highlightSection) {
-      setOpen(true);
-      clearScrollTarget();
-    }
-  }, [highlightSection, sectionKey, clearScrollTarget]);
 
   return (
     <section
@@ -54,26 +32,6 @@ export function CollapsibleSection({
         >
           <span className="text-xs">{open ? "▼" : "▶"}</span>
           {title}
-          {issueCount > 0 && sectionKey && (
-            <span
-              role="button"
-              tabIndex={0}
-              onClick={(e) => {
-                e.stopPropagation();
-                openAiCoachForSection(sectionKey);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.stopPropagation();
-                  openAiCoachForSection(sectionKey);
-                }
-              }}
-              className="text-xs px-1.5 py-0.5 bg-red-100 text-red-700 rounded-full cursor-pointer hover:bg-red-200"
-              title="View AI feedback"
-            >
-              {issueCount}
-            </span>
-          )}
         </button>
         {action}
       </div>

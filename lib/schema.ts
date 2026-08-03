@@ -2,6 +2,7 @@ import { z } from "zod";
 
 export const contactSchema = z.object({
   fullName: z.string(),
+  headline: z.string().default(""),
   email: z.string(),
   phone: z.string(),
   location: z.string(),
@@ -30,6 +31,7 @@ export const educationSchema = z.object({
   institution: z.string(),
   location: z.string(),
   details: z.string(),
+  graduationDate: z.string().default(""),
 });
 
 export const jobDescriptionSchema = z.object({
@@ -73,6 +75,7 @@ export const templateIdSchema = z.enum([
   "professional",
   "executive",
   "structured",
+  "accent",
 ]);
 
 export const resumeVersionSchema = z.object({
@@ -117,6 +120,7 @@ export function createEmptyVersion(name: string): ResumeVersion {
     templateId: "classic",
     contact: {
       fullName: "",
+      headline: "",
       email: "",
       phone: "",
       location: "",
