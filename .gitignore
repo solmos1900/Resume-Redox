@@ -7,5 +7,10 @@
 npm-debug.log*
 .env*
 *.tsbuildinfo
-/data/resumes.json
+/data/
 .vercel
+.tmp-pdf/
+
+# Personal / private content — keep local only
+Personal_Resume_Data/
+Resume_Rewrites/

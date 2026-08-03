@@ -20,7 +20,7 @@ export function ContactForm() {
     {
       key: "headline",
       label: "Headline / Tagline",
-      placeholder: "Technical PM | Enterprise Integrations | Data Platforms",
+      placeholder: "Technical PM | Platform Delivery | Integrations",
     },
     { key: "phone", label: "Phone", placeholder: "+1 (555) 010-2000" },
     { key: "email", label: "Email", placeholder: "you@email.com" },
