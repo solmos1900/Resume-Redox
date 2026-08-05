@@ -25,6 +25,11 @@ export function ClassicTemplate({ data }: { data: ResumeContent }) {
           <h1 className="text-2xl font-bold tracking-wide uppercase">
             {contact.fullName}
           </h1>
+          {contact.headline?.trim() && (
+            <p className="text-sm text-gray-700 mt-1 leading-snug">
+              {contact.headline}
+            </p>
+          )}
           <ContactLine contact={contact} className="text-sm text-gray-800 mt-1" />
         </header>
       )}
@@ -69,6 +74,11 @@ export function ModernTemplate({ data }: { data: ResumeContent }) {
           <h1 className="text-3xl font-light text-gray-900">
             {contact.fullName}
           </h1>
+          {contact.headline?.trim() && (
+            <p className="text-sm text-gray-600 mt-1.5 leading-snug">
+              {contact.headline}
+            </p>
+          )}
           <ContactLine contact={contact} className="text-sm text-gray-600 mt-2" />
         </header>
       )}
@@ -125,6 +135,11 @@ export function ProfessionalTemplate({ data }: { data: ResumeContent }) {
       {contact.fullName.trim() && (
         <header className="mb-3">
           <h1 className="text-xl font-bold">{contact.fullName}</h1>
+          {contact.headline?.trim() && (
+            <p className="text-[13px] text-gray-700 mt-0.5 leading-snug">
+              {contact.headline}
+            </p>
+          )}
           <ContactLine
             contact={contact}
             className="text-[13px] text-gray-800 mt-0.5"
@@ -186,6 +201,11 @@ export function ExecutiveTemplate({ data }: { data: ResumeContent }) {
           <h1 className="text-2xl font-bold tracking-wide">
             {contact.fullName}
           </h1>
+          {contact.headline?.trim() && (
+            <p className="text-sm text-gray-700 mt-1.5 leading-snug">
+              {contact.headline}
+            </p>
+          )}
           <ContactLine contact={contact} className="text-sm text-gray-700 mt-2" />
         </header>
       )}
@@ -234,6 +254,11 @@ export function StructuredTemplate({ data }: { data: ResumeContent }) {
       {contact.fullName.trim() && (
         <header className="mb-4 pb-3 border-b-2 border-gray-800">
           <h1 className="text-2xl font-bold">{contact.fullName}</h1>
+          {contact.headline?.trim() && (
+            <p className="text-sm text-gray-700 mt-1 leading-snug">
+              {contact.headline}
+            </p>
+          )}
           <ContactLine
             contact={contact}
             className="text-sm text-gray-700 mt-1.5"
