@@ -1,4 +1,9 @@
-import { storeSchema, type StoreState } from "./schema";
+import {
+  resumeVersionSchema,
+  storeSchema,
+  type ResumeVersion,
+  type StoreState,
+} from "./schema";
 
 export function downloadStoreBackup(state: StoreState): void {
   const blob = new Blob([JSON.stringify(state, null, 2)], {
@@ -12,11 +17,25 @@ export function downloadStoreBackup(state: StoreState): void {
   URL.revokeObjectURL(url);
 }
 
-export async function importStoreFromFile(file: File): Promise<StoreState | null> {
+/** Accepts a full store backup or a single resume version. */
+export async function importStoreFromFile(
+  file: File
+): Promise<ResumeVersion[] | null> {
   try {
     const text = await file.text();
-    const parsed = storeSchema.safeParse(JSON.parse(text));
-    return parsed.success ? parsed.data : null;
+    const json = JSON.parse(text) as unknown;
+
+    const asStore = storeSchema.safeParse(json);
+    if (asStore.success && asStore.data.versions.length > 0) {
+      return asStore.data.versions;
+    }
+
+    const asVersion = resumeVersionSchema.safeParse(json);
+    if (asVersion.success) {
+      return [asVersion.data];
+    }
+
+    return null;
   } catch {
     return null;
   }

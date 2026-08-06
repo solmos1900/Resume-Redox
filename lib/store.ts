@@ -27,6 +27,10 @@ type ResumeStore = {
   ) => void;
   renameVersion: (id: string, name: string) => void;
   deleteVersion: (id: string) => void;
+  /** Add imported resumes as new entries (does not replace existing ones). */
+  importVersions: (versions: ResumeVersion[]) => number;
+  /** Overwrite the active resume with imported content (keeps the same entry id). */
+  replaceActiveWithImported: (version: ResumeVersion) => boolean;
 };
 
 function cloneVersion(version: ResumeVersion, newName: string): ResumeVersion {
@@ -160,6 +164,55 @@ export const useResumeStore = create<ResumeStore>()(
           activeVersionId:
             activeVersionId === id ? filtered[0].id : activeVersionId,
         });
+      },
+
+      importVersions: (incoming) => {
+        if (incoming.length === 0) return 0;
+
+        const existingNames = new Set(
+          get().versions.map((v) => v.name.trim().toLowerCase())
+        );
+
+        const cloned = incoming.map((version) => {
+          let name = version.name.trim() || "Imported Resume";
+          if (existingNames.has(name.toLowerCase())) {
+            name = `${name} (Imported)`;
+          }
+          existingNames.add(name.toLowerCase());
+          return cloneVersion(version, name);
+        });
+
+        set((state) => ({
+          versions: [...state.versions, ...cloned],
+          activeVersionId: cloned[0].id,
+        }));
+
+        return cloned.length;
+      },
+
+      replaceActiveWithImported: (incoming) => {
+        const active = get().getActiveVersion();
+        if (!active) return false;
+
+        const cloned = cloneVersion(
+          incoming,
+          incoming.name.trim() || active.name || "Imported Resume"
+        );
+
+        get().updateActiveVersion({
+          name: cloned.name,
+          templateId: cloned.templateId,
+          contact: cloned.contact,
+          summary: cloned.summary,
+          experience: cloned.experience,
+          skillGroups: cloned.skillGroups,
+          education: cloned.education,
+          jobDescription: cloned.jobDescription,
+          aiRecommendations: cloned.aiRecommendations,
+          aiMeta: cloned.aiMeta,
+        });
+
+        return true;
       },
     }),
     {
