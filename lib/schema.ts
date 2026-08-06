@@ -34,6 +34,24 @@ export const educationSchema = z.object({
   graduationDate: z.string().default(""),
 });
 
+/** Experience-like entry for user-defined sections (Projects, Leadership, etc.). */
+export const customSectionEntrySchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  location: z.string(),
+  subtitle: z.string(),
+  startDate: z.string(),
+  endDate: z.string(),
+  current: z.boolean(),
+  bullets: z.array(z.string()),
+});
+
+export const customSectionSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  entries: z.array(customSectionEntrySchema),
+});
+
 export const jobDescriptionSchema = z.object({
   url: z.string(),
   text: z.string(),
@@ -88,6 +106,7 @@ export const resumeVersionSchema = z.object({
   experience: z.array(experienceSchema),
   skillGroups: z.array(skillGroupSchema),
   education: z.array(educationSchema),
+  customSections: z.array(customSectionSchema).default([]),
   jobDescription: jobDescriptionSchema,
   aiRecommendations: z.array(aiRecommendationSchema),
   aiMeta: aiMetaSchema.optional(),
@@ -102,6 +121,8 @@ export type Contact = z.infer<typeof contactSchema>;
 export type Experience = z.infer<typeof experienceSchema>;
 export type SkillGroup = z.infer<typeof skillGroupSchema>;
 export type Education = z.infer<typeof educationSchema>;
+export type CustomSectionEntry = z.infer<typeof customSectionEntrySchema>;
+export type CustomSection = z.infer<typeof customSectionSchema>;
 export type JobDescription = z.infer<typeof jobDescriptionSchema>;
 export type AiRecommendation = z.infer<typeof aiRecommendationSchema>;
 export type AiMeta = z.infer<typeof aiMetaSchema>;
@@ -130,6 +151,7 @@ export function createEmptyVersion(name: string): ResumeVersion {
     experience: [],
     skillGroups: [],
     education: [],
+    customSections: [],
     jobDescription: { url: "", text: "" },
     aiRecommendations: [],
     aiMeta: {},

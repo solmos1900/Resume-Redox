@@ -1,4 +1,5 @@
 import type { ResumeContent } from "./types";
+import type { CustomSection, Experience } from "@/lib/schema";
 import { formatContactLine, formatDateRange } from "@/lib/utils";
 
 export function useResumeSections(data: ResumeContent) {
@@ -19,6 +20,14 @@ export function useResumeSections(data: ResumeContent) {
   const hasEducation = data.education.some(
     (e) => e.institution.trim() || e.details.trim()
   );
+  const visibleCustomSections = (data.customSections ?? []).filter((section) =>
+    section.entries.some(
+      (e) =>
+        e.name.trim() ||
+        e.subtitle.trim() ||
+        e.bullets.some((b) => b.trim())
+    )
+  );
 
   return {
     contactLine,
@@ -26,12 +35,65 @@ export function useResumeSections(data: ResumeContent) {
     hasExperience,
     hasSkills,
     hasEducation,
+    visibleCustomSections,
     formatDateRange,
   };
 }
 
+export function customSectionToExperience(section: CustomSection): Experience[] {
+  return section.entries.map((entry) => ({
+    id: entry.id,
+    company: entry.name,
+    location: entry.location,
+    title: entry.subtitle,
+    startDate: entry.startDate,
+    endDate: entry.endDate,
+    current: entry.current,
+    bullets: entry.bullets,
+  }));
+}
+
+type ExperienceBlockProps = {
+  companyClass?: string;
+  titleClass?: string;
+  dateClass?: string;
+  bulletClass?: string;
+  jobSpacing?: string;
+};
+
+export function CustomSectionBlocks({
+  data,
+  sectionClassName = "mb-4",
+  headingClassName,
+  experienceProps,
+}: {
+  data: ResumeContent;
+  sectionClassName?: string;
+  headingClassName: string;
+  experienceProps?: ExperienceBlockProps;
+}) {
+  const { visibleCustomSections } = useResumeSections(data);
+  if (visibleCustomSections.length === 0) return null;
+
+  return (
+    <>
+      {visibleCustomSections.map((section) => (
+        <section key={section.id} className={sectionClassName}>
+          <h2 className={headingClassName}>{section.title.trim() || "Section"}</h2>
+          <ExperienceBlock
+            data={data}
+            experience={customSectionToExperience(section)}
+            {...experienceProps}
+          />
+        </section>
+      ))}
+    </>
+  );
+}
+
 export function ExperienceBlock({
   data,
+  experience,
   companyClass = "text-sm font-semibold",
   titleClass = "text-sm italic",
   dateClass = "text-sm text-gray-700 shrink-0 ml-4",
@@ -39,6 +101,7 @@ export function ExperienceBlock({
   jobSpacing = "space-y-4",
 }: {
   data: ResumeContent;
+  experience?: Experience[];
   companyClass?: string;
   titleClass?: string;
   dateClass?: string;
@@ -46,10 +109,11 @@ export function ExperienceBlock({
   jobSpacing?: string;
 }) {
   const { formatDateRange } = useResumeSections(data);
+  const jobs = experience ?? data.experience;
 
   return (
     <div className={jobSpacing}>
-      {data.experience.map((job) => {
+      {jobs.map((job) => {
         const companyLine = [job.company, job.location]
           .filter((s) => s.trim())
           .join(", ");

@@ -1,5 +1,6 @@
 import type {
   Contact,
+  CustomSection,
   Education,
   Experience,
   SkillGroup,
@@ -15,6 +16,7 @@ export type ResumeContent = {
   experience: Experience[];
   skillGroups: SkillGroup[];
   education: Education[];
+  customSections: CustomSection[];
 };
 
 export type TemplateDefinition = {
@@ -32,5 +34,6 @@ export function toResumeContent(version: ResumeVersion): ResumeContent {
     experience: version.experience,
     skillGroups: version.skillGroups,
     education: version.education,
+    customSections: version.customSections ?? [],
   };
 }

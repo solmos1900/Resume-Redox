@@ -54,6 +54,14 @@ function cloneVersion(version: ResumeVersion, newName: string): ResumeVersion {
     ...e,
     id: crypto.randomUUID(),
   }));
+  clone.customSections = (clone.customSections ?? []).map((section) => ({
+    ...section,
+    id: crypto.randomUUID(),
+    entries: section.entries.map((entry) => ({
+      ...entry,
+      id: crypto.randomUUID(),
+    })),
+  }));
   return clone;
 }
 
@@ -64,6 +72,7 @@ function withDefaults(v: Partial<ResumeVersion>): ResumeVersion {
     jobDescription: v.jobDescription ?? { url: "", text: "" },
     aiRecommendations: v.aiRecommendations ?? [],
     aiMeta: v.aiMeta ?? {},
+    customSections: v.customSections ?? [],
   } as ResumeVersion;
 }
 
@@ -207,6 +216,7 @@ export const useResumeStore = create<ResumeStore>()(
           experience: cloned.experience,
           skillGroups: cloned.skillGroups,
           education: cloned.education,
+          customSections: cloned.customSections,
           jobDescription: cloned.jobDescription,
           aiRecommendations: cloned.aiRecommendations,
           aiMeta: cloned.aiMeta,
@@ -218,7 +228,7 @@ export const useResumeStore = create<ResumeStore>()(
     {
       name: "resume-redox-storage",
       skipHydration: true,
-      version: 6,
+      version: 7,
       migrate: (persisted) => {
         const state = persisted as {
           activeVersionId?: string;
@@ -227,6 +237,7 @@ export const useResumeStore = create<ResumeStore>()(
               jobDescription?: { url: string; text: string };
               aiRecommendations?: AiRecommendation[];
               aiMeta?: ResumeVersion["aiMeta"];
+              customSections?: ResumeVersion["customSections"];
               education?: Array<
                 ResumeVersion["education"][number] & {
                   graduationDate?: string;
@@ -248,6 +259,7 @@ export const useResumeStore = create<ResumeStore>()(
               jobDescription: v.jobDescription ?? { url: "", text: "" },
               aiRecommendations: v.aiRecommendations ?? [],
               aiMeta: v.aiMeta ?? {},
+              customSections: v.customSections ?? [],
               education: (v.education ?? []).map((edu) => ({
                 ...edu,
                 graduationDate: edu.graduationDate ?? "",

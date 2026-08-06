@@ -3,6 +3,7 @@
 import { ContactForm } from "./ContactForm";
 import { SummaryForm } from "./SummaryForm";
 import { ExperienceForm } from "./ExperienceForm";
+import { CustomSectionsForm } from "./CustomSectionsForm";
 import { SkillGroupsForm } from "./SkillGroupsForm";
 import { EducationForm } from "./EducationForm";
 import { JobDescriptionForm } from "./JobDescriptionForm";
@@ -14,6 +15,7 @@ export function EditorPanel() {
       <ContactForm />
       <SummaryForm />
       <ExperienceForm />
+      <CustomSectionsForm />
       <SkillGroupsForm />
       <EducationForm />
     </div>
