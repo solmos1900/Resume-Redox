@@ -87,6 +87,7 @@ export function createSeedVersion(): ResumeVersion {
         graduationDate: "May 2021",
       },
     ],
+    customSections: [],
     jobDescription: { url: "", text: "" },
     aiRecommendations: [],
     aiMeta: {},

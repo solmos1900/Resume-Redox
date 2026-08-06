@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 import type { ResumeContent } from "@/lib/templates/types";
 import { ContactLine } from "@/components/preview/ContactLine";
 import {
+  customSectionToExperience,
+  CustomSectionBlocks,
   EducationBlock,
   ExperienceBlock,
   SkillsBlock,
@@ -45,6 +47,7 @@ export function ClassicTemplate({ data }: { data: ResumeContent }) {
           <ExperienceBlock data={data} />
         </section>
       )}
+      <CustomSectionBlocks data={data} headingClassName={heading} sectionClassName="mb-4" />
       {hasSkills && (
         <section className="mb-4">
           <h2 className={heading}>Skills</h2>
@@ -98,6 +101,15 @@ export function ModernTemplate({ data }: { data: ResumeContent }) {
           />
         </section>
       )}
+      <CustomSectionBlocks
+        data={data}
+        headingClassName={heading}
+        sectionClassName="mb-6"
+        experienceProps={{
+          jobSpacing: "space-y-5",
+          titleClass: "text-sm font-medium text-gray-800",
+        }}
+      />
       {hasSkills && (
         <section className="mb-6">
           <h2 className={heading}>Skills</h2>
@@ -165,6 +177,18 @@ export function ProfessionalTemplate({ data }: { data: ResumeContent }) {
           />
         </section>
       )}
+      <CustomSectionBlocks
+        data={data}
+        headingClassName={heading}
+        sectionClassName="mb-3"
+        experienceProps={{
+          jobSpacing: "space-y-3",
+          companyClass: "text-[13px] font-bold",
+          titleClass: "text-[13px]",
+          dateClass: "text-[13px] text-gray-700 shrink-0 ml-4",
+          bulletClass: "text-[13px] leading-snug",
+        }}
+      />
       {hasSkills && (
         <section className="mb-3">
           <h2 className={heading}>Skills</h2>
@@ -226,6 +250,14 @@ export function ExecutiveTemplate({ data }: { data: ResumeContent }) {
           />
         </section>
       )}
+      <CustomSectionBlocks
+        data={data}
+        headingClassName={heading}
+        sectionClassName="mb-5"
+        experienceProps={{
+          titleClass: "text-sm font-semibold not-italic",
+        }}
+      />
       {hasSkills && (
         <section className="mb-5">
           <h2 className={heading}>Core Competencies</h2>
@@ -244,8 +276,13 @@ export function ExecutiveTemplate({ data }: { data: ResumeContent }) {
 
 export function StructuredTemplate({ data }: { data: ResumeContent }) {
   const { contact, summary } = data;
-  const { hasSummary, hasExperience, hasSkills, hasEducation } =
-    useResumeSections(data);
+  const {
+    hasSummary,
+    hasExperience,
+    hasSkills,
+    hasEducation,
+    visibleCustomSections,
+  } = useResumeSections(data);
   const heading =
     "text-sm font-bold uppercase bg-gray-100 px-2 py-1 mb-2 border-l-4 border-gray-800";
 
@@ -279,6 +316,17 @@ export function StructuredTemplate({ data }: { data: ResumeContent }) {
           </div>
         </section>
       )}
+      {visibleCustomSections.map((section) => (
+        <section key={section.id} className="mb-4">
+          <h2 className={heading}>{section.title.trim() || "Section"}</h2>
+          <div className="pl-2">
+            <ExperienceBlock
+              data={data}
+              experience={customSectionToExperience(section)}
+            />
+          </div>
+        </section>
+      ))}
       {hasSkills && (
         <section className="mb-4">
           <h2 className={heading}>Skills</h2>
@@ -327,8 +375,13 @@ function AccentSection({
 
 export function AccentTemplate({ data }: { data: ResumeContent }) {
   const { contact, summary } = data;
-  const { hasSummary, hasExperience, hasSkills, hasEducation } =
-    useResumeSections(data);
+  const {
+    hasSummary,
+    hasExperience,
+    hasSkills,
+    hasEducation,
+    visibleCustomSections,
+  } = useResumeSections(data);
 
   return (
     <article id="resume-preview" className={accentArticleClass}>
@@ -365,6 +418,19 @@ export function AccentTemplate({ data }: { data: ResumeContent }) {
           />
         </AccentSection>
       )}
+      {visibleCustomSections.map((section) => (
+        <AccentSection key={section.id} title={section.title.trim() || "Section"}>
+          <ExperienceBlock
+            data={data}
+            experience={customSectionToExperience(section)}
+            jobSpacing="space-y-3.5"
+            companyClass="text-sm font-bold text-gray-900"
+            titleClass="text-sm font-medium text-gray-800 not-italic"
+            dateClass="text-sm text-gray-700 shrink-0 ml-4"
+            bulletClass="text-sm leading-snug text-gray-800"
+          />
+        </AccentSection>
+      ))}
       {hasSkills && (
         <AccentSection title="Skills">
           <div className="space-y-1.5">
