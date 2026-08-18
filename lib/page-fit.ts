@@ -6,22 +6,20 @@ export const PAGE_MARGIN_TOP_IN = 0.5;
 export const PAGE_MARGIN_BOTTOM_IN = 0.5;
 export const PAGE_MARGIN_X_IN = 0.75;
 
-/** Margins used by PDF export and browser print (@page rule). */
-export const PRINT_MARGIN_IN = 0.5;
+/** Extra slack vs Chrome print rounding. */
+export const PRINT_SAFETY_BUFFER_IN = 0.1;
 
 export const LETTER_WIDTH_PX = LETTER_WIDTH_IN * PX_PER_IN;
 export const LETTER_HEIGHT_PX = LETTER_HEIGHT_IN * PX_PER_IN;
 export const CONTENT_WIDTH_PX =
   (LETTER_WIDTH_IN - PAGE_MARGIN_X_IN * 2) * PX_PER_IN;
 
-export const PRINT_CONTENT_WIDTH_IN =
-  LETTER_WIDTH_IN - PRINT_MARGIN_IN * 2;
-export const PRINT_CONTENT_HEIGHT_IN =
-  LETTER_HEIGHT_IN - PRINT_MARGIN_IN * 2;
-export const PRINT_CONTENT_WIDTH_PX = PRINT_CONTENT_WIDTH_IN * PX_PER_IN;
-export const PRINT_CONTENT_HEIGHT_PX = PRINT_CONTENT_HEIGHT_IN * PX_PER_IN;
+/** Bottom of the first-page content box (11in minus bottom padding). */
 export const PRINT_CONTENT_AREA_BOTTOM_PX =
-  PRINT_MARGIN_IN * PX_PER_IN + PRINT_CONTENT_HEIGHT_PX;
+  LETTER_HEIGHT_PX - PAGE_MARGIN_BOTTOM_IN * PX_PER_IN;
+
+export const PRINT_PAGE_LIMIT_PX =
+  LETTER_HEIGHT_PX - PRINT_SAFETY_BUFFER_IN * PX_PER_IN;
 
 export type PageFitStatus = "fits" | "tight" | "overflow" | "margin";
 
@@ -40,11 +38,11 @@ export function measurePageFit(
   heightPx: number,
   scrollWidthPx: number,
   clientWidthPx: number,
-  contentLimitPx: number = PRINT_CONTENT_HEIGHT_PX
+  contentLimitPx: number = PRINT_PAGE_LIMIT_PX
 ): PageFitResult {
   const overflowPx = Math.max(0, heightPx - contentLimitPx);
   const overflowIn = overflowPx / PX_PER_IN;
-  const utilizationPercent = (heightPx / contentLimitPx) * 100;
+  const utilizationPercent = (heightPx / LETTER_HEIGHT_PX) * 100;
   const marginOverflowPx = Math.max(0, scrollWidthPx - clientWidthPx);
 
   let status: PageFitStatus = "fits";
@@ -69,8 +67,8 @@ export function measurePageFit(
 }
 
 /**
- * Measure page fit using the same layout PDF export and print use:
- * no document padding, 0.5 in page margins, and a wider content column.
+ * Measure page fit using the same 8.5×11in box and 0.5in / 0.75in padding
+ * as on-screen preview and Save as PDF.
  */
 export function measurePrintPageFit(element: HTMLElement): PageFitResult {
   const container = document.createElement("div");
@@ -87,7 +85,7 @@ export function measurePrintPageFit(element: HTMLElement): PageFitResult {
     clone.scrollHeight,
     clone.scrollWidth,
     clone.clientWidth,
-    PRINT_CONTENT_HEIGHT_PX
+    PRINT_PAGE_LIMIT_PX
   );
 
   document.body.removeChild(container);

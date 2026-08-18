@@ -37,7 +37,7 @@ function PageFitBanner({ result }: { result: PageFitResult }) {
       <div className="flex items-center justify-between gap-3">
         <span className="font-semibold">{labels[result.status]}</span>
         <span className="text-[11px] opacity-80">
-          US Letter · 8.5×11 in · 0.5 in margins (PDF/print)
+          US Letter · 8.5×11 in · 0.5 in top/bottom · 0.75 in sides
         </span>
       </div>
       <p className="mt-1 leading-relaxed">{formatOverflowMessage(result)}</p>

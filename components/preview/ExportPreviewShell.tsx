@@ -6,7 +6,7 @@ import { ExportTimestamp } from "@/components/preview/ExportTimestamp";
 import type { TemplateId } from "@/lib/schema";
 import { toResumeContent } from "@/lib/templates/types";
 import type { ResumeVersion } from "@/lib/schema";
-import type { ExportSessionOptions } from "@/lib/export";
+import { getExportFilename, type ExportSessionOptions } from "@/lib/export";
 
 type Props = {
   version: ResumeVersion;
@@ -27,7 +27,7 @@ export function ExportPreviewShell({
   useEffect(() => {
     if (!autoPrint) return;
 
-    document.title = " ";
+    document.title = getExportFilename(version);
 
     const triggerPrint = () => {
       window.print();
@@ -35,7 +35,7 @@ export function ExportPreviewShell({
 
     const timeout = window.setTimeout(triggerPrint, 400);
     return () => window.clearTimeout(timeout);
-  }, [autoPrint]);
+  }, [autoPrint, version]);
 
   return (
     <div id="resume-export-root" className="resume-export-root">

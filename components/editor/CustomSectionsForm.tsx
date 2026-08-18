@@ -34,6 +34,7 @@ export function CustomSectionsForm() {
   if (!version) return null;
 
   const sections = version.customSections ?? [];
+  if (sections.length === 0) return null;
 
   const setSections = (next: CustomSection[]) => {
     updateActiveVersion({ customSections: next });
@@ -57,10 +58,6 @@ export function CustomSectionsForm() {
 
   const removeSection = (id: string) => {
     setSections(sections.filter((section) => section.id !== id));
-  };
-
-  const addSection = (title = "Projects") => {
-    setSections([...sections, emptySection(title)]);
   };
 
   const updateEntry = (
@@ -153,6 +150,22 @@ export function CustomSectionsForm() {
     updateEntry(sectionId, entryId, {
       bullets: entry.bullets.filter((_, i) => i !== bulletIndex),
     });
+  };
+
+  const moveBullet = (
+    sectionId: string,
+    entryId: string,
+    index: number,
+    direction: -1 | 1
+  ) => {
+    const section = sections.find((s) => s.id === sectionId);
+    const entry = section?.entries.find((e) => e.id === entryId);
+    if (!entry) return;
+    const target = index + direction;
+    if (target < 0 || target >= entry.bullets.length) return;
+    const bullets = [...entry.bullets];
+    [bullets[index], bullets[target]] = [bullets[target], bullets[index]];
+    updateEntry(sectionId, entryId, { bullets });
   };
 
   return (
@@ -318,7 +331,7 @@ export function CustomSectionsForm() {
                   </button>
                 </div>
                 {entry.bullets.map((bullet, bi) => (
-                  <div key={bi} className="flex gap-2">
+                  <div key={bi} className="flex gap-2 items-start">
                     <textarea
                       value={bullet}
                       onChange={(e) =>
@@ -328,14 +341,19 @@ export function CustomSectionsForm() {
                       placeholder="What you built or achieved..."
                       className="flex-1 rounded border px-2 py-1.5 text-sm"
                     />
-                    <button
-                      type="button"
-                      onClick={() => removeBullet(section.id, entry.id, bi)}
-                      className="text-red-500 text-xs px-1 self-start"
-                      title="Remove bullet"
-                    >
-                      ✕
-                    </button>
+                    <RepeatableControls
+                      onMoveUp={() =>
+                        moveBullet(section.id, entry.id, bi, -1)
+                      }
+                      onMoveDown={() =>
+                        moveBullet(section.id, entry.id, bi, 1)
+                      }
+                      onRemove={() =>
+                        removeBullet(section.id, entry.id, bi)
+                      }
+                      canMoveUp={bi > 0}
+                      canMoveDown={bi < entry.bullets.length - 1}
+                    />
                   </div>
                 ))}
               </div>
@@ -343,35 +361,51 @@ export function CustomSectionsForm() {
           ))}
         </CollapsibleSection>
       ))}
+    </div>
+  );
+}
 
-      <div className="rounded-lg border border-dashed border-gray-300 p-3 bg-white">
-        <p className="text-xs text-gray-500 mb-2">
-          Add a custom section with the same layout as Experience (name,
-          subtitle, dates, bullets).
-        </p>
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => addSection("Projects")}
-            className="text-xs px-3 py-1.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800"
-          >
-            + Projects
-          </button>
-          <button
-            type="button"
-            onClick={() => addSection("Leadership")}
-            className="text-xs px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50"
-          >
-            + Leadership
-          </button>
-          <button
-            type="button"
-            onClick={() => addSection("Custom Section")}
-            className="text-xs px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50"
-          >
-            + Custom section
-          </button>
-        </div>
+export function AddCustomSectionControls() {
+  const version = useResumeStore((s) => s.getActiveVersion());
+  const updateActiveVersion = useResumeStore((s) => s.updateActiveVersion);
+
+  if (!version) return null;
+
+  const addSection = (title = "Projects") => {
+    updateActiveVersion({
+      customSections: [...(version.customSections ?? []), emptySection(title)],
+    });
+  };
+
+  return (
+    <div className="rounded-lg border border-dashed border-gray-300 p-3 bg-white">
+      <p className="text-xs text-gray-500 mb-2">
+        Add a custom section with the same layout as Experience (name, subtitle,
+        dates, bullets). New sections appear above Skills in the editor and
+        preview.
+      </p>
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => addSection("Projects")}
+          className="text-xs px-3 py-1.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800"
+        >
+          + Projects
+        </button>
+        <button
+          type="button"
+          onClick={() => addSection("Leadership")}
+          className="text-xs px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50"
+        >
+          + Leadership
+        </button>
+        <button
+          type="button"
+          onClick={() => addSection("Custom Section")}
+          className="text-xs px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50"
+        >
+          + Custom section
+        </button>
       </div>
     </div>
   );

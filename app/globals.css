@@ -74,9 +74,9 @@ body {
 }
 
 .page-fit-print-measure {
-  width: 7.5in !important;
-  max-width: 7.5in !important;
-  padding: 0 !important;
+  width: 8.5in !important;
+  max-width: 8.5in !important;
+  padding: 0.5in 0.75in !important;
   margin: 0 !important;
   box-sizing: border-box;
 }
@@ -148,7 +148,6 @@ body:has(.export-layout) {
   .resume-export-root {
     width: 8.5in !important;
     margin: 0 auto !important;
-    break-inside: avoid;
   }
 
   .resume-export-root .resume-document {
