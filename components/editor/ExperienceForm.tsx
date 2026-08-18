@@ -73,6 +73,16 @@ export function ExperienceForm() {
     });
   };
 
+  const moveBullet = (expId: string, index: number, direction: -1 | 1) => {
+    const exp = version.experience.find((e) => e.id === expId);
+    if (!exp) return;
+    const target = index + direction;
+    if (target < 0 || target >= exp.bullets.length) return;
+    const bullets = [...exp.bullets];
+    [bullets[index], bullets[target]] = [bullets[target], bullets[index]];
+    updateItem(expId, { bullets });
+  };
+
   return (
     <CollapsibleSection
       title="Experience"
@@ -183,7 +193,7 @@ export function ExperienceForm() {
               </button>
             </div>
             {exp.bullets.map((bullet, bi) => (
-              <div key={bi} className="flex gap-2">
+              <div key={bi} className="flex gap-2 items-start">
                 <textarea
                   value={bullet}
                   onChange={(e) => updateBullet(exp.id, bi, e.target.value)}
@@ -191,14 +201,13 @@ export function ExperienceForm() {
                   placeholder="Achievement with metrics..."
                   className="flex-1 rounded border px-2 py-1.5 text-sm"
                 />
-                <button
-                  type="button"
-                  onClick={() => removeBullet(exp.id, bi)}
-                  className="text-red-500 text-xs px-1 self-start"
-                  title="Remove bullet"
-                >
-                  ✕
-                </button>
+                <RepeatableControls
+                  onMoveUp={() => moveBullet(exp.id, bi, -1)}
+                  onMoveDown={() => moveBullet(exp.id, bi, 1)}
+                  onRemove={() => removeBullet(exp.id, bi)}
+                  canMoveUp={bi > 0}
+                  canMoveDown={bi < exp.bullets.length - 1}
+                />
               </div>
             ))}
           </div>

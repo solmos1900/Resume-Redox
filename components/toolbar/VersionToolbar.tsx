@@ -9,7 +9,7 @@ import {
   saveResumeAsPdf,
 } from "@/lib/export";
 import {
-  downloadStoreBackup,
+  downloadResumeBackup,
   importStoreFromFile,
 } from "@/lib/file-persistence";
 
@@ -28,8 +28,6 @@ type ImportMode = "add" | "replace";
 
 export function VersionToolbar() {
   const version = useResumeStore((s) => s.getActiveVersion());
-  const activeVersionId = useResumeStore((s) => s.activeVersionId);
-  const versions = useResumeStore((s) => s.versions);
   const importVersions = useResumeStore((s) => s.importVersions);
   const replaceActiveWithImported = useResumeStore(
     (s) => s.replaceActiveWithImported
@@ -122,8 +120,13 @@ export function VersionToolbar() {
   };
 
   const handleBackupJson = () => {
-    downloadStoreBackup({ activeVersionId, versions });
-    showStatus("JSON backup downloaded.");
+    const active = useResumeStore.getState().getActiveVersion();
+    if (!active) {
+      showStatus("No resume to back up.");
+      return;
+    }
+    downloadResumeBackup(active);
+    showStatus(`Backed up “${active.name.trim() || "Untitled Resume"}”.`);
   };
 
   const handleImportFileSelected = async (file: File) => {
