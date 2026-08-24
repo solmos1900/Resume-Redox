@@ -3,15 +3,14 @@
 import { useEffect, useRef, useState } from "react";
 import { useResumeStore } from "@/lib/store";
 import type { ResumeVersion } from "@/lib/schema";
-import {
-  createPrintSession,
-  openPrintPreview,
-  saveResumeAsPdf,
-} from "@/lib/export";
+import { createPrintSession, openPrintPreview } from "@/lib/export";
 import {
   downloadResumeBackup,
   importStoreFromFile,
 } from "@/lib/file-persistence";
+import { DownloadMenu } from "./DownloadMenu";
+import { AccountMenu } from "@/components/auth/AccountMenu";
+import { useSyncStatus } from "@/lib/sync-status";
 
 function formatSavedAt(iso: string): string {
   const date = new Date(iso);
@@ -46,6 +45,7 @@ export function VersionToolbar() {
     null
   );
   const [importMode, setImportMode] = useState<ImportMode>("add");
+  const syncStatus = useSyncStatus((s) => s.status);
 
   useEffect(() => {
     const updatedAt = version?.updatedAt;
@@ -86,18 +86,6 @@ export function VersionToolbar() {
   const showStatus = (message: string) => {
     setStatus(message);
     setTimeout(() => setStatus(null), 4000);
-  };
-
-  const handleSavePdf = () => {
-    if (!version) return;
-    try {
-      saveResumeAsPdf(version);
-      showStatus("Print dialog opened — choose “Save as PDF”.");
-    } catch (error) {
-      showStatus(
-        error instanceof Error ? error.message : "Could not open print preview."
-      );
-    }
   };
 
   const handlePrint = () => {
@@ -190,6 +178,9 @@ export function VersionToolbar() {
           {version && saveStatus === "saved" && savedAtLabel && (
             <p className="text-xs text-gray-400 mt-0.5" aria-live="polite">
               Saved {savedAtLabel}
+              {syncStatus === "syncing" && " · Syncing…"}
+              {syncStatus === "synced" && " · Synced"}
+              {syncStatus === "error" && " · Sync failed"}
             </p>
           )}
         </div>
@@ -199,6 +190,7 @@ export function VersionToolbar() {
               {status}
             </span>
           )}
+          <AccountMenu />
           <input
             ref={importInputRef}
             type="file"
@@ -224,14 +216,7 @@ export function VersionToolbar() {
           >
             Import JSON
           </button>
-          <button
-            type="button"
-            onClick={handleSavePdf}
-            disabled={!version}
-            className="text-sm px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40 font-medium"
-          >
-            Save PDF
-          </button>
+          <DownloadMenu version={version} onStatus={showStatus} />
           <button
             type="button"
             onClick={handlePrint}
