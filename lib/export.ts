@@ -24,22 +24,27 @@ function toFilenameToken(value: string): string {
     .replace(/_+/g, "_");
 }
 
-/** e.g. Alex_Rivera_TAM_Resume */
+/**
+ * Uses the resume's own name as the filename (e.g. a version named
+ * "Sebastian_Olmos_TPM" exports as exactly that) since that's what the user
+ * already chose to call it. Falls back to "First_Last_Resume" only when the
+ * version has no meaningful name of its own (e.g. still "New Resume").
+ */
 export function getExportFilename(version: ResumeVersion): string {
+  const roleName = version.name.trim();
+  const isGenericName =
+    !roleName || /^new resume$/i.test(roleName) || /^resume$/i.test(roleName);
+
+  if (!isGenericName) {
+    const token = toFilenameToken(roleName);
+    if (token) return token;
+  }
+
   const fullName = version.contact.fullName.trim();
   const nameParts = fullName.split(/\s+/).filter(Boolean);
   const first = toFilenameToken(nameParts[0] ?? "Resume");
   const last = toFilenameToken(nameParts.slice(1).join(" ") || "Candidate");
-
-  const roleName = version.name.trim();
-  const skipRole =
-    !roleName || /^new resume$/i.test(roleName) || /^resume$/i.test(roleName);
-  if (skipRole) {
-    return `${first}_${last}_Resume`;
-  }
-
-  const role = toFilenameToken(roleName);
-  return `${first}_${last}_${role}_Resume`;
+  return `${first}_${last}_Resume`;
 }
 
 export function formatExportTimestamp(date: Date): string {
@@ -96,11 +101,3 @@ export function openPrintPreview(token: string): void {
   }
 }
 
-/**
- * Opens the print dialog. Use the browser’s “Save as PDF” destination.
- * (Server Puppeteer PDF is archived under `_archived/features/pdf-puppeteer/`.)
- */
-export function saveResumeAsPdf(version: ResumeVersion): void {
-  const token = createPrintSession(version);
-  openPrintPreview(token);
-}

@@ -45,7 +45,7 @@ body {
 .resume-document li {
   position: relative;
   padding-left: 1.15em;
-  margin-bottom: 0.3em;
+  margin-bottom: 0.38em;
 }
 
 .resume-document li::before {
@@ -75,27 +75,27 @@ body {
 
 .template-accent li {
   padding-left: 1.05em;
-  margin-bottom: 0.2em;
+  margin-bottom: 0.38em;
 }
 
 .template-classic li {
-  margin-bottom: 0.25em;
+  margin-bottom: 0.38em;
 }
 
 .template-modern li {
-  margin-bottom: 0.25em;
+  margin-bottom: 0.38em;
 }
 
 .template-professional li {
-  margin-bottom: 0.22em;
+  margin-bottom: 0.32em;
 }
 
 .template-executive li {
-  margin-bottom: 0.25em;
+  margin-bottom: 0.38em;
 }
 
 .template-structured li {
-  margin-bottom: 0.22em;
+  margin-bottom: 0.32em;
 }
 
 .page-fit-print-measure {
@@ -133,6 +133,25 @@ body:has(.export-layout) {
   box-sizing: border-box;
   box-shadow: none;
   margin: 0;
+}
+
+/**
+ * Same forced-color flattening as the `@media print` block below, exposed as
+ * a plain class so client-side PDF capture (html2canvas, no print media)
+ * can opt in and match what "Print" already produces.
+ */
+.resume-export-root .resume-document.pdf-export-mode,
+.resume-export-root .resume-document.pdf-export-mode * {
+  color: black !important;
+}
+
+.resume-export-root .resume-document.pdf-export-mode.template-accent .accent-section-title,
+.resume-export-root .resume-document.pdf-export-mode.template-accent .accent-headline {
+  color: #1e5aa8 !important;
+}
+
+.resume-export-root .resume-document.pdf-export-mode.template-accent .accent-section-title {
+  border-bottom-color: #1e5aa8 !important;
 }
 
 .export-timestamp {
