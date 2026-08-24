@@ -14,6 +14,17 @@ function isUntouchedSeed(state: StoreState): boolean {
   return state.versions.length === 1 && state.versions[0].id === SEED_VERSION_ID;
 }
 
+/**
+ * True when local and cloud hold the same resumes (by id + last-edited
+ * time), regardless of array order. Used to skip the conflict dialog when
+ * a device has already synced before and nothing has changed since.
+ */
+function storesAreInSync(a: StoreState, b: StoreState): boolean {
+  if (a.versions.length !== b.versions.length) return false;
+  const bByid = new Map(b.versions.map((v) => [v.id, v.updatedAt]));
+  return a.versions.every((v) => bByid.get(v.id) === v.updatedAt);
+}
+
 export function CloudSyncManager() {
   const { user } = useAuth();
   const setSyncStatus = useSyncStatus((s) => s.set);
@@ -71,7 +82,7 @@ export function CloudSyncManager() {
         return;
       }
 
-      if (isUntouchedSeed(localState)) {
+      if (isUntouchedSeed(localState) || storesAreInSync(localState, cloud)) {
         useResumeStore.setState(cloud);
         setSyncStatus("synced");
         startAutosave(user.uid);
