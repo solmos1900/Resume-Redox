@@ -7,6 +7,7 @@ export const contactSchema = z.object({
   phone: z.string(),
   location: z.string(),
   linkedIn: z.string().optional(),
+  linkedInHyperlink: z.boolean().default(true),
 });
 
 export const experienceSchema = z.object({
@@ -146,6 +147,7 @@ export function createEmptyVersion(name: string): ResumeVersion {
       phone: "",
       location: "",
       linkedIn: "",
+      linkedInHyperlink: true,
     },
     summary: "",
     experience: [],
