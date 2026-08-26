@@ -33,6 +33,7 @@ export function ContactLine({ contact, className }: ContactLineProps) {
         <a
           key="linkedin"
           href={normalizeLinkedInUrl(linkedIn)}
+          data-pdf-link="linkedin"
           style={{ textDecoration: "underline" }}
         >
           {linkedIn}
