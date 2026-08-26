@@ -29,9 +29,17 @@ export function ContactLine({ contact, className }: ContactLineProps) {
   if (contact.linkedIn?.trim()) {
     const linkedIn = contact.linkedIn.trim();
     segments.push(
-      <a key="linkedin" href={normalizeLinkedInUrl(linkedIn)}>
-        {linkedIn}
-      </a>
+      contact.linkedInHyperlink ? (
+        <a
+          key="linkedin"
+          href={normalizeLinkedInUrl(linkedIn)}
+          style={{ textDecoration: "underline" }}
+        >
+          {linkedIn}
+        </a>
+      ) : (
+        <span key="linkedin">{linkedIn}</span>
+      )
     );
   }
   if (contact.location?.trim()) {

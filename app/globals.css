@@ -64,25 +64,9 @@ body {
   color: var(--accent);
   font-size: 0.875rem;
   font-weight: 700;
-  padding-bottom: 0.125rem;
+  border-bottom: 2px solid var(--accent);
+  padding-bottom: 0.3rem;
   margin-bottom: 0.375rem;
-  position: relative;
-}
-
-/**
- * A solid background bar instead of `border-bottom`: html2canvas (used for
- * client-side PDF export) anti-aliases thin colored borders inconsistently
- * at higher capture scales, making them render doubled/blurry. A filled
- * rect rasterizes identically everywhere.
- */
-.template-accent .accent-section-title::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 2px;
-  background: var(--accent);
 }
 
 .template-accent .accent-headline {
@@ -166,6 +150,10 @@ body:has(.export-layout) {
   color: #1e5aa8 !important;
 }
 
+.resume-export-root .resume-document.pdf-export-mode.template-accent .accent-section-title {
+  border-bottom-color: #1e5aa8 !important;
+}
+
 .export-timestamp {
   font-size: 9px;
   line-height: 1.3;
@@ -226,6 +214,10 @@ body:has(.export-layout) {
     color: #1e5aa8 !important;
   }
 
+  .resume-export-root .resume-document.template-accent .accent-section-title {
+    border-bottom-color: #1e5aa8 !important;
+  }
+
   .export-timestamp {
     color: #6b7280 !important;
     padding: 0 0.75in 0.2in !important;
@@ -261,4 +253,7 @@ body:has(.export-layout) {
     color: #1e5aa8 !important;
   }
 
+  .resume-document.template-accent .accent-section-title {
+    border-bottom-color: #1e5aa8 !important;
+  }
 }

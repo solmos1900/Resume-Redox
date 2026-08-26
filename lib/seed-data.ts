@@ -15,6 +15,7 @@ export function createSeedVersion(): ResumeVersion {
       email: "alex.rivera@example.com",
       location: "Austin, TX",
       linkedIn: "linkedin.com/in/example",
+      linkedInHyperlink: true,
     },
     summary:
       "Technical project manager with a software engineering background, focused on cross-functional delivery of platform and integration work. Experienced in roadmapping, stakeholder alignment, release governance, and partnering with product and engineering teams to ship reliable outcomes.",

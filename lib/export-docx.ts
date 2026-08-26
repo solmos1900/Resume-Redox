@@ -1,20 +1,56 @@
 import {
   AlignmentType,
   Document,
+  ExternalHyperlink,
   HeadingLevel,
   Packer,
   Paragraph,
   TextRun,
 } from "docx";
-import type { ResumeVersion } from "./schema";
+import type { ResumeVersion, Contact } from "./schema";
 import { toResumeContent, type ResumeContent } from "./templates/types";
 import { useResumeSections, customSectionToExperience } from "./templates/sections";
 import type { Experience } from "./schema";
 import { getExportFilename } from "./export";
 import { downloadBlob } from "./download-history";
+import { hasContactLineInfo, normalizeLinkedInUrl } from "./contact-url";
 
 const HEADING_SPACING = { before: 240, after: 80 };
 const BODY_SPACING = { after: 100 };
+
+function contactLineRuns(contact: Contact, size: number): (TextRun | ExternalHyperlink)[] {
+  const runs: (TextRun | ExternalHyperlink)[] = [];
+  const addSeparator = () => {
+    if (runs.length > 0) runs.push(new TextRun({ text: "  •  ", size }));
+  };
+
+  if (contact.phone?.trim()) {
+    addSeparator();
+    runs.push(new TextRun({ text: contact.phone.trim(), size }));
+  }
+  if (contact.email?.trim()) {
+    addSeparator();
+    runs.push(new TextRun({ text: contact.email.trim(), size }));
+  }
+  if (contact.linkedIn?.trim()) {
+    addSeparator();
+    const linkedIn = contact.linkedIn.trim();
+    runs.push(
+      contact.linkedInHyperlink
+        ? new ExternalHyperlink({
+            link: normalizeLinkedInUrl(linkedIn),
+            children: [new TextRun({ text: linkedIn, size, underline: {} })],
+          })
+        : new TextRun({ text: linkedIn, size })
+    );
+  }
+  if (contact.location?.trim()) {
+    addSeparator();
+    runs.push(new TextRun({ text: contact.location.trim(), size }));
+  }
+
+  return runs;
+}
 
 function heading(text: string): Paragraph {
   return new Paragraph({
@@ -72,7 +108,6 @@ function experienceParagraphs(jobs: Experience[]): Paragraph[] {
 
 function buildDocxParagraphs(data: ResumeContent): Paragraph[] {
   const {
-    contactLine,
     hasSummary,
     hasExperience,
     hasSkills,
@@ -100,12 +135,12 @@ function buildDocxParagraphs(data: ResumeContent): Paragraph[] {
     );
   }
 
-  if (contactLine) {
+  if (hasContactLineInfo(data.contact)) {
     paragraphs.push(
       new Paragraph({
         alignment: AlignmentType.CENTER,
         spacing: { after: 200 },
-        children: [new TextRun({ text: contactLine, size: 20 })],
+        children: contactLineRuns(data.contact, 20),
       })
     );
   }
