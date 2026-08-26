@@ -52,12 +52,41 @@ async function renderOffscreen(
   };
 }
 
+type LinkArea = { pageIndex: number; xIn: number; yIn: number; wIn: number; hIn: number; url: string };
+
+/** Finds real hyperlinks in the source DOM so we can re-add them as clickable
+ * annotations after rasterizing — html2canvas flattens everything to pixels,
+ * so an `<a href>` in the HTML doesn't survive into the image by itself. */
+function findLinkAreas(documentNode: HTMLElement): LinkArea[] {
+  const documentRect = documentNode.getBoundingClientRect();
+  const links = documentNode.querySelectorAll<HTMLAnchorElement>("[data-pdf-link]");
+
+  return Array.from(links).map((link) => {
+    const rect = link.getBoundingClientRect();
+    const topPx = rect.top - documentRect.top;
+    const leftPx = rect.left - documentRect.left;
+    const pageIndex = Math.floor(topPx / LETTER_HEIGHT_PX);
+    const topWithinPagePx = topPx - pageIndex * LETTER_HEIGHT_PX;
+
+    return {
+      pageIndex,
+      xIn: leftPx / PX_PER_IN,
+      yIn: topWithinPagePx / PX_PER_IN,
+      wIn: rect.width / PX_PER_IN,
+      hIn: rect.height / PX_PER_IN,
+      url: link.href,
+    };
+  });
+}
+
 async function captureToPdf(container: HTMLElement): Promise<Blob> {
   const documentNode = container.querySelector<HTMLElement>(".resume-document");
   if (!documentNode) {
     throw new Error("Could not find resume content to export.");
   }
   documentNode.classList.add("pdf-export-mode");
+
+  const linkAreas = findLinkAreas(documentNode);
 
   // html2canvas can't reliably auto-measure height for an off-screen,
   // absolutely-positioned element — it falls back to the real window's
@@ -111,6 +140,12 @@ async function captureToPdf(container: HTMLElement): Promise<Blob> {
       LETTER_WIDTH_IN,
       imageHeightIn
     );
+
+    for (const area of linkAreas) {
+      if (area.pageIndex === page) {
+        pdf.link(area.xIn, area.yIn, area.wIn, area.hIn, { url: area.url });
+      }
+    }
   }
 
   return pdf.output("blob");
