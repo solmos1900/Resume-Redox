@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useResumeStore } from "@/lib/store";
 import { useUiStore } from "@/lib/ui-store";
 import { NewResumeDialog } from "./NewResumeDialog";
+import { BackupImportMenu } from "./BackupImportMenu";
 
 type Props = {
   collapsed: boolean;
@@ -145,14 +146,15 @@ export function ResumeSidebar({ collapsed, onToggle }: Props) {
               })}
             </div>
 
-            <div className="p-3 border-t border-gray-700">
+            <div className="p-3 border-t border-gray-700 flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => openNewResumeDialog("create")}
-                className="w-full text-sm py-2 px-3 rounded-lg border border-gray-600 hover:bg-gray-800 transition-colors"
+                className="flex-1 text-sm py-2 px-3 rounded-lg border border-gray-600 hover:bg-gray-800 transition-colors"
               >
                 + New resume
               </button>
+              <BackupImportMenu />
             </div>
           </>
         )}
@@ -167,6 +169,7 @@ export function ResumeSidebar({ collapsed, onToggle }: Props) {
             >
               +
             </button>
+            <BackupImportMenu collapsed />
           </div>
         )}
       </aside>

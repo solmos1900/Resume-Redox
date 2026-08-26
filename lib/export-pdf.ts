@@ -59,11 +59,20 @@ async function captureToPdf(container: HTMLElement): Promise<Blob> {
   }
   documentNode.classList.add("pdf-export-mode");
 
+  // html2canvas can't reliably auto-measure height for an off-screen,
+  // absolutely-positioned element — it falls back to the real window's
+  // height instead of the content's, producing a canvas taller than the
+  // actual resume (and a spurious blank trailing PDF page). Measure and
+  // pass the true content height explicitly.
+  const contentHeightPx = documentNode.scrollHeight;
+
   const canvas = await html2canvas(documentNode, {
     scale: CAPTURE_SCALE,
     backgroundColor: "#ffffff",
     width: LETTER_WIDTH_PX,
+    height: contentHeightPx,
     windowWidth: LETTER_WIDTH_PX,
+    windowHeight: contentHeightPx,
   });
 
   const pdf = new jsPDF({ unit: "in", format: "letter" });

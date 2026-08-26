@@ -2,12 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useResumeStore } from "@/lib/store";
-import type { ResumeVersion } from "@/lib/schema";
 import { createPrintSession, openPrintPreview } from "@/lib/export";
-import {
-  downloadResumeBackup,
-  importStoreFromFile,
-} from "@/lib/file-persistence";
 import { DownloadMenu } from "./DownloadMenu";
 import { AccountMenu } from "@/components/auth/AccountMenu";
 import { useSyncStatus } from "@/lib/sync-status";
@@ -23,15 +18,8 @@ function formatSavedAt(iso: string): string {
   });
 }
 
-type ImportMode = "add" | "replace";
-
 export function VersionToolbar() {
   const version = useResumeStore((s) => s.getActiveVersion());
-  const importVersions = useResumeStore((s) => s.importVersions);
-  const replaceActiveWithImported = useResumeStore(
-    (s) => s.replaceActiveWithImported
-  );
-  const importInputRef = useRef<HTMLInputElement>(null);
   const [printing, setPrinting] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">(
@@ -40,11 +28,6 @@ export function VersionToolbar() {
   const [savedAtLabel, setSavedAtLabel] = useState<string | null>(null);
   const prevUpdatedAtRef = useRef<string | undefined>(undefined);
   const prevVersionIdRef = useRef<string | undefined>(undefined);
-
-  const [pendingImport, setPendingImport] = useState<ResumeVersion[] | null>(
-    null
-  );
-  const [importMode, setImportMode] = useState<ImportMode>("add");
   const syncStatus = useSyncStatus((s) => s.status);
 
   useEffect(() => {
@@ -107,57 +90,6 @@ export function VersionToolbar() {
     }
   };
 
-  const handleBackupJson = () => {
-    const active = useResumeStore.getState().getActiveVersion();
-    if (!active) {
-      showStatus("No resume to back up.");
-      return;
-    }
-    downloadResumeBackup(active);
-    showStatus(`Backed up “${active.name.trim() || "Untitled Resume"}”.`);
-  };
-
-  const handleImportFileSelected = async (file: File) => {
-    const imported = await importStoreFromFile(file);
-    if (!imported || imported.length === 0) {
-      showStatus("Import failed. Check the JSON file.");
-      return;
-    }
-    setImportMode("add");
-    setPendingImport(imported);
-  };
-
-  const closeImportDialog = () => {
-    setPendingImport(null);
-    setImportMode("add");
-  };
-
-  const confirmImport = () => {
-    if (!pendingImport || pendingImport.length === 0) return;
-
-    if (importMode === "replace") {
-      const ok = replaceActiveWithImported(pendingImport[0]);
-      closeImportDialog();
-      if (!ok) {
-        showStatus("Could not replace the current resume.");
-        return;
-      }
-      const extra = pendingImport.length - 1;
-      showStatus(
-        extra > 0
-          ? `Current resume replaced. ${extra} other resume${extra === 1 ? "" : "s"} in the file were skipped — use Add as new to import all.`
-          : "Current resume replaced."
-      );
-      return;
-    }
-
-    const count = importVersions(pendingImport);
-    closeImportDialog();
-    showStatus(
-      count === 1 ? "Resume imported." : `${count} resumes imported.`
-    );
-  };
-
   return (
     <>
       <header className="no-print flex items-center justify-between gap-4 px-4 py-3 bg-white border-b border-gray-200 shrink-0">
@@ -191,31 +123,6 @@ export function VersionToolbar() {
             </span>
           )}
           <AccountMenu />
-          <input
-            ref={importInputRef}
-            type="file"
-            accept="application/json,.json"
-            className="hidden"
-            onChange={(event) => {
-              const file = event.target.files?.[0];
-              if (file) void handleImportFileSelected(file);
-              event.target.value = "";
-            }}
-          />
-          <button
-            type="button"
-            onClick={handleBackupJson}
-            className="text-sm px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium"
-          >
-            Backup JSON
-          </button>
-          <button
-            type="button"
-            onClick={() => importInputRef.current?.click()}
-            className="text-sm px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium"
-          >
-            Import JSON
-          </button>
           <DownloadMenu version={version} onStatus={showStatus} />
           <button
             type="button"
@@ -227,86 +134,6 @@ export function VersionToolbar() {
           </button>
         </div>
       </header>
-
-      {pendingImport && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <button
-            type="button"
-            className="absolute inset-0 bg-black/40"
-            onClick={closeImportDialog}
-            aria-label="Close dialog"
-          />
-          <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-bold text-gray-900">Import JSON</h2>
-              <p className="text-sm text-gray-500 mt-1">
-                Found {pendingImport.length} resume
-                {pendingImport.length === 1 ? "" : "s"} in this file.
-                {version ? ` Currently editing “${version.name}”.` : ""}
-              </p>
-            </div>
-
-            <div className="px-6 py-4 space-y-3">
-              <label className="flex items-start gap-3 rounded-lg border border-gray-200 p-3 cursor-pointer hover:bg-gray-50 has-[:checked]:border-gray-900 has-[:checked]:bg-gray-50">
-                <input
-                  type="radio"
-                  name="import-mode"
-                  checked={importMode === "add"}
-                  onChange={() => setImportMode("add")}
-                  className="mt-1"
-                />
-                <span>
-                  <span className="block text-sm font-medium text-gray-900">
-                    Add as new
-                  </span>
-                  <span className="block text-xs text-gray-500 mt-0.5">
-                    Keep your current resumes and add imported ones to the
-                    sidebar.
-                  </span>
-                </span>
-              </label>
-
-              <label className="flex items-start gap-3 rounded-lg border border-gray-200 p-3 cursor-pointer hover:bg-gray-50 has-[:checked]:border-gray-900 has-[:checked]:bg-gray-50">
-                <input
-                  type="radio"
-                  name="import-mode"
-                  checked={importMode === "replace"}
-                  onChange={() => setImportMode("replace")}
-                  disabled={!version}
-                  className="mt-1"
-                />
-                <span>
-                  <span className="block text-sm font-medium text-gray-900">
-                    Replace current
-                  </span>
-                  <span className="block text-xs text-gray-500 mt-0.5">
-                    Overwrite “{version?.name ?? "current resume"}” with the
-                    first resume in the file. Other resumes in the file are not
-                    imported.
-                  </span>
-                </span>
-              </label>
-            </div>
-
-            <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={closeImportDialog}
-                className="text-sm px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={confirmImport}
-                className="text-sm px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800"
-              >
-                {importMode === "replace" ? "Replace resume" : "Import"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 }
