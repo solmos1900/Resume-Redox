@@ -42,10 +42,18 @@ body {
   margin: 0;
 }
 
+/**
+ * Kept well under the wrapped-line-height gap: several ATS parsers (e.g.
+ * OpenResume) flag a line as the start of a new resume entry when its gap
+ * to the previous line exceeds ~1.4x the document's typical line gap. A
+ * bigger margin here pushes the bullet-to-bullet gap close enough to that
+ * ratio that a bullet's own wrapped second line can get misread as a new,
+ * orphaned entry instead of a continuation of the same bullet.
+ */
 .resume-document li {
   position: relative;
   padding-left: 1.15em;
-  margin-bottom: 0.38em;
+  margin-bottom: 0.2em;
 }
 
 .resume-document li::before {
@@ -75,27 +83,6 @@ body {
 
 .template-accent li {
   padding-left: 1.05em;
-  margin-bottom: 0.38em;
-}
-
-.template-classic li {
-  margin-bottom: 0.38em;
-}
-
-.template-modern li {
-  margin-bottom: 0.38em;
-}
-
-.template-professional li {
-  margin-bottom: 0.32em;
-}
-
-.template-executive li {
-  margin-bottom: 0.38em;
-}
-
-.template-structured li {
-  margin-bottom: 0.38em;
 }
 
 .page-fit-print-measure {
