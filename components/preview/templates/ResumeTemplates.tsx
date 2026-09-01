@@ -467,7 +467,7 @@ export function AccentTemplate({ data }: { data: ResumeContent }) {
                 <p key={group.id} className="text-sm leading-[1.3] text-gray-800">
                   {group.category.trim() && (
                     <span className="font-semibold text-gray-900">
-                      {group.category}{" "}
+                      {group.category}:{" "}
                     </span>
                   )}
                   {group.items.trim()}
