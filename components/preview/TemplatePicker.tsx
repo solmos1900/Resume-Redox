@@ -13,11 +13,11 @@ export function TemplatePicker() {
   const activeId = (version.templateId ?? "classic") as TemplateId;
 
   return (
-    <div className="no-print border-b border-gray-200 bg-white px-4 py-3">
+    <div className="no-print border-b border-gray-200 bg-white px-3 py-3 sm:px-4 shrink-0">
       <p className="text-xs font-medium text-gray-600 mb-2">
-        Template — all options are ATS-safe (single column, semantic HTML, system fonts)
+        Template — ATS-safe layouts
       </p>
-      <div className="flex gap-2 overflow-x-auto pb-1">
+      <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 snap-x snap-mandatory">
         {TEMPLATE_CATALOG.map((template) => {
           const selected = activeId === template.id;
           return (
@@ -27,7 +27,7 @@ export function TemplatePicker() {
               onClick={() =>
                 updateActiveVersion({ templateId: template.id })
               }
-              className={`shrink-0 text-left rounded-lg border px-3 py-2 min-w-[140px] transition-colors ${
+              className={`shrink-0 snap-start text-left rounded-lg border px-3 py-2.5 min-w-[132px] sm:min-w-[140px] transition-colors touch-manipulation ${
                 selected
                   ? "border-gray-900 bg-gray-900 text-white"
                   : "border-gray-200 bg-gray-50 hover:border-gray-400 text-gray-800"
@@ -59,7 +59,7 @@ export function TemplateCatalogInfo() {
   if (!template) return null;
 
   return (
-    <div className="no-print mx-6 mb-4 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs text-gray-600">
+    <div className="no-print mx-0 sm:mx-6 mb-3 sm:mb-4 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs text-gray-600">
       <span className="font-medium text-gray-800">{template.name}:</span>{" "}
       {template.description}
     </div>

@@ -16,13 +16,13 @@ export function RepeatableControls({
   canMoveDown,
 }: Props) {
   return (
-    <div className="flex gap-1">
+    <div className="flex gap-1 shrink-0">
       {onMoveUp && (
         <button
           type="button"
           onClick={onMoveUp}
           disabled={!canMoveUp}
-          className="px-2 py-1 text-xs border rounded disabled:opacity-30 hover:bg-gray-50"
+          className="min-w-[32px] min-h-[32px] px-2 py-1 text-xs border rounded disabled:opacity-30 hover:bg-gray-50 touch-manipulation"
           title="Move up"
         >
           ↑
@@ -33,7 +33,7 @@ export function RepeatableControls({
           type="button"
           onClick={onMoveDown}
           disabled={!canMoveDown}
-          className="px-2 py-1 text-xs border rounded disabled:opacity-30 hover:bg-gray-50"
+          className="min-w-[32px] min-h-[32px] px-2 py-1 text-xs border rounded disabled:opacity-30 hover:bg-gray-50 touch-manipulation"
           title="Move down"
         >
           ↓
@@ -43,7 +43,7 @@ export function RepeatableControls({
         <button
           type="button"
           onClick={onRemove}
-          className="px-2 py-1 text-xs border border-red-200 text-red-600 rounded hover:bg-red-50"
+          className="min-w-[32px] min-h-[32px] px-2 py-1 text-xs border border-red-200 text-red-600 rounded hover:bg-red-50 touch-manipulation"
           title="Remove"
         >
           ✕

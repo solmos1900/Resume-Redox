@@ -82,8 +82,8 @@ export function NewResumeDialog() {
             <legend className="text-xs font-medium text-gray-600">
               Start from
             </legend>
-            <div className="flex gap-3">
-              <label className="flex items-center gap-2 text-sm">
+            <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
+              <label className="flex items-center gap-2 text-sm py-1">
                 <input
                   type="radio"
                   checked={startFrom === "blank"}
@@ -91,7 +91,7 @@ export function NewResumeDialog() {
                 />
                 Blank resume
               </label>
-              <label className="flex items-center gap-2 text-sm">
+              <label className="flex items-center gap-2 text-sm py-1">
                 <input
                   type="radio"
                   checked={startFrom === "existing"}
@@ -141,18 +141,18 @@ export function NewResumeDialog() {
           )}
         </div>
 
-        <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-2">
+        <div className="px-4 sm:px-6 py-4 border-t border-gray-200 flex flex-col-reverse sm:flex-row justify-end gap-2">
           <button
             type="button"
             onClick={close}
-            className="text-sm px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+            className="text-sm px-4 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50"
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={handleSubmit}
-            className="text-sm px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800"
+            className="text-sm px-4 py-2.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800"
           >
             Create resume
           </button>

@@ -5,6 +5,7 @@ A local-first resume builder with live ATS-friendly preview and role-specific ve
 ## Features
 
 - **Live preview** — edit in the center, see the resume update instantly
+- **Mobile-friendly** — on phones/tablets, switch between Resumes, Edit, and Preview via a bottom tab bar; the letter-size preview scales to fit your screen while print/PDF stays full size
 - **Resume sidebar** — collapsible list of all resumes
 - **Templates** — switch ATS-safe layouts per resume version
 - **Save PDF / Print** — opens a print preview; use your browser’s “Save as PDF”
