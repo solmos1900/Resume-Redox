@@ -30,14 +30,17 @@ export function AccountMenu() {
       <button
         type="button"
         onClick={() => setMenuOpen((v) => !v)}
-        className="flex items-center gap-2 text-sm px-2 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50"
+        className="flex items-center gap-2 text-sm px-2 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 touch-manipulation"
         aria-haspopup="menu"
         aria-expanded={menuOpen}
+        aria-label="Account menu"
       >
-        <span className="w-6 h-6 rounded-full bg-gray-900 text-white text-xs flex items-center justify-center font-semibold">
+        <span className="w-6 h-6 rounded-full bg-gray-900 text-white text-xs flex items-center justify-center font-semibold shrink-0">
           {initial}
         </span>
-        <span className="max-w-[140px] truncate text-gray-700">{label}</span>
+        <span className="hidden sm:inline max-w-[140px] truncate text-gray-700">
+          {label}
+        </span>
       </button>
 
       {menuOpen && (

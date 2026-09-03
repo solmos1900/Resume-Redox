@@ -3,12 +3,15 @@
 import { useEffect, useState } from "react";
 import { useResumeStore } from "@/lib/store";
 import { useUiStore } from "@/lib/ui-store";
-import { NewResumeDialog } from "./NewResumeDialog";
 import { BackupImportMenu } from "./BackupImportMenu";
 
 type Props = {
   collapsed: boolean;
   onToggle: () => void;
+  /** Full-width list for the mobile Resumes tab. */
+  variant?: "desktop" | "mobile";
+  /** Called after selecting a resume (e.g. switch mobile tab to Edit). */
+  onSelectResume?: () => void;
 };
 
 function formatRelativeDate(iso: string): string {
@@ -22,7 +25,12 @@ function formatRelativeDate(iso: string): string {
   return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
-export function ResumeSidebar({ collapsed, onToggle }: Props) {
+export function ResumeSidebar({
+  collapsed,
+  onToggle,
+  variant = "desktop",
+  onSelectResume,
+}: Props) {
   const versions = useResumeStore((s) => s.versions);
   const activeVersionId = useResumeStore((s) => s.activeVersionId);
   const setActiveVersion = useResumeStore((s) => s.setActiveVersion);
@@ -32,6 +40,9 @@ export function ResumeSidebar({ collapsed, onToggle }: Props) {
 
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
+
+  const isMobile = variant === "mobile";
+  const showList = isMobile || !collapsed;
 
   const sorted = [...versions].sort(
     (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
@@ -49,30 +60,43 @@ export function ResumeSidebar({ collapsed, onToggle }: Props) {
     setRenamingId(null);
   };
 
+  const selectVersion = (id: string) => {
+    setActiveVersion(id);
+    onSelectResume?.();
+  };
+
   return (
     <>
       <aside
-        className={`no-print shrink-0 flex flex-col bg-gray-900 text-gray-100 transition-all duration-200 ${
-          collapsed ? "w-14" : "w-64"
+        className={`no-print flex flex-col bg-gray-900 text-gray-100 transition-all duration-200 ${
+          isMobile
+            ? "h-full w-full"
+            : `shrink-0 ${collapsed ? "w-14" : "w-64"}`
         }`}
       >
         <div className="flex items-center justify-between p-3 border-b border-gray-700">
-          {!collapsed && (
+          {showList && (
             <span className="text-sm font-semibold tracking-wide">Resumes</span>
           )}
           <button
             type="button"
             onClick={onToggle}
-            className="p-1.5 rounded hover:bg-gray-800 text-gray-300"
-            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            className="p-1.5 rounded hover:bg-gray-800 text-gray-300 min-w-[36px] min-h-[36px]"
+            title={
+              isMobile
+                ? "Back to editor"
+                : collapsed
+                  ? "Expand sidebar"
+                  : "Collapse sidebar"
+            }
           >
-            {collapsed ? "→" : "←"}
+            {isMobile ? "←" : collapsed ? "→" : "←"}
           </button>
         </div>
 
-        {!collapsed && (
+        {showList && (
           <>
-            <div className="flex-1 overflow-y-auto py-2">
+            <div className="flex-1 overflow-y-auto overscroll-contain py-2">
               {sorted.map((version) => {
                 const isActive = version.id === activeVersionId;
                 const hasJob = version.jobDescription?.text?.trim();
@@ -95,15 +119,15 @@ export function ResumeSidebar({ collapsed, onToggle }: Props) {
                             if (e.key === "Escape") setRenamingId(null);
                           }}
                           onBlur={submitRename}
-                          className="w-full text-sm text-gray-900 rounded px-2 py-1"
+                          className="w-full text-sm text-gray-900 rounded px-2 py-2"
                           autoFocus
                         />
                       </div>
                     ) : (
                       <button
                         type="button"
-                        onClick={() => setActiveVersion(version.id)}
-                        className="w-full text-left px-3 py-2.5"
+                        onClick={() => selectVersion(version.id)}
+                        className="w-full text-left px-3 py-3"
                       >
                         <div className="text-sm font-medium truncate">
                           {version.name}
@@ -118,11 +142,17 @@ export function ResumeSidebar({ collapsed, onToggle }: Props) {
                     )}
 
                     {renamingId !== version.id && (
-                      <div className="hidden group-hover:flex flex-wrap px-2 pb-2 gap-1">
+                      <div
+                        className={`flex-wrap px-2 pb-2 gap-1 ${
+                          isMobile
+                            ? "flex"
+                            : "hidden group-hover:flex"
+                        }`}
+                      >
                         <button
                           type="button"
                           onClick={() => startRename(version.id, version.name)}
-                          className="text-xs px-2 py-0.5 rounded bg-gray-600 hover:bg-gray-500"
+                          className="text-xs px-2.5 py-1.5 rounded bg-gray-600 hover:bg-gray-500"
                         >
                           Rename
                         </button>
@@ -135,7 +165,7 @@ export function ResumeSidebar({ collapsed, onToggle }: Props) {
                             }
                           }}
                           disabled={versions.length <= 1}
-                          className="text-xs px-2 py-0.5 rounded bg-red-900/60 hover:bg-red-800 disabled:opacity-30"
+                          className="text-xs px-2.5 py-1.5 rounded bg-red-900/60 hover:bg-red-800 disabled:opacity-30"
                         >
                           Delete
                         </button>
@@ -146,11 +176,11 @@ export function ResumeSidebar({ collapsed, onToggle }: Props) {
               })}
             </div>
 
-            <div className="p-3 border-t border-gray-700 flex items-center gap-2">
+            <div className="p-3 border-t border-gray-700 flex items-center gap-2 safe-area-bottom">
               <button
                 type="button"
                 onClick={() => openNewResumeDialog("create")}
-                className="flex-1 text-sm py-2 px-3 rounded-lg border border-gray-600 hover:bg-gray-800 transition-colors"
+                className="flex-1 text-sm py-2.5 px-3 rounded-lg border border-gray-600 hover:bg-gray-800 transition-colors"
               >
                 + New resume
               </button>
@@ -159,7 +189,7 @@ export function ResumeSidebar({ collapsed, onToggle }: Props) {
           </>
         )}
 
-        {collapsed && (
+        {!isMobile && collapsed && (
           <div className="flex flex-col items-center py-3 gap-2">
             <button
               type="button"
@@ -173,8 +203,6 @@ export function ResumeSidebar({ collapsed, onToggle }: Props) {
           </div>
         )}
       </aside>
-
-      <NewResumeDialog />
     </>
   );
 }
