@@ -11,6 +11,22 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* iOS notch / home-indicator safe areas */
+.safe-area-top {
+  padding-top: max(0px, env(safe-area-inset-top));
+}
+
+.safe-area-bottom {
+  padding-bottom: max(0px, env(safe-area-inset-bottom));
+}
+
+/* Prefer dynamic viewport height on mobile browsers */
+@supports (height: 100dvh) {
+  .h-dvh {
+    height: 100dvh;
+  }
+}
+
 .resume-document {
   width: 8.5in;
   padding: 0.5in 0.75in;

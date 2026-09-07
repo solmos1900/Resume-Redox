@@ -92,14 +92,21 @@ export function VersionToolbar() {
 
   return (
     <>
-      <header className="no-print flex items-center justify-between gap-4 px-4 py-3 bg-white border-b border-gray-200 shrink-0">
-        <div>
-          <h1 className="text-lg font-bold text-gray-900">Resume Redox</h1>
+      <header className="no-print flex items-start sm:items-center justify-between gap-2 sm:gap-4 px-3 py-2.5 sm:px-4 sm:py-3 bg-white border-b border-gray-200 shrink-0 safe-area-top">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-base sm:text-lg font-bold text-gray-900 truncate">
+            Resume Redox
+          </h1>
           {version && (
-            <p className="text-xs text-gray-500 mt-0.5">
-              Editing: {version.name}
-              {version.contact.fullName.trim() &&
-                ` · ${version.contact.fullName}`}
+            <p className="text-xs text-gray-500 mt-0.5 truncate">
+              <span className="sm:hidden">Editing: </span>
+              <span className="hidden sm:inline">Editing: </span>
+              {version.name}
+              {version.contact.fullName.trim() && (
+                <span className="hidden sm:inline">
+                  {` · ${version.contact.fullName}`}
+                </span>
+              )}
             </p>
           )}
           {version && saveStatus === "saving" && (
@@ -108,17 +115,19 @@ export function VersionToolbar() {
             </p>
           )}
           {version && saveStatus === "saved" && savedAtLabel && (
-            <p className="text-xs text-gray-400 mt-0.5" aria-live="polite">
+            <p className="text-xs text-gray-400 mt-0.5 truncate" aria-live="polite">
               Saved {savedAtLabel}
-              {syncStatus === "syncing" && " · Syncing…"}
-              {syncStatus === "synced" && " · Synced"}
-              {syncStatus === "error" && " · Sync failed"}
+              <span className="hidden sm:inline">
+                {syncStatus === "syncing" && " · Syncing…"}
+                {syncStatus === "synced" && " · Synced"}
+                {syncStatus === "error" && " · Sync failed"}
+              </span>
             </p>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {status && (
-            <span className="text-xs text-gray-500 mr-2 max-w-xs text-right">
+            <span className="hidden md:inline text-xs text-gray-500 mr-2 max-w-xs text-right">
               {status}
             </span>
           )}
@@ -128,12 +137,17 @@ export function VersionToolbar() {
             type="button"
             onClick={handlePrint}
             disabled={!version || printing}
-            className="text-sm px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:opacity-40 font-medium"
+            className="text-sm px-3 py-2 sm:px-4 bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:opacity-40 font-medium touch-manipulation"
           >
-            {printing ? "Opening..." : "Print"}
+            {printing ? "…" : "Print"}
           </button>
         </div>
       </header>
+      {status && (
+        <div className="no-print md:hidden px-3 py-1.5 bg-gray-50 border-b border-gray-200 text-xs text-gray-600">
+          {status}
+        </div>
+      )}
     </>
   );
 }

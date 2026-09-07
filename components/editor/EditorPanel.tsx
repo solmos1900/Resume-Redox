@@ -13,7 +13,7 @@ import { JobDescriptionForm } from "./JobDescriptionForm";
 
 export function EditorPanel() {
   return (
-    <div className="space-y-4 p-4">
+    <div className="space-y-4 p-3 sm:p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
       <JobDescriptionForm />
       <ContactForm />
       <SummaryForm />

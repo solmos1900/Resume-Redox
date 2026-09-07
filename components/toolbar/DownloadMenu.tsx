@@ -89,12 +89,14 @@ export function DownloadMenu({ version, onStatus }: Props) {
         type="button"
         onClick={() => setOpen((v) => !v)}
         disabled={!version}
-        className="flex items-center gap-1.5 text-sm px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40 font-medium"
+        className="flex items-center gap-1.5 text-sm px-2.5 py-2 sm:px-3 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40 font-medium touch-manipulation"
+        aria-label="Download"
         aria-haspopup="menu"
         aria-expanded={open}
+        title="Download"
       >
         <DownloadIcon />
-        Download
+        <span className="hidden sm:inline">Download</span>
       </button>
 
       {open && (
