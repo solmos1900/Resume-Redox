@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { ResumeVersion } from "@/lib/schema";
-import { createPrintSession, openPrintPreview } from "@/lib/export";
+import { createPrintSession } from "@/lib/export";
+import { openPdfDownload } from "@/lib/export-pdf";
 import { downloadResumeAsDocx } from "@/lib/export-docx";
 import { downloadResumeAsText } from "@/lib/export-text";
 
@@ -59,15 +60,12 @@ export function DownloadMenu({ version, onStatus }: Props) {
     setPending(format);
     try {
       if (format === "pdf") {
-        // Rasterizing the preview into an image (the old approach) produces a
-        // PDF with no real text layer, which ATS parsers can't read at all.
-        // Routing through the browser's native print dialog keeps the text
-        // selectable/parsable — choose "Save as PDF" as the destination.
+        // Browser "Save as PDF" stamps headers/footers (page URL, date) and can
+        // capture host overlays like the Vercel toolbar — especially on iOS
+        // Safari. Generate a clean letter PDF from the resume DOM instead.
         const token = createPrintSession(version);
-        openPrintPreview(token);
-        onStatus(
-          'Print dialog opened — choose "Save as PDF" as the destination to download.'
-        );
+        openPdfDownload(token);
+        onStatus("Preparing clean PDF download…");
       } else if (format === "docx") {
         await downloadResumeAsDocx(version);
         onStatus(`Downloaded ${FORMATS.find((f) => f.id === format)?.label}.`);
