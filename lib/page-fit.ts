@@ -4,7 +4,8 @@ export const LETTER_WIDTH_IN = 8.5;
 export const LETTER_HEIGHT_IN = 11;
 export const PAGE_MARGIN_TOP_IN = 0.5;
 export const PAGE_MARGIN_BOTTOM_IN = 0.5;
-export const PAGE_MARGIN_X_IN = 0.75;
+/** Side margins — 0.5in keeps resumes looking full without feeling cramped. */
+export const PAGE_MARGIN_X_IN = 0.5;
 
 /** Extra slack vs Chrome print rounding. */
 export const PRINT_SAFETY_BUFFER_IN = 0.1;
@@ -67,7 +68,7 @@ export function measurePageFit(
 }
 
 /**
- * Measure page fit using the same 8.5×11in box and 0.5in / 0.75in padding
+ * Measure page fit using the same 8.5×11in box and 0.5in padding
  * as on-screen preview and Save as PDF.
  */
 export function measurePrintPageFit(element: HTMLElement): PageFitResult {

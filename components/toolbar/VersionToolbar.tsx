@@ -79,7 +79,7 @@ export function VersionToolbar() {
       const token = createPrintSession(version);
       openPrintPreview(token);
       showStatus(
-        "Print preview opened. Disable “Headers and footers” if your browser shows them."
+        'Print preview opened. Turn off “Headers and footers” so the page URL/date are not printed.'
       );
     } catch (error) {
       showStatus(

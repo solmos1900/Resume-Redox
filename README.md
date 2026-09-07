@@ -8,7 +8,7 @@ A local-first resume builder with live ATS-friendly preview and role-specific ve
 - **Mobile-friendly** — on phones/tablets, switch between Resumes, Edit, and Preview via a bottom tab bar; the letter-size preview scales to fit your screen while print/PDF stays full size
 - **Resume sidebar** — collapsible list of all resumes
 - **Templates** — switch ATS-safe layouts per resume version
-- **Save PDF / Print** — opens a print preview; use your browser’s “Save as PDF”
+- **Save PDF / Print** — **Download → PDF** generates a clean letter PDF (no browser URL footer, no Vercel toolbar). **Print** still uses the browser dialog; turn off Headers and footers there.
 - **Backup & Import** — download/upload a JSON backup of all resumes
 - **No account required** — all data persists in localStorage
 
@@ -52,10 +52,9 @@ Hobby plan supports multiple personal projects under one account (shared usage l
 
 | Button | Action |
 |--------|--------|
-| **Save PDF** | Opens print preview; choose “Save as PDF” in the dialog |
-| **Print** | Same print preview flow |
-
-Both use filename `{Resume Name} - {Your Name}` via the browser’s save dialog where supported.
+| **Download → PDF** | Clean letter PDF generated in-app (no URL footer / host toolbar) |
+| **Download → Word** | `.docx` with real text (best for ATS parsers) |
+| **Print** | Browser print dialog — turn off **Headers and footers** |
 
 ## Resume templates
 

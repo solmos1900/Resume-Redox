@@ -15,6 +15,7 @@ export default function ExportPreviewClient() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
   const autoPrint = searchParams.get("print") === "1";
+  const autoDownloadPdf = searchParams.get("download") === "1";
   const [session, setSession] = useState<SessionState | "loading">("loading");
 
   useEffect(() => {
@@ -37,7 +38,8 @@ export default function ExportPreviewClient() {
   if (!session) {
     return (
       <p className="p-6 text-sm text-gray-500">
-        Export session expired. Close this tab and try Print or Save PDF again.
+        Export session expired. Close this tab and try Print or Download PDF
+        again.
       </p>
     );
   }
@@ -46,7 +48,8 @@ export default function ExportPreviewClient() {
     <ExportPreviewShell
       version={session.version}
       options={session.options}
-      autoPrint={autoPrint}
+      autoPrint={autoPrint && !autoDownloadPdf}
+      autoDownloadPdf={autoDownloadPdf}
     />
   );
 }
