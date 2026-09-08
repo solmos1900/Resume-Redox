@@ -7,10 +7,9 @@ import {
   Paragraph,
   TextRun,
 } from "docx";
-import type { ResumeVersion, Contact } from "./schema";
-import { toResumeContent, type ResumeContent } from "./templates/types";
-import { useResumeSections, customSectionToExperience } from "./templates/sections";
-import type { Experience } from "./schema";
+import type { ResumeVersion, Contact, Experience } from "./schema";
+import { toResumeContent } from "./templates/types";
+import { getExportBlocks, formatExportDateRange } from "./export/export-blocks";
 import { getExportFilename } from "./export";
 import { downloadBlob } from "./download-history";
 import { hasContactLineInfo, normalizeLinkedInUrl } from "./contact-url";
@@ -18,7 +17,14 @@ import { hasContactLineInfo, normalizeLinkedInUrl } from "./contact-url";
 const HEADING_SPACING = { before: 240, after: 80 };
 const BODY_SPACING = { after: 100 };
 
-function contactLineRuns(contact: Contact, size: number): (TextRun | ExternalHyperlink)[] {
+/**
+ * DOCX is the ATS / plain-text sibling of the visual templates — same
+ * content and section order as preview/PDF, not a pixel twin of Accent/etc.
+ */
+function contactLineRuns(
+  contact: Contact,
+  size: number
+): (TextRun | ExternalHyperlink)[] {
   const runs: (TextRun | ExternalHyperlink)[] = [];
   const addSeparator = () => {
     if (runs.length > 0) runs.push(new TextRun({ text: "  •  ", size }));
@@ -76,15 +82,19 @@ function experienceParagraphs(jobs: Experience[]): Paragraph[] {
       );
     }
 
-    const dateRange = [job.startDate, job.current ? "Present" : job.endDate]
-      .filter(Boolean)
-      .join(" – ");
+    const dateRange = formatExportDateRange(
+      job.startDate,
+      job.endDate,
+      job.current
+    );
     if (job.title.trim() || dateRange) {
       paragraphs.push(
         new Paragraph({
           spacing: { after: 40 },
           children: [
-            ...(job.title.trim() ? [new TextRun({ text: job.title, italics: true })] : []),
+            ...(job.title.trim()
+              ? [new TextRun({ text: job.title, italics: true })]
+              : []),
             ...(dateRange
               ? [new TextRun({ text: `\t${dateRange}`, italics: true })]
               : []),
@@ -106,21 +116,20 @@ function experienceParagraphs(jobs: Experience[]): Paragraph[] {
   return paragraphs;
 }
 
-function buildDocxParagraphs(data: ResumeContent): Paragraph[] {
-  const {
-    hasSummary,
-    hasExperience,
-    hasSkills,
-    hasEducation,
-    visibleCustomSections,
-  } = useResumeSections(data);
+function buildDocxParagraphs(version: ResumeVersion): Paragraph[] {
+  const data = toResumeContent(version);
+  const blocks = getExportBlocks(data);
 
   const paragraphs: Paragraph[] = [
     new Paragraph({
       alignment: AlignmentType.CENTER,
       spacing: { after: 40 },
       children: [
-        new TextRun({ text: data.contact.fullName || "Untitled", bold: true, size: 32 }),
+        new TextRun({
+          text: data.contact.fullName || "Untitled",
+          bold: true,
+          size: 32,
+        }),
       ],
     }),
   ];
@@ -145,72 +154,67 @@ function buildDocxParagraphs(data: ResumeContent): Paragraph[] {
     );
   }
 
-  if (hasSummary) {
-    paragraphs.push(heading("Summary"));
-    paragraphs.push(
-      new Paragraph({ spacing: BODY_SPACING, children: [new TextRun({ text: data.summary })] })
-    );
-  }
-
-  if (hasExperience) {
-    paragraphs.push(heading("Experience"));
-    paragraphs.push(...experienceParagraphs(data.experience));
-  }
-
-  if (hasSkills) {
-    paragraphs.push(heading("Skills"));
-    for (const group of data.skillGroups) {
-      if (!group.category.trim() && !group.items.trim()) continue;
+  for (const block of blocks) {
+    paragraphs.push(heading(block.title));
+    if (block.kind === "summary") {
       paragraphs.push(
         new Paragraph({
           spacing: BODY_SPACING,
-          children: [
-            ...(group.category.trim()
-              ? [new TextRun({ text: `${group.category}: `, bold: true })]
-              : []),
-            new TextRun({ text: group.items }),
-          ],
+          children: [new TextRun({ text: block.body })],
         })
       );
-    }
-  }
-
-  if (hasEducation) {
-    paragraphs.push(heading("Education"));
-    for (const edu of data.education) {
-      if (!edu.institution.trim() && !edu.details.trim()) continue;
-      const line = [edu.institution, edu.location].filter((s) => s.trim()).join(", ");
-      paragraphs.push(
-        new Paragraph({
-          spacing: { after: 20 },
-          children: [
-            ...(line ? [new TextRun({ text: line, bold: true })] : []),
-            ...(edu.graduationDate
-              ? [new TextRun({ text: `\t${edu.graduationDate}` })]
-              : []),
-          ],
-        })
-      );
-      if (edu.details.trim()) {
+    } else if (block.kind === "experience" || block.kind === "custom") {
+      paragraphs.push(...experienceParagraphs(block.jobs));
+    } else if (block.kind === "skills") {
+      for (const group of block.groups) {
+        if (!group.category.trim() && !group.items.trim()) continue;
         paragraphs.push(
-          new Paragraph({ spacing: BODY_SPACING, children: [new TextRun({ text: edu.details })] })
+          new Paragraph({
+            spacing: BODY_SPACING,
+            children: [
+              ...(group.category.trim()
+                ? [new TextRun({ text: `${group.category}: `, bold: true })]
+                : []),
+              new TextRun({ text: group.items }),
+            ],
+          })
         );
       }
+    } else if (block.kind === "education") {
+      for (const edu of block.entries) {
+        if (!edu.institution.trim() && !edu.details.trim()) continue;
+        const line = [edu.institution, edu.location]
+          .filter((s) => s.trim())
+          .join(", ");
+        paragraphs.push(
+          new Paragraph({
+            spacing: { after: 20 },
+            children: [
+              ...(line ? [new TextRun({ text: line, bold: true })] : []),
+              ...(edu.graduationDate
+                ? [new TextRun({ text: `\t${edu.graduationDate}` })]
+                : []),
+            ],
+          })
+        );
+        if (edu.details.trim()) {
+          paragraphs.push(
+            new Paragraph({
+              spacing: BODY_SPACING,
+              children: [new TextRun({ text: edu.details })],
+            })
+          );
+        }
+      }
     }
-  }
-
-  for (const section of visibleCustomSections) {
-    paragraphs.push(heading(section.title.trim() || "Section"));
-    paragraphs.push(...experienceParagraphs(customSectionToExperience(section)));
   }
 
   return paragraphs;
 }
 
 export async function downloadResumeAsDocx(version: ResumeVersion): Promise<void> {
-  const data = toResumeContent(version);
   const doc = new Document({
-    sections: [{ children: buildDocxParagraphs(data) }],
+    sections: [{ children: buildDocxParagraphs(version) }],
   });
   const blob = await Packer.toBlob(doc);
   downloadBlob(blob, getExportFilename(version), "docx");
