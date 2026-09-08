@@ -10,6 +10,12 @@ import {
   useResumeSections,
 } from "@/lib/templates/sections";
 
+/**
+ * Section order (all templates): contact → summary → experience →
+ * custom sections → skills → education.
+ * Keep in sync with `lib/templates/section-order.ts` and export builders.
+ * PDF reuses these components via Chromium; DOCX/TXT follow the same order.
+ */
 const articleClass =
   "resume-document bg-white text-black print:shadow-none";
 
@@ -424,7 +430,7 @@ export function AccentTemplate({ data }: { data: ResumeContent }) {
           )}
           <ContactLine
             contact={contact}
-            className="text-xs text-gray-600 mt-1 leading-snug"
+            className="text-sm text-gray-600 mt-1 leading-snug"
           />
         </header>
       )}

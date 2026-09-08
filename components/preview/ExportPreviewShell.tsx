@@ -1,38 +1,35 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { ResumeTemplateSwitch } from "@/components/preview/templates/ResumeTemplateSwitch";
 import { ExportTimestamp } from "@/components/preview/ExportTimestamp";
 import type { TemplateId } from "@/lib/schema";
 import { toResumeContent } from "@/lib/templates/types";
 import type { ResumeVersion } from "@/lib/schema";
 import { getExportFilename, type ExportSessionOptions } from "@/lib/export";
-import { downloadResumeAsPdf } from "@/lib/export-pdf";
 
 type Props = {
   version: ResumeVersion;
   options?: ExportSessionOptions;
   autoPrint?: boolean;
-  autoDownloadPdf?: boolean;
 };
 
+/**
+ * Browser print preview shell. Download → PDF uses /api/export-pdf
+ * (Chromium text PDF of the same templates) instead of this path.
+ */
 export function ExportPreviewShell({
   version,
   options,
   autoPrint = false,
-  autoDownloadPdf = false,
 }: Props) {
   const data = toResumeContent(version);
   const templateId = (version.templateId ?? "classic") as TemplateId;
   const exportedAt = options?.exportedAt;
   const showTimestamp = options?.includeTimestampOnResume === true;
-  const [downloadStatus, setDownloadStatus] = useState<
-    "idle" | "working" | "done" | "error"
-  >("idle");
-  const [downloadError, setDownloadError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!autoPrint || autoDownloadPdf) return;
+    if (!autoPrint) return;
 
     document.title = getExportFilename(version);
 
@@ -44,73 +41,21 @@ export function ExportPreviewShell({
       // ignore
     }
 
-    const triggerPrint = () => {
-      window.print();
-    };
-
-    const timeout = window.setTimeout(triggerPrint, 400);
+    const timeout = window.setTimeout(() => window.print(), 400);
     return () => window.clearTimeout(timeout);
-  }, [autoPrint, autoDownloadPdf, version]);
-
-  useEffect(() => {
-    if (!autoDownloadPdf) return;
-
-    document.title = getExportFilename(version);
-    setDownloadStatus("working");
-    setDownloadError(null);
-
-    let cancelled = false;
-
-    const run = async () => {
-      // Wait a beat for fonts/layout to settle before rasterizing.
-      await new Promise((r) => window.setTimeout(r, 500));
-      if (cancelled) return;
-      try {
-        await downloadResumeAsPdf(version);
-        if (!cancelled) setDownloadStatus("done");
-      } catch (error) {
-        if (!cancelled) {
-          setDownloadStatus("error");
-          setDownloadError(
-            error instanceof Error ? error.message : "PDF download failed."
-          );
-        }
-      }
-    };
-
-    void run();
-    return () => {
-      cancelled = true;
-    };
-  }, [autoDownloadPdf, version]);
+  }, [autoPrint, version]);
 
   return (
     <>
-      {(autoDownloadPdf || autoPrint) && (
+      {autoPrint && (
         <div className="no-print export-status-banner">
-          {autoDownloadPdf && downloadStatus === "working" && (
-            <p>Preparing a clean PDF (no browser headers or site toolbar)…</p>
-          )}
-          {autoDownloadPdf && downloadStatus === "done" && (
-            <p>
-              PDF downloaded. You can close this tab.
-              <span className="block text-gray-500 mt-1 text-xs">
-                Tip: for ATS text parsing, also keep a .docx copy from Download.
-              </span>
-            </p>
-          )}
-          {autoDownloadPdf && downloadStatus === "error" && (
-            <p className="text-red-700">
-              {downloadError ?? "PDF download failed."}
-            </p>
-          )}
-          {autoPrint && (
-            <p>
-              Print dialog opening… In the dialog, turn off{" "}
-              <strong>Headers and footers</strong> (and set margins to None /
-              Default) so the page URL and date don’t appear on the resume.
-            </p>
-          )}
+          <p>
+            Print dialog opening… In the dialog, turn off{" "}
+            <strong>Headers and footers</strong> (and set margins to None /
+            Default) so the page URL and date don’t appear on the resume.
+            Prefer <strong>Download → PDF</strong> for a clean text PDF with no
+            browser chrome.
+          </p>
         </div>
       )}
 

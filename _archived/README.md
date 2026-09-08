@@ -67,5 +67,8 @@ Then restore `StoreHydration` file sync from git history.
 ## Current production path (Vercel-safe)
 
 - Persistence: browser **localStorage** + optional **Backup/Import JSON**
-- Export: **Print** (browser print → Save as PDF) via client-side session in `localStorage`
+- Export PDF: **Download → PDF** via `/api/export-pdf` (Chromium/Skia text PDF of the live templates)
+- Export print: **Print** (browser print dialog) via client-side session in `localStorage`
 - No OpenAI key required
+
+> Note: the archived Puppeteer + on-disk session path is superseded by the in-app Chromium export above (`@sparticuz/chromium-min`).

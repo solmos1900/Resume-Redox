@@ -2,17 +2,32 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { ResumeVersion } from "@/lib/schema";
-import { createPrintSession } from "@/lib/export";
-import { openPdfDownload } from "@/lib/export-pdf";
+import { downloadResumeAsPdf } from "@/lib/export-pdf";
 import { downloadResumeAsDocx } from "@/lib/export-docx";
 import { downloadResumeAsText } from "@/lib/export-text";
 
 type Format = "pdf" | "docx" | "txt";
 
-const FORMATS: { id: Format; label: string }[] = [
-  { id: "pdf", label: "PDF Document (.pdf)" },
-  { id: "docx", label: "Word Document (.docx)" },
-  { id: "txt", label: "Plain Text (.txt)" },
+const FORMATS: {
+  id: Format;
+  label: string;
+  hint?: string;
+}[] = [
+  {
+    id: "pdf",
+    label: "PDF Document (.pdf)",
+    hint: "Matches the on-screen template (selectable text)",
+  },
+  {
+    id: "docx",
+    label: "Word / ATS text (.docx)",
+    hint: "Same content & order — not a visual twin of the template",
+  },
+  {
+    id: "txt",
+    label: "Plain Text (.txt)",
+    hint: "Same content & order as preview",
+  },
 ];
 
 function DownloadIcon() {
@@ -60,18 +75,15 @@ export function DownloadMenu({ version, onStatus }: Props) {
     setPending(format);
     try {
       if (format === "pdf") {
-        // Browser "Save as PDF" stamps headers/footers (page URL, date) and can
-        // capture host overlays like the Vercel toolbar — especially on iOS
-        // Safari. Generate a clean letter PDF from the resume DOM instead.
-        const token = createPrintSession(version);
-        openPdfDownload(token);
-        onStatus("Preparing clean PDF download…");
+        onStatus("Generating text PDF from your template…");
+        await downloadResumeAsPdf(version);
+        onStatus("Downloaded PDF Document (.pdf).");
       } else if (format === "docx") {
         await downloadResumeAsDocx(version);
-        onStatus(`Downloaded ${FORMATS.find((f) => f.id === format)?.label}.`);
+        onStatus("Downloaded Word / ATS text (.docx).");
       } else {
         downloadResumeAsText(version);
-        onStatus(`Downloaded ${FORMATS.find((f) => f.id === format)?.label}.`);
+        onStatus("Downloaded Plain Text (.txt).");
       }
       setOpen(false);
     } catch (error) {
@@ -100,7 +112,7 @@ export function DownloadMenu({ version, onStatus }: Props) {
       {open && (
         <div
           role="menu"
-          className="absolute right-0 mt-1 w-52 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-40"
+          className="absolute right-0 mt-1 w-64 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-40"
         >
           {FORMATS.map((format) => (
             <button
@@ -109,11 +121,18 @@ export function DownloadMenu({ version, onStatus }: Props) {
               role="menuitem"
               onClick={() => void handleDownload(format.id)}
               disabled={pending !== null}
-              className="w-full text-left text-sm px-3 py-2 hover:bg-gray-50 disabled:opacity-40 flex items-center justify-between"
+              className="w-full text-left text-sm px-3 py-2 hover:bg-gray-50 disabled:opacity-40"
             >
-              {format.label}
-              {pending === format.id && (
-                <span className="text-xs text-gray-400">…</span>
+              <span className="flex items-center justify-between gap-2">
+                <span className="font-medium">{format.label}</span>
+                {pending === format.id && (
+                  <span className="text-xs text-gray-400 shrink-0">…</span>
+                )}
+              </span>
+              {format.hint && (
+                <span className="block text-[11px] text-gray-500 mt-0.5 leading-snug">
+                  {format.hint}
+                </span>
               )}
             </button>
           ))}
