@@ -1,17 +1,21 @@
 /**
  * Standalone PDF worker — outside Next webpack so setContent HTML/CSS stay intact.
  * stdin: ResumeVersion JSON → stdout: PDF bytes
+ *
+ * Resolves packages with createRequire(process.cwd()/package.json):
+ *   require("puppeteer-core")  — NOT "@puppeteer-core"
+ *   require("@sparticuz/chromium-min")
  */
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { launchPdfBrowser } from "./pdf-worker-browser.mjs";
 
-const require = createRequire(import.meta.url);
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const {
-  buildResumeExportHtml,
-} = require(path.join(root, "lib/export/generated/build-resume-html.cjs"));
+const requireFromRoot = createRequire(path.join(root, "package.json"));
+const { buildResumeExportHtml } = requireFromRoot(
+  path.join(root, "lib/export/generated/build-resume-html.cjs")
+);
 
 async function readStdin() {
   const chunks = [];

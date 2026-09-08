@@ -1,11 +1,16 @@
 import fs from "node:fs";
+import path from "node:path";
+import { createRequire } from "node:module";
 
 /**
- * Launch Chromium for the standalone PDF worker (no Next/TS).
- * Mirrors lib/export/launch-pdf-browser.ts.
+ * Optional standalone PDF worker browser launcher.
+ * Resolves puppeteer-core / @sparticuz/chromium-min from process.cwd()
+ * (package name is "puppeteer-core", never "@puppeteer-core").
  */
 export async function launchPdfBrowser() {
-  const puppeteer = await import("puppeteer-core");
+  const require = createRequire(path.join(process.cwd(), "package.json"));
+  const puppeteer = require("puppeteer-core");
+
   const isServerless =
     process.env.VERCEL === "1" ||
     process.env.AWS_LAMBDA_FUNCTION_NAME != null ||
@@ -16,16 +21,16 @@ export async function launchPdfBrowser() {
     "https://github.com/Sparticuz/chromium/releases/download/v147.0.1/chromium-v147.0.1-pack.x64.tar";
 
   if (isServerless) {
-    const chromium = await import("@sparticuz/chromium-min");
-    chromium.default.setGraphicsMode = false;
-    const args = await puppeteer.default.defaultArgs({
-      args: chromium.default.args,
+    const chromium = require("@sparticuz/chromium-min");
+    chromium.setGraphicsMode = false;
+    const args = await puppeteer.defaultArgs({
+      args: chromium.args,
       headless: "shell",
     });
-    return puppeteer.default.launch({
+    return puppeteer.launch({
       args,
       defaultViewport: { width: 816, height: 1056, deviceScaleFactor: 1 },
-      executablePath: await chromium.default.executablePath(CHROMIUM_PACK_URL),
+      executablePath: await chromium.executablePath(CHROMIUM_PACK_URL),
       headless: "shell",
     });
   }
@@ -43,16 +48,16 @@ export async function launchPdfBrowser() {
   const executablePath = candidates.find((p) => fs.existsSync(p));
 
   if (!executablePath) {
-    const chromium = await import("@sparticuz/chromium-min");
-    chromium.default.setGraphicsMode = false;
-    return puppeteer.default.launch({
-      args: [...chromium.default.args, "--no-sandbox", "--disable-setuid-sandbox"],
-      executablePath: await chromium.default.executablePath(CHROMIUM_PACK_URL),
+    const chromium = require("@sparticuz/chromium-min");
+    chromium.setGraphicsMode = false;
+    return puppeteer.launch({
+      args: [...chromium.args, "--no-sandbox", "--disable-setuid-sandbox"],
+      executablePath: await chromium.executablePath(CHROMIUM_PACK_URL),
       headless: "shell",
     });
   }
 
-  return puppeteer.default.launch({
+  return puppeteer.launch({
     executablePath,
     headless: true,
     args: ["--no-sandbox", "--disable-setuid-sandbox", "--font-render-hinting=none"],

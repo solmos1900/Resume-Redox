@@ -3,11 +3,12 @@ import path from "node:path";
 import type { ResumeVersion } from "@/lib/schema";
 
 /**
- * Render a text PDF via a Node child process that Chromium-setContents the
- * same React templates (esbuild bundle + inlined export CSS).
+ * Render a text PDF via a Node child worker that Chromium-setContents the
+ * same React templates (esbuild HTML bundle + inlined export CSS).
  *
- * Runs outside Next webpack so HTML/CSS are not rewritten. No HTTP fetch of
- * /export/preview — SSO-safe under Vercel Deployment Protection.
+ * Child process avoids Next/webpack rewriting HTML/CSS and package imports.
+ * Worker resolves "puppeteer-core" via createRequire(process.cwd()) — never
+ * a scoped "@puppeteer-core". No page.goto of /export/preview (SSO-safe).
  *
  * Engine: Chromium/Skia — selectable text + embedded fonts (FlowCV-class).
  */
@@ -15,12 +16,21 @@ export async function renderResumePdf(
   version: ResumeVersion
 ): Promise<Uint8Array> {
   const workerPath = path.join(process.cwd(), "scripts/render-pdf-worker.mjs");
+  const nodePath = [
+    path.join(process.cwd(), "node_modules"),
+    process.env.NODE_PATH,
+  ]
+    .filter(Boolean)
+    .join(path.delimiter);
 
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, [workerPath], {
       cwd: process.cwd(),
       stdio: ["pipe", "pipe", "pipe"],
-      env: process.env,
+      env: {
+        ...process.env,
+        NODE_PATH: nodePath,
+      },
     });
 
     const stdout: Buffer[] = [];

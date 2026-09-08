@@ -6,34 +6,57 @@ const CHROMIUM_PACK_URL =
   process.env.CHROMIUM_REMOTE_EXEC_PATH ||
   "https://github.com/Sparticuz/chromium/releases/download/v147.0.1/chromium-v147.0.1-pack.x64.tar";
 
+type PuppeteerCore = {
+  launch: (options: Record<string, unknown>) => Promise<Browser>;
+  defaultArgs: (options: Record<string, unknown>) => string[] | Promise<string[]>;
+};
+
+type SparticuzChromium = {
+  args: string[];
+  setGraphicsMode: boolean;
+  executablePath: (input?: string) => Promise<string>;
+};
+
+function unwrap<T>(mod: T | { default: T }): T {
+  if (mod && typeof mod === "object" && "default" in mod && (mod as { default: T }).default) {
+    return (mod as { default: T }).default;
+  }
+  return mod as T;
+}
+
 /**
  * Launch Chromium for text PDF generation.
- * - Production / Vercel: @sparticuz/chromium-min + remote pack (stays under
- *   serverless bundle limits)
- * - Local: system Chrome / Chromium when available
+ * Uses dynamic import("puppeteer-core") — never "@puppeteer-core".
+ * Packages are serverExternalPackages + statically imported in the API route
+ * so Vercel NFT includes them under /var/task/node_modules.
  */
 export async function launchPdfBrowser(): Promise<Browser> {
-  const puppeteer = await import("puppeteer-core");
   const isServerless =
     process.env.VERCEL === "1" ||
     process.env.AWS_LAMBDA_FUNCTION_NAME != null ||
     process.env.FORCE_SERVERLESS_CHROMIUM === "1";
 
+  const puppeteer = unwrap(
+    await import("puppeteer-core")
+  ) as unknown as PuppeteerCore;
+
   if (isServerless) {
-    const chromium = await import("@sparticuz/chromium-min");
-    chromium.default.setGraphicsMode = false;
-    const args = await puppeteer.default.defaultArgs({
-      args: chromium.default.args,
+    const chromium = unwrap(
+      await import("@sparticuz/chromium-min")
+    ) as unknown as SparticuzChromium;
+    chromium.setGraphicsMode = false;
+    const args = await puppeteer.defaultArgs({
+      args: chromium.args,
       headless: "shell",
     });
-    return puppeteer.default.launch({
+    return puppeteer.launch({
       args,
       defaultViewport: {
         width: 816,
         height: 1056,
         deviceScaleFactor: 1,
       },
-      executablePath: await chromium.default.executablePath(CHROMIUM_PACK_URL),
+      executablePath: await chromium.executablePath(CHROMIUM_PACK_URL),
       headless: "shell",
     });
   }
@@ -44,19 +67,25 @@ export async function launchPdfBrowser(): Promise<Browser> {
     findLocalChrome();
 
   if (!executablePath) {
-    const chromium = await import("@sparticuz/chromium-min");
-    chromium.default.setGraphicsMode = false;
-    return puppeteer.default.launch({
-      args: [...chromium.default.args, "--no-sandbox", "--disable-setuid-sandbox"],
-      executablePath: await chromium.default.executablePath(CHROMIUM_PACK_URL),
+    const chromium = unwrap(
+      await import("@sparticuz/chromium-min")
+    ) as unknown as SparticuzChromium;
+    chromium.setGraphicsMode = false;
+    return puppeteer.launch({
+      args: [...chromium.args, "--no-sandbox", "--disable-setuid-sandbox"],
+      executablePath: await chromium.executablePath(CHROMIUM_PACK_URL),
       headless: "shell",
     });
   }
 
-  return puppeteer.default.launch({
+  return puppeteer.launch({
     executablePath,
     headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox", "--font-render-hinting=none"],
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--font-render-hinting=none",
+    ],
     defaultViewport: {
       width: 816,
       height: 1056,
