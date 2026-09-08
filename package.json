@@ -3,8 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "npm run build:pdf-assets && next dev",
+    "build:export-css": "node scripts/build-export-css.mjs",
+    "build:pdf-html": "node scripts/build-pdf-html-bundle.mjs",
+    "build:pdf-assets": "npm run build:export-css && npm run build:pdf-html",
+    "build": "npm run build:pdf-assets && next build",
     "start": "next start",
     "lint": "next lint"
   },
@@ -23,6 +26,7 @@
     "@types/node": "^22.10.2",
     "@types/react": "^19.0.2",
     "@types/react-dom": "^19.0.2",
+    "esbuild": "^0.28.2",
     "eslint": "^9.17.0",
     "eslint-config-next": "^15.1.0",
     "postcss": "^8.4.49",

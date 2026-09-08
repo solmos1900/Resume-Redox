@@ -60,7 +60,7 @@ Hobby plan supports multiple personal projects under one account (shared usage l
 
 ### Export fidelity
 
-- **PDF** = single visual path: the same `ResumeTemplateSwitch` components as the editor preview, rendered to HTML and printed by Chromium/Skia (text PDF, not html2canvas raster).
+- **PDF** = single visual path: the same `ResumeTemplateSwitch` components as the editor preview, rendered to self-contained HTML (inlined export CSS) and printed by Chromium/Skia via `page.setContent` — **no HTTP fetch** of `/export/preview` (SSO-safe under Vercel Deployment Protection). Text PDF, not html2canvas raster.
 - **DOCX / TXT** = dual content path on purpose: shared section order via `lib/export/export-blocks.ts`, clean ATS layout, labeled in the Download menu so Word is not mistaken for Accent Clean.
 
 ## Resume templates

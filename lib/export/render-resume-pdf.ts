@@ -1,92 +1,51 @@
+import { spawn } from "node:child_process";
+import path from "node:path";
 import type { ResumeVersion } from "@/lib/schema";
-import { launchPdfBrowser } from "@/lib/export/launch-pdf-browser";
 
 /**
- * Render a text PDF by printing the live export preview page in Chromium.
- * Injects the resume into the page context (no shared server session), so the
- * PDF uses the same React templates + app CSS as the editor preview.
+ * Render a text PDF via a Node child process that Chromium-setContents the
+ * same React templates (esbuild bundle + inlined export CSS).
  *
- * Engine: Chromium/Skia — selectable text + embedded fonts (FlowCV-class),
- * not an html2canvas raster.
+ * Runs outside Next webpack so HTML/CSS are not rewritten. No HTTP fetch of
+ * /export/preview — SSO-safe under Vercel Deployment Protection.
+ *
+ * Engine: Chromium/Skia — selectable text + embedded fonts (FlowCV-class).
  */
 export async function renderResumePdf(
-  version: ResumeVersion,
-  baseUrl: string
+  version: ResumeVersion
 ): Promise<Uint8Array> {
-  const browser = await launchPdfBrowser();
+  const workerPath = path.join(process.cwd(), "scripts/render-pdf-worker.mjs");
 
-  try {
-    const page = await browser.newPage();
-
-    await page.evaluateOnNewDocument((payload) => {
-      (
-        window as Window & {
-          __RESUME_REDOX_EXPORT__?: unknown;
-        }
-      ).__RESUME_REDOX_EXPORT__ = payload;
-    }, version);
-
-    const url = `${baseUrl.replace(/\/$/, "")}/export/preview?chromium=1`;
-    await page.goto(url, {
-      waitUntil: "domcontentloaded",
-      timeout: 45_000,
+  return new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, [workerPath], {
+      cwd: process.cwd(),
+      stdio: ["pipe", "pipe", "pipe"],
+      env: process.env,
     });
 
-    await page.waitForSelector("#resume-export-root .resume-document", {
-      timeout: 30_000,
-    });
-    await page.evaluate(async () => {
-      await document.fonts.ready;
-    });
-    // Allow React to paint injected session content.
-    await new Promise((r) => setTimeout(r, 250));
+    const stdout: Buffer[] = [];
+    const stderr: Buffer[] = [];
 
-    // Match on-screen preview colors (grays + accent), not forced print black.
-    await page.emulateMediaType("screen");
+    child.stdout.on("data", (chunk: Buffer) => stdout.push(chunk));
+    child.stderr.on("data", (chunk: Buffer) => stderr.push(chunk));
 
-    // Collapse export chrome/padding so the letter page is only the resume.
-    await page.addStyleTag({
-      content: `
-        html, body {
-          margin: 0 !important;
-          padding: 0 !important;
-          background: white !important;
-        }
-        .export-layout {
-          padding: 0 !important;
-          margin: 0 !important;
-          min-height: 0 !important;
-          display: block !important;
-        }
-        .export-status-banner,
-        .no-print {
-          display: none !important;
-        }
-        .resume-export-root {
-          margin: 0 !important;
-        }
-        .resume-document a {
-          color: inherit !important;
-        }
-        vercel-live-feedback,
-        [data-vercel-toolbar],
-        [data-vercel-toolbar-rel],
-        #vercel-live-feedback,
-        #vercel-live-feedback-root {
-          display: none !important;
-        }
-      `,
+    child.on("error", reject);
+    child.on("close", (code) => {
+      if (code === 0) {
+        resolve(new Uint8Array(Buffer.concat(stdout)));
+        return;
+      }
+      const detail = Buffer.concat(stderr).toString("utf8").trim();
+      reject(
+        new Error(
+          detail
+            ? `PDF generation failed: ${detail}`
+            : `PDF generation failed with exit code ${code}`
+        )
+      );
     });
 
-    const pdf = await page.pdf({
-      format: "letter",
-      printBackground: true,
-      preferCSSPageSize: true,
-      margin: { top: 0, right: 0, bottom: 0, left: 0 },
-    });
-
-    return new Uint8Array(pdf);
-  } finally {
-    await browser.close();
-  }
+    child.stdin.write(JSON.stringify(version));
+    child.stdin.end();
+  });
 }
