@@ -14,6 +14,7 @@ import { CloudSyncManager } from "@/components/sync/CloudSyncManager";
 import { MobileAppShell } from "@/components/mobile/MobileAppShell";
 import { NewResumeDialog } from "@/components/sidebar/NewResumeDialog";
 import { ImportResumeDialog } from "@/components/import/ImportResumeDialog";
+import { AppToast } from "@/components/Toast";
 import { useIsDesktop } from "@/lib/use-media-query";
 import { useUiStore } from "@/lib/ui-store";
 
@@ -49,6 +50,7 @@ function AppShell() {
         onClose={closeImport}
         initialFile={importFile}
       />
+      <AppToast />
     </div>
   );
 }

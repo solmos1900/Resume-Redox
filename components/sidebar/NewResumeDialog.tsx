@@ -141,9 +141,10 @@ export function NewResumeDialog() {
 
           {startFrom === "import" ? (
             <p className="text-sm text-gray-600 bg-gray-50 rounded-lg px-3 py-2">
-              Next: upload a PDF or DOCX, review the mapped fields, then Apply
-              or Cancel. Nothing is written until you apply. Default is a new
-              version when your current resume has content.
+              Next: drop or choose a PDF/DOCX, review mapped fields (editable),
+              then Apply. Cancel or Esc discards the extract — your current
+              resume stays unchanged. Default is a new version when you already
+              have content.
             </p>
           ) : (
             <label className="block">
