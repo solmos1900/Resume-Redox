@@ -1,0 +1,26 @@
+Morgan Patel
+Technical Program Manager | Platform Delivery
+morgan.patel@example.com  •  +1 (555) 903-1200  •  Chicago, IL  •  linkedin.com/in/morganpatel-example
+
+SUMMARY
+Technical program manager with a background in software engineering. Runs cross-functional delivery for platform programs with clear risks, owners, and launch criteria.
+
+EXPERIENCE
+Lakeside Cloud, Chicago, IL
+Technical Program Manager  |  Feb 2020 – Present
+- Coordinate a 6-team platform program covering identity, billing, and developer APIs; hit three consecutive quarterly launch windows.
+- Stand up release governance: weekly risk review, dependency board, and go/no-go checklist adopted org-wide.
+- Partner with security on SOC2 evidence collection for new services without slipping GA dates.
+
+Lakeside Cloud, Chicago, IL
+Software Engineer  |  Aug 2017 – Jan 2020
+- Built internal deployment dashboards that reduced incident triage time for on-call engineers.
+- Owned a billing webhook service handling 1M events/day with idempotent processing.
+
+SKILLS
+Delivery: TPM, Agile/Scrum, Risk Management, Release Governance
+Engineering: Python, SQL, REST APIs
+
+EDUCATION
+University of Illinois, Urbana-Champaign, IL  |  May 2017
+B.S. Computer Engineering

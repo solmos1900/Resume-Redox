@@ -1,0 +1,26 @@
+Sam Chen
+Software Engineer | Full-Stack
+sam.chen@example.com  •  +1 (555) 014-8800  •  Denver, CO  •  linkedin.com/in/samchen-example
+
+SUMMARY
+Full-stack engineer focused on reliable TypeScript services and React frontends. Comfortable owning features from design review through production observability.
+
+EXPERIENCE
+Redwood Health, Denver, CO
+Software Engineer  |  Jan 2022 – Present
+- Built appointment scheduling APIs in Node.js serving 200k monthly bookings with p95 latency under 180ms.
+- Led migration of legacy jQuery screens to React; improved Lighthouse accessibility score from 62 to 94.
+- Introduced contract tests for critical patient-data endpoints; caught three breaking changes before release.
+
+Summit Robotics, Boulder, CO
+Junior Software Engineer  |  Jul 2019 – Dec 2021
+- Implemented firmware update tooling in Python used by field technicians across 12 warehouse sites.
+- Automated CI packaging for robot services; reduced release prep from half a day to under an hour.
+
+SKILLS
+Languages: TypeScript, Python, SQL
+Stack: React, Next.js, Node.js, PostgreSQL
+
+EDUCATION
+Colorado State University, Fort Collins, CO  |  May 2019
+B.S. Computer Science

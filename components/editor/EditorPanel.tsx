@@ -10,10 +10,12 @@ import {
 import { SkillGroupsForm } from "./SkillGroupsForm";
 import { EducationForm } from "./EducationForm";
 import { JobDescriptionForm } from "./JobDescriptionForm";
+import { EmptyResumeImportCta } from "@/components/import/EmptyResumeImportCta";
 
 export function EditorPanel() {
   return (
     <div className="space-y-4 p-3 sm:p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+      <EmptyResumeImportCta />
       <JobDescriptionForm />
       <ContactForm />
       <SummaryForm />

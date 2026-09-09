@@ -12,7 +12,11 @@ export function NewResumeDialog() {
   const createBlankWithContext = useResumeStore((s) => s.createBlankWithContext);
   const duplicateFromSource = useResumeStore((s) => s.duplicateFromSource);
 
-  const [startFrom, setStartFrom] = useState<"blank" | "existing">("blank");
+  const openImportResumeDialog = useUiStore((s) => s.openImportResumeDialog);
+
+  const [startFrom, setStartFrom] = useState<"blank" | "existing" | "import">(
+    "blank"
+  );
   const [sourceId, setSourceId] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -33,12 +37,18 @@ export function NewResumeDialog() {
     if (startFrom === "existing") {
       const source = versions.find((v) => v.id === sourceId);
       if (source) setName(`${source.name} (Copy)`);
-    } else {
+    } else if (startFrom === "blank") {
       setName("New Resume");
     }
   }, [open, startFrom, sourceId, versions]);
 
   const handleSubmit = () => {
+    if (startFrom === "import") {
+      close();
+      openImportResumeDialog();
+      return;
+    }
+
     const trimmedName = name.trim();
     if (!trimmedName) {
       setError("Please enter a resume name.");
@@ -73,7 +83,7 @@ export function NewResumeDialog() {
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-lg font-bold text-gray-900">New resume</h2>
           <p className="text-sm text-gray-500 mt-1">
-            Start blank or duplicate an existing resume.
+            Start blank, duplicate, or import a PDF/DOCX.
           </p>
         </div>
 
@@ -82,7 +92,7 @@ export function NewResumeDialog() {
             <legend className="text-xs font-medium text-gray-600">
               Start from
             </legend>
-            <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
+            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-3">
               <label className="flex items-center gap-2 text-sm py-1">
                 <input
                   type="radio"
@@ -98,6 +108,14 @@ export function NewResumeDialog() {
                   onChange={() => setStartFrom("existing")}
                 />
                 Existing resume
+              </label>
+              <label className="flex items-center gap-2 text-sm py-1">
+                <input
+                  type="radio"
+                  checked={startFrom === "import"}
+                  onChange={() => setStartFrom("import")}
+                />
+                Import PDF / DOCX
               </label>
             </div>
           </fieldset>
@@ -121,18 +139,27 @@ export function NewResumeDialog() {
             </label>
           )}
 
-          <label className="block">
-            <span className="text-xs font-medium text-gray-600">
-              Resume name
-            </span>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Product Manager @ Acme"
-              className="mt-1 w-full text-sm border rounded-lg px-3 py-2 font-medium"
-            />
-          </label>
+          {startFrom === "import" ? (
+            <p className="text-sm text-gray-600 bg-gray-50 rounded-lg px-3 py-2">
+              Next: drop or choose a PDF/DOCX, review mapped fields (editable),
+              then Apply. Cancel or Esc discards the extract — your current
+              resume stays unchanged. Default is a new version when you already
+              have content.
+            </p>
+          ) : (
+            <label className="block">
+              <span className="text-xs font-medium text-gray-600">
+                Resume name
+              </span>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g. Product Manager @ Acme"
+                className="mt-1 w-full text-sm border rounded-lg px-3 py-2 font-medium"
+              />
+            </label>
+          )}
 
           {error && (
             <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">
@@ -154,7 +181,7 @@ export function NewResumeDialog() {
             onClick={handleSubmit}
             className="text-sm px-4 py-2.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800"
           >
-            Create resume
+            {startFrom === "import" ? "Continue to import" : "Create resume"}
           </button>
         </div>
       </div>

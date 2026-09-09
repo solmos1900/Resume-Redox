@@ -7,6 +7,7 @@ import {
   downloadResumeBackup,
   importStoreFromFile,
 } from "@/lib/file-persistence";
+import { useUiStore } from "@/lib/ui-store";
 
 type ImportMode = "add" | "replace";
 
@@ -25,6 +26,7 @@ export function BackupImportMenu({ collapsed = false }: { collapsed?: boolean })
   const replaceActiveWithImported = useResumeStore(
     (s) => s.replaceActiveWithImported
   );
+  const openImportResumeDialog = useUiStore((s) => s.openImportResumeDialog);
 
   const [open, setOpen] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
@@ -144,6 +146,17 @@ export function BackupImportMenu({ collapsed = false }: { collapsed?: boolean })
             className="w-full text-left text-sm px-3 py-2 hover:bg-gray-50 text-gray-900"
           >
             Import JSON
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => {
+              setOpen(false);
+              openImportResumeDialog();
+            }}
+            className="w-full text-left text-sm px-3 py-2 hover:bg-gray-50 text-gray-900"
+          >
+            Import PDF / DOCX
           </button>
         </div>
       )}

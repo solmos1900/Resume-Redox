@@ -6,6 +6,7 @@ import { createPrintSession, openPrintPreview } from "@/lib/export";
 import { DownloadMenu } from "./DownloadMenu";
 import { AccountMenu } from "@/components/auth/AccountMenu";
 import { useSyncStatus } from "@/lib/sync-status";
+import { useUiStore } from "@/lib/ui-store";
 
 function formatSavedAt(iso: string): string {
   const date = new Date(iso);
@@ -20,6 +21,7 @@ function formatSavedAt(iso: string): string {
 
 export function VersionToolbar() {
   const version = useResumeStore((s) => s.getActiveVersion());
+  const openImport = useUiStore((s) => s.openImportResumeDialog);
   const [printing, setPrinting] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">(
@@ -132,12 +134,19 @@ export function VersionToolbar() {
             </span>
           )}
           <AccountMenu />
+          <button
+            type="button"
+            onClick={() => openImport()}
+            className="text-sm min-h-[44px] px-3 sm:px-4 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium touch-manipulation"
+          >
+            Import
+          </button>
           <DownloadMenu version={version} onStatus={showStatus} />
           <button
             type="button"
             onClick={handlePrint}
             disabled={!version || printing}
-            className="text-sm px-3 py-2 sm:px-4 bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:opacity-40 font-medium touch-manipulation"
+            className="text-sm min-h-[44px] px-3 sm:px-4 bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:opacity-40 font-medium touch-manipulation"
           >
             {printing ? "…" : "Print"}
           </button>
