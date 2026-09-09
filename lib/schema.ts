@@ -97,11 +97,63 @@ export const templateIdSchema = z.enum([
   "accent",
 ]);
 
+export const designFontFamilySchema = z.enum([
+  "arial",
+  "calibri",
+  "georgia",
+  "garamond",
+  "times",
+]);
+
+export const designFontSizeSchema = z.enum(["small", "medium", "large"]);
+
+export const designSpacingSchema = z.enum([
+  "comfortable",
+  "compact",
+  "tight",
+]);
+
+export const designSettingsSchema = z.object({
+  fontFamily: designFontFamilySchema.default("arial"),
+  fontSize: designFontSizeSchema.default("medium"),
+  /** Hex accent for Accent-template tokens (titles / headline / rules). */
+  accentColor: z.string().default("#1e5aa8"),
+  spacing: designSpacingSchema.default("comfortable"),
+});
+
+export const reorderableSectionIdSchema = z.enum([
+  "summary",
+  "experience",
+  "custom",
+  "skills",
+  "education",
+]);
+
+export const DEFAULT_DESIGN_SETTINGS = {
+  fontFamily: "arial" as const,
+  fontSize: "medium" as const,
+  accentColor: "#1e5aa8",
+  spacing: "comfortable" as const,
+};
+
+export const DEFAULT_SECTION_ORDER = [
+  "summary",
+  "experience",
+  "custom",
+  "skills",
+  "education",
+] as const;
+
 export const resumeVersionSchema = z.object({
   id: z.string(),
   name: z.string(),
   updatedAt: z.string(),
   templateId: templateIdSchema,
+  design: designSettingsSchema.default(DEFAULT_DESIGN_SETTINGS),
+  /** Body section order; contact is always pinned above this list. */
+  sectionOrder: z
+    .array(reorderableSectionIdSchema)
+    .default([...DEFAULT_SECTION_ORDER]),
   contact: contactSchema,
   summary: z.string(),
   experience: z.array(experienceSchema),
@@ -130,6 +182,11 @@ export type AiMeta = z.infer<typeof aiMetaSchema>;
 export type AiRecommendationType = AiRecommendation["type"];
 export type AiRecommendationSection = AiRecommendation["section"];
 export type TemplateId = z.infer<typeof templateIdSchema>;
+export type DesignFontFamily = z.infer<typeof designFontFamilySchema>;
+export type DesignFontSize = z.infer<typeof designFontSizeSchema>;
+export type DesignSpacing = z.infer<typeof designSpacingSchema>;
+export type DesignSettings = z.infer<typeof designSettingsSchema>;
+export type ReorderableSectionId = z.infer<typeof reorderableSectionIdSchema>;
 export type ResumeVersion = z.infer<typeof resumeVersionSchema>;
 export type StoreState = z.infer<typeof storeSchema>;
 
@@ -140,6 +197,8 @@ export function createEmptyVersion(name: string): ResumeVersion {
     name,
     updatedAt: now,
     templateId: "classic",
+    design: { ...DEFAULT_DESIGN_SETTINGS },
+    sectionOrder: [...DEFAULT_SECTION_ORDER],
     contact: {
       fullName: "",
       headline: "",

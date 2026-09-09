@@ -2,12 +2,16 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import {
   createEmptyVersion,
+  DEFAULT_DESIGN_SETTINGS,
+  DEFAULT_SECTION_ORDER,
   resumeVersionSchema,
   storeSchema,
   type AiRecommendation,
   type ResumeVersion,
 } from "./schema";
+import { normalizeSectionOrder } from "./templates/section-order";
 import { createInitialStore } from "./seed-data";
+import { getDesignSettings, normalizeAccentColor } from "./design";
 
 type ResumeStore = {
   activeVersionId: string;
@@ -40,6 +44,14 @@ function cloneVersion(version: ResumeVersion, newName: string): ResumeVersion {
   clone.name = newName;
   clone.updatedAt = new Date().toISOString();
   clone.templateId = version.templateId ?? "classic";
+  clone.design = {
+    ...DEFAULT_DESIGN_SETTINGS,
+    ...version.design,
+    accentColor: normalizeAccentColor(
+      version.design?.accentColor ?? DEFAULT_DESIGN_SETTINGS.accentColor
+    ),
+  };
+  clone.sectionOrder = normalizeSectionOrder(version.sectionOrder);
   clone.aiRecommendations = [];
   clone.aiMeta = {};
   clone.experience = clone.experience.map((e) => ({
@@ -66,9 +78,15 @@ function cloneVersion(version: ResumeVersion, newName: string): ResumeVersion {
 }
 
 function withDefaults(v: Partial<ResumeVersion>): ResumeVersion {
+  const design = getDesignSettings(v as ResumeVersion);
   return {
     ...v,
     templateId: v.templateId ?? "classic",
+    design: {
+      ...design,
+      accentColor: normalizeAccentColor(design.accentColor),
+    },
+    sectionOrder: normalizeSectionOrder(v.sectionOrder),
     jobDescription: v.jobDescription ?? { url: "", text: "" },
     aiRecommendations: v.aiRecommendations ?? [],
     aiMeta: v.aiMeta ?? {},
@@ -211,6 +229,10 @@ export const useResumeStore = create<ResumeStore>()(
         get().updateActiveVersion({
           name: cloned.name,
           templateId: cloned.templateId,
+          design: cloned.design ?? { ...DEFAULT_DESIGN_SETTINGS },
+          sectionOrder: normalizeSectionOrder(
+            cloned.sectionOrder ?? [...DEFAULT_SECTION_ORDER]
+          ),
           contact: cloned.contact,
           summary: cloned.summary,
           experience: cloned.experience,
@@ -228,7 +250,7 @@ export const useResumeStore = create<ResumeStore>()(
     {
       name: "resume-redox-storage",
       skipHydration: true,
-      version: 7,
+      version: 8,
       migrate: (persisted) => {
         const state = persisted as {
           activeVersionId?: string;
@@ -238,6 +260,8 @@ export const useResumeStore = create<ResumeStore>()(
               aiRecommendations?: AiRecommendation[];
               aiMeta?: ResumeVersion["aiMeta"];
               customSections?: ResumeVersion["customSections"];
+              design?: ResumeVersion["design"];
+              sectionOrder?: ResumeVersion["sectionOrder"];
               education?: Array<
                 ResumeVersion["education"][number] & {
                   graduationDate?: string;
@@ -252,6 +276,10 @@ export const useResumeStore = create<ResumeStore>()(
             withDefaults({
               ...v,
               templateId: (v as ResumeVersion).templateId ?? "classic",
+              design: v.design ?? { ...DEFAULT_DESIGN_SETTINGS },
+              sectionOrder: normalizeSectionOrder(
+                v.sectionOrder ?? [...DEFAULT_SECTION_ORDER]
+              ),
               contact: {
                 ...v.contact,
                 headline: v.contact?.headline ?? "",

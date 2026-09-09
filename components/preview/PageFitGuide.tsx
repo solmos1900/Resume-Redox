@@ -75,6 +75,19 @@ function usePreviewScale() {
 export function PageFitGuide() {
   const activeVersionId = useResumeStore((s) => s.activeVersionId);
   const templateId = useResumeStore((s) => s.getActiveVersion()?.templateId);
+  const designKey = useResumeStore((s) => {
+    const v = s.getActiveVersion();
+    if (!v) return "";
+    const d = v.design;
+    return [
+      v.updatedAt,
+      d?.fontFamily,
+      d?.fontSize,
+      d?.accentColor,
+      d?.spacing,
+      (v.sectionOrder ?? []).join(","),
+    ].join("|");
+  });
   const [result, setResult] = useState<PageFitResult | null>(null);
   const [frameHeight, setFrameHeight] = useState(LETTER_HEIGHT_PX);
   const { containerRef, scale } = usePreviewScale();
@@ -106,6 +119,7 @@ export function PageFitGuide() {
       childList: true,
       subtree: true,
       characterData: true,
+      attributes: true,
     });
 
     window.addEventListener("resize", measure);
@@ -115,7 +129,7 @@ export function PageFitGuide() {
       mutationObserver.disconnect();
       window.removeEventListener("resize", measure);
     };
-  }, [activeVersionId, templateId]);
+  }, [activeVersionId, templateId, designKey]);
 
   const marginX = PAGE_MARGIN_X_IN * PX_PER_IN;
   const marginTop = PAGE_MARGIN_TOP_IN * PX_PER_IN;
