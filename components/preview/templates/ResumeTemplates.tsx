@@ -495,7 +495,7 @@ export function AccentTemplate({ data }: { data: ResumeContent }) {
           )}
           <ContactLine
             contact={contact}
-            className="text-sm text-gray-600 mt-1 leading-snug"
+            className="text-sm text-gray-800 mt-1"
           />
         </header>
       )}
