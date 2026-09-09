@@ -376,7 +376,6 @@ export function ImportResumeDialog({ open, onClose, initialFile }: Props) {
   if (!open) return null;
 
   const quality = fields ? getExtractQuality(fields) : null;
-  const totalFail = unreadable || (!!fields && quality === "empty");
   const canApply =
     Boolean(fields) &&
     !busy &&
