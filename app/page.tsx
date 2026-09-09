@@ -13,11 +13,16 @@ import { AuthGate } from "@/components/auth/AuthGate";
 import { CloudSyncManager } from "@/components/sync/CloudSyncManager";
 import { MobileAppShell } from "@/components/mobile/MobileAppShell";
 import { NewResumeDialog } from "@/components/sidebar/NewResumeDialog";
+import { ImportResumeDialog } from "@/components/import/ImportResumeDialog";
 import { useIsDesktop } from "@/lib/use-media-query";
+import { useUiStore } from "@/lib/ui-store";
 
 function AppShell() {
   const isDesktop = useIsDesktop();
   const [sidebarCollapsed, toggleSidebar] = useSidebarCollapsed();
+  const importOpen = useUiStore((s) => s.importResumeDialogOpen);
+  const importFile = useUiStore((s) => s.importResumeInitialFile);
+  const closeImport = useUiStore((s) => s.closeImportResumeDialog);
 
   return (
     <div className="h-dvh flex flex-col overflow-hidden">
@@ -39,6 +44,11 @@ function AppShell() {
       )}
 
       <NewResumeDialog />
+      <ImportResumeDialog
+        open={importOpen}
+        onClose={closeImport}
+        initialFile={importFile}
+      />
     </div>
   );
 }

@@ -1,0 +1,26 @@
+Jordan Lee
+Product Manager | B2B SaaS
+jordan.lee@example.com  •  +1 (555) 201-4400  •  Seattle, WA  •  linkedin.com/in/jordanlee-example
+
+SUMMARY
+Product manager with eight years shipping platform and growth products for B2B SaaS. Partners with engineering and design to deliver roadmap outcomes with clear metrics.
+
+EXPERIENCE
+Cascade Analytics, Seattle, WA
+Senior Product Manager  |  Mar 2021 – Present
+- Own the integrations roadmap across three product lines; shipped partner API v2 used by 40+ enterprise accounts.
+- Cut time-to-value for new workspaces by 28% through onboarding experiments and clearer activation instrumentation.
+- Facilitate quarterly planning with engineering; maintain a transparent backlog and release notes for customers.
+
+Harbor Labs, Remote
+Product Manager  |  Jun 2018 – Feb 2021
+- Launched a self-serve analytics tier that grew paid conversions 19% year over year.
+- Partnered with design on a redesign of the query builder; reduced support tickets related to filters by 35%.
+
+SKILLS
+Product: Roadmapping, Discovery, Experimentation, Stakeholder Management
+Tools: Jira, Amplitude, Figma, SQL
+
+EDUCATION
+University of Washington, Seattle, WA  |  Jun 2016
+B.A. Business Administration

@@ -7,6 +7,8 @@
     "build:export-css": "node scripts/build-export-css.mjs",
     "build:pdf-html": "node scripts/build-pdf-html-bundle.mjs",
     "build:pdf-assets": "npm run build:export-css && npm run build:pdf-html",
+    "build:import-fixtures": "node scripts/generate-import-fixtures.mjs",
+    "test:import-fixtures": "tsx scripts/test-import-fixtures.ts",
     "build": "npm run build:pdf-assets && next build",
     "start": "next start",
     "lint": "next lint"
@@ -15,7 +17,9 @@
     "@sparticuz/chromium-min": "^147.0.1",
     "docx": "^9.7.1",
     "firebase": "^12.18.0",
+    "mammoth": "^1.12.2",
     "next": "^15.1.0",
+    "pdfjs-dist": "^6.3.289",
     "puppeteer-core": "^25.10.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -29,8 +33,10 @@
     "esbuild": "^0.28.2",
     "eslint": "^9.17.0",
     "eslint-config-next": "^15.1.0",
+    "pdf-lib": "^1.17.1",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.17",
+    "tsx": "^4.23.13",
     "typescript": "^5.7.2"
   }
 }
