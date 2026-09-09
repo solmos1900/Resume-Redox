@@ -141,8 +141,9 @@ export function NewResumeDialog() {
 
           {startFrom === "import" ? (
             <p className="text-sm text-gray-600 bg-gray-50 rounded-lg px-3 py-2">
-              Next you&apos;ll upload a file and review mapped fields before
-              anything is written to your resumes.
+              Next: upload a PDF or DOCX, review the mapped fields, then Apply
+              or Cancel. Nothing is written until you apply. Default is a new
+              version when your current resume has content.
             </p>
           ) : (
             <label className="block">

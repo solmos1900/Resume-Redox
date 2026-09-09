@@ -45,8 +45,8 @@ export async function parseResumeFile(input: {
     return {
       ok: false,
       error: likelyImageOnly
-        ? "This PDF looks image-only (no selectable text). OCR is out of scope for Phase 2 — try a text PDF or DOCX."
-        : "No text found in this file.",
+        ? "This PDF has little or no selectable text (likely image-only / scanned). Text extraction cannot map fields — try a text PDF or DOCX. OCR is out of scope for this release."
+        : "No text was extracted from this file.",
       format,
       fileName: input.fileName,
       likelyImageOnly,
@@ -58,20 +58,20 @@ export async function parseResumeFile(input: {
   const warnings: string[] = [];
 
   if (!summary.hasName) {
-    warnings.push("Could not detect a name — please fill it in after import.");
+    warnings.push("Name was not detected — fill it in after import if needed.");
   }
   if (!summary.hasContact) {
     warnings.push(
-      "Contact details were incomplete — check email / phone / location."
+      "Contact looked incomplete — check email, phone, and location."
     );
   }
   if (summary.experienceCount === 0) {
     warnings.push(
-      "No experience entries detected — review the Experience section after import."
+      "No experience section mapped — add roles manually after import if needed."
     );
   } else if (summary.bulletCount === 0) {
     warnings.push(
-      "Experience titles were found but no bullets — you may need to add them."
+      "Experience titles mapped but no bullets found — add bullets after import if needed."
     );
   }
 
