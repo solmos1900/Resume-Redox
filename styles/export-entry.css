@@ -36,6 +36,64 @@ body {
   color: black;
 }
 
+.resume-document[data-font-size="small"] {
+  font-size: 13px;
+}
+.resume-document[data-font-size="small"] .text-sm,
+.resume-document[data-font-size="small"] .text-\[13px\] {
+  font-size: 0.8125rem !important;
+}
+.resume-document[data-font-size="medium"] {
+  font-size: 14px;
+}
+.resume-document[data-font-size="large"] {
+  font-size: 15px;
+}
+.resume-document[data-font-size="large"] .text-sm,
+.resume-document[data-font-size="large"] .text-\[13px\] {
+  font-size: 0.9375rem !important;
+}
+.resume-document[data-font-size="large"] .text-2xl {
+  font-size: 1.65rem !important;
+}
+.resume-document[data-font-size="large"] .text-3xl {
+  font-size: 1.9rem !important;
+}
+.resume-document[data-font-size="small"] .text-2xl {
+  font-size: 1.35rem !important;
+}
+.resume-document[data-font-size="small"] .text-3xl {
+  font-size: 1.6rem !important;
+}
+
+.resume-document[data-spacing="compact"] {
+  line-height: 1.32;
+}
+.resume-document[data-spacing="compact"] > header,
+.resume-document[data-spacing="compact"] > section,
+.resume-document[data-spacing="compact"] .accent-section {
+  margin-bottom: 0.85rem !important;
+}
+.resume-document[data-spacing="tight"] {
+  line-height: 1.25;
+}
+.resume-document[data-spacing="tight"] > header,
+.resume-document[data-spacing="tight"] > section,
+.resume-document[data-spacing="tight"] .accent-section {
+  margin-bottom: 0.55rem !important;
+}
+.resume-document[data-spacing="compact"] .space-y-4 > :not([hidden]) ~ :not([hidden]),
+.resume-document[data-spacing="compact"] .space-y-3\.5 > :not([hidden]) ~ :not([hidden]),
+.resume-document[data-spacing="compact"] .space-y-3 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 0.65rem !important;
+}
+.resume-document[data-spacing="tight"] .space-y-4 > :not([hidden]) ~ :not([hidden]),
+.resume-document[data-spacing="tight"] .space-y-3\.5 > :not([hidden]) ~ :not([hidden]),
+.resume-document[data-spacing="tight"] .space-y-3 > :not([hidden]) ~ :not([hidden]),
+.resume-document[data-spacing="tight"] .space-y-2\.5 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 0.4rem !important;
+}
+
 .resume-document a {
   color: inherit !important;
   text-decoration: none;
@@ -71,7 +129,7 @@ body {
   font-weight: 700;
   border-bottom: 2px solid var(--accent);
   padding-bottom: 0.3rem;
-  margin-bottom: 0.55rem;
+  margin-bottom: 0.5rem; /* ~mb-2 under blue rule */
 }
 
 .template-accent .accent-headline {

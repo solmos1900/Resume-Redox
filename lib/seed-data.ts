@@ -1,4 +1,8 @@
-import type { ResumeVersion } from "./schema";
+import {
+  DEFAULT_DESIGN_SETTINGS,
+  DEFAULT_SECTION_ORDER,
+  type ResumeVersion,
+} from "./schema";
 
 /** Demo seed only — no real personal data. */
 export function createSeedVersion(): ResumeVersion {
@@ -7,6 +11,8 @@ export function createSeedVersion(): ResumeVersion {
     id: "seed-technical-pm",
     name: "Technical PM (Demo)",
     templateId: "classic" as const,
+    design: { ...DEFAULT_DESIGN_SETTINGS },
+    sectionOrder: [...DEFAULT_SECTION_ORDER],
     updatedAt: now,
     contact: {
       fullName: "Alex Rivera",

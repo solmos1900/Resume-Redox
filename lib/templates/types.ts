@@ -1,12 +1,20 @@
 import type {
   Contact,
   CustomSection,
+  DesignSettings,
   Education,
   Experience,
   SkillGroup,
+  ReorderableSectionId,
   ResumeVersion,
   TemplateId,
 } from "@/lib/schema";
+import {
+  DEFAULT_DESIGN_SETTINGS,
+  DEFAULT_SECTION_ORDER,
+} from "@/lib/schema";
+import { normalizeSectionOrder } from "@/lib/templates/section-order";
+import { getDesignSettings } from "@/lib/design";
 
 export type { TemplateId };
 
@@ -17,6 +25,8 @@ export type ResumeContent = {
   skillGroups: SkillGroup[];
   education: Education[];
   customSections: CustomSection[];
+  design: DesignSettings;
+  sectionOrder: ReorderableSectionId[];
 };
 
 export type TemplateDefinition = {
@@ -35,5 +45,11 @@ export function toResumeContent(version: ResumeVersion): ResumeContent {
     skillGroups: version.skillGroups,
     education: version.education,
     customSections: version.customSections ?? [],
+    design: getDesignSettings(version),
+    sectionOrder: normalizeSectionOrder(
+      version.sectionOrder ?? [...DEFAULT_SECTION_ORDER]
+    ),
   };
 }
+
+export { DEFAULT_DESIGN_SETTINGS };

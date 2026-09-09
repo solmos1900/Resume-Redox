@@ -8,6 +8,7 @@ import {
   customSectionToExperience,
   useResumeSections,
 } from "@/lib/templates/sections";
+import { normalizeSectionOrder } from "@/lib/templates/section-order";
 import { formatDateRange } from "@/lib/utils";
 
 /**
@@ -32,40 +33,52 @@ export function getExportBlocks(data: ResumeContent): ExportBlock[] {
 
   const blocks: ExportBlock[] = [];
 
-  if (hasSummary) {
-    blocks.push({ kind: "summary", title: "Summary", body: data.summary });
-  }
-
-  if (hasExperience) {
-    blocks.push({
-      kind: "experience",
-      title: "Experience",
-      jobs: data.experience,
-    });
-  }
-
-  for (const section of visibleCustomSections) {
-    blocks.push({
-      kind: "custom",
-      title: section.title.trim() || "Section",
-      jobs: customSectionToExperience(section),
-    });
-  }
-
-  if (hasSkills) {
-    blocks.push({
-      kind: "skills",
-      title: "Skills",
-      groups: data.skillGroups,
-    });
-  }
-
-  if (hasEducation) {
-    blocks.push({
-      kind: "education",
-      title: "Education",
-      entries: data.education,
-    });
+  for (const id of normalizeSectionOrder(data.sectionOrder)) {
+    switch (id) {
+      case "summary":
+        if (hasSummary) {
+          blocks.push({ kind: "summary", title: "Summary", body: data.summary });
+        }
+        break;
+      case "experience":
+        if (hasExperience) {
+          blocks.push({
+            kind: "experience",
+            title: "Experience",
+            jobs: data.experience,
+          });
+        }
+        break;
+      case "custom":
+        for (const section of visibleCustomSections) {
+          blocks.push({
+            kind: "custom",
+            title: section.title.trim() || "Section",
+            jobs: customSectionToExperience(section),
+          });
+        }
+        break;
+      case "skills":
+        if (hasSkills) {
+          blocks.push({
+            kind: "skills",
+            title: "Skills",
+            groups: data.skillGroups,
+          });
+        }
+        break;
+      case "education":
+        if (hasEducation) {
+          blocks.push({
+            kind: "education",
+            title: "Education",
+            entries: data.education,
+          });
+        }
+        break;
+      default:
+        break;
+    }
   }
 
   return blocks;
