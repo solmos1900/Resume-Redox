@@ -99,7 +99,7 @@ export function GalleryHome() {
         className="pointer-events-none absolute -top-24 right-0 h-72 w-72 max-w-[50vw] rounded-full bg-[#d9e2ec]/40 blur-3xl"
       />
 
-      <header className="gallery-home-chrome relative z-10 flex w-full max-w-full shrink-0 items-center justify-between gap-3 border-b border-[#d8dee6]/80 bg-white/70 px-4 pb-3.5 backdrop-blur-md sm:px-6">
+      <header className="gallery-home-chrome relative z-10 flex w-full max-w-full shrink-0 items-center justify-between gap-3 border-b border-[#d8dee6]/80 bg-white/70 px-4 backdrop-blur-md sm:px-6">
         <div className="min-w-0">
           <p className="truncate text-[11px] font-semibold uppercase tracking-[0.14em] text-[#5a6572]">
             Resume Redox
@@ -120,7 +120,7 @@ export function GalleryHome() {
         </button>
       </header>
 
-      <div className="relative z-10 mx-auto flex w-full max-w-6xl min-w-0 flex-1 flex-col overflow-hidden px-4 pt-6 sm:px-6 sm:pt-8">
+      <div className="relative z-10 mx-auto flex w-full max-w-6xl min-w-0 flex-1 flex-col overflow-hidden px-4 pt-8 sm:px-6 sm:pt-8">
         <div className="min-w-0 shrink-0 max-w-2xl">
           <h1 className="text-3xl font-semibold tracking-tight text-[#121820] sm:text-4xl">
             Choose a design

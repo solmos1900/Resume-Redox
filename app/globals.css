@@ -25,8 +25,8 @@ body {
   max-width: 100%;
   overflow-x: hidden;
   box-sizing: border-box;
-  /* Inset + breathing room — max(1rem, inset) left content flush to the notch edge */
-  padding-top: calc(env(safe-area-inset-top, 0px) + 1.25rem);
+  /* Amadeus: keep top breathing room if SignIn still flush */
+  padding-top: max(24px, calc(env(safe-area-inset-top, 0px) + 16px));
   padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 1rem);
   padding-left: calc(env(safe-area-inset-left, 0px) + 1rem);
   padding-right: calc(env(safe-area-inset-right, 0px) + 1rem);
@@ -42,11 +42,12 @@ body {
 }
 
 /**
- * Gallery First home chrome (GF1) — primary mobile top-spacing bar.
- * Inset + breathing room so the wall header isn't flush with status bar / notch.
+ * Gallery First home chrome (GF1) — Amadeus exact mobile top-spacing.
+ * Replaces flat py-3 reliance under the notch / status bar.
  */
 .gallery-home-chrome {
-  padding-top: calc(env(safe-area-inset-top, 0px) + 1.25rem);
+  padding-top: calc(env(safe-area-inset-top, 0px) + 12px);
+  padding-bottom: 12px;
   padding-left: max(1rem, env(safe-area-inset-left, 0px));
   padding-right: max(1rem, env(safe-area-inset-right, 0px));
 }
