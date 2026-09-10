@@ -1,10 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState, type CSSProperties, type FormEvent } from "react";
 import { useAuth } from "./AuthProvider";
 import { authErrorMessage } from "@/lib/auth-errors";
 
 type EmailMode = "signin" | "signup";
+
+/** Keep login at device width; reset sticky iOS visual-viewport zoom after fields. */
+const LOGIN_VIEWPORT =
+  "width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover";
+
+function applyLoginViewport() {
+  if (typeof document === "undefined") return;
+  const meta = document.querySelector('meta[name="viewport"]');
+  if (!meta) return;
+  // Toggle forces WebKit to re-apply scale after input auto-zoom.
+  meta.setAttribute("content", `${LOGIN_VIEWPORT}, user-scalable=no`);
+  requestAnimationFrame(() => {
+    meta.setAttribute("content", LOGIN_VIEWPORT);
+  });
+}
 
 function GoogleIcon() {
   return (
@@ -44,6 +59,16 @@ export function SignInScreen() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
+  useEffect(() => {
+    applyLoginViewport();
+    // Soft keyboard / orientation can leave a stuck visual viewport on iOS.
+    const onResize = () => applyLoginViewport();
+    window.visualViewport?.addEventListener("resize", onResize);
+    return () => {
+      window.visualViewport?.removeEventListener("resize", onResize);
+    };
+  }, []);
+
   const withBusy = async (fn: () => Promise<void>) => {
     setBusy(true);
     setError(null);
@@ -55,6 +80,7 @@ export function SignInScreen() {
       if (message) setError(message);
     } finally {
       setBusy(false);
+      applyLoginViewport();
     }
   };
 
@@ -67,7 +93,7 @@ export function SignInScreen() {
     setConfirmPassword("");
   };
 
-  const handleEmailSubmit = (e: React.FormEvent) => {
+  const handleEmailSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (emailMode === "signup" && password !== confirmPassword) {
       setError("Passwords don't match.");
@@ -93,29 +119,47 @@ export function SignInScreen() {
     });
   };
 
-  // text-base (16px) on inputs — iOS Safari auto-zooms focused fields under 16px
-  // and often leaves the page zoomed until the user pinches out.
+  // Explicit 16px (not rem) — iOS still auto-zooms when computed size < 16px.
   const fieldClass =
-    "w-full min-w-0 text-base px-3 py-2.5 border border-gray-300 rounded-lg";
+    "box-border w-full max-w-full min-w-0 rounded-lg border border-gray-300 px-3 py-3 touch-manipulation";
+  const fieldStyle: CSSProperties = {
+    fontSize: 16,
+    lineHeight: 1.4,
+  };
 
   return (
-    <div className="box-border flex h-dvh max-w-full items-center justify-center overflow-x-hidden overflow-y-auto bg-gray-100 p-4 safe-area-top safe-area-bottom">
-      <div className="w-full max-w-sm min-w-0 bg-white rounded-xl shadow-xl border border-gray-200">
-        <div className="px-5 py-5 border-b border-gray-200 text-center sm:px-6">
+    <div
+      className="box-border flex min-h-dvh w-full max-w-[100%] items-center justify-center overflow-x-hidden overflow-y-auto bg-gray-100"
+      style={{
+        width: "100%",
+        maxWidth: "100%",
+        paddingTop: "max(1rem, env(safe-area-inset-top))",
+        paddingBottom: "max(1rem, env(safe-area-inset-bottom))",
+        paddingLeft: "max(1rem, env(safe-area-inset-left))",
+        paddingRight: "max(1rem, env(safe-area-inset-right))",
+        // Prevent double-tap zoom on the login chrome itself.
+        touchAction: "manipulation",
+      }}
+    >
+      <div
+        className="box-border w-full min-w-0 rounded-xl border border-gray-200 bg-white shadow-xl"
+        style={{ width: "100%", maxWidth: "min(24rem, 100%)" }}
+      >
+        <div className="border-b border-gray-200 px-4 py-5 text-center sm:px-6">
           <h1 className="text-lg font-bold text-gray-900">Resume Redox</h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="mt-1 text-sm text-gray-500">
             Sign in to view and edit your resumes.
           </p>
         </div>
 
-        <div className="px-5 py-5 space-y-4 sm:px-6">
+        <div className="space-y-4 px-4 py-5 sm:px-6">
           {error && (
-            <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+            <p className="break-words text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
               {error}
             </p>
           )}
           {notice && (
-            <p className="text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+            <p className="break-words text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
               {notice}
             </p>
           )}
@@ -124,29 +168,32 @@ export function SignInScreen() {
             type="button"
             onClick={() => void handleGoogle()}
             disabled={busy}
-            className="w-full flex min-h-[44px] items-center justify-center gap-2 text-sm px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40 font-medium"
+            className="flex w-full min-h-[44px] touch-manipulation items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-50 disabled:opacity-40"
           >
             <GoogleIcon />
             Continue with Google
           </button>
 
           <div className="flex items-center gap-3 text-xs text-gray-400">
-            <div className="flex-1 h-px bg-gray-200" />
+            <div className="h-px flex-1 bg-gray-200" />
             or
-            <div className="flex-1 h-px bg-gray-200" />
+            <div className="h-px flex-1 bg-gray-200" />
           </div>
 
           <form onSubmit={handleEmailSubmit} className="space-y-2">
             {emailMode === "signup" && (
-              <div className="flex min-w-0 gap-2">
+              <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2">
                 <input
                   type="text"
                   required
                   placeholder="First name"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
+                  onBlur={applyLoginViewport}
                   autoComplete="given-name"
+                  enterKeyHint="next"
                   className={fieldClass}
+                  style={fieldStyle}
                 />
                 <input
                   type="text"
@@ -154,8 +201,11 @@ export function SignInScreen() {
                   placeholder="Last name"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
+                  onBlur={applyLoginViewport}
                   autoComplete="family-name"
+                  enterKeyHint="next"
                   className={fieldClass}
+                  style={fieldStyle}
                 />
               </div>
             )}
@@ -165,8 +215,12 @@ export function SignInScreen() {
               placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              onBlur={applyLoginViewport}
               autoComplete="email"
+              enterKeyHint="next"
+              inputMode="email"
               className={fieldClass}
+              style={fieldStyle}
             />
             <input
               type="password"
@@ -175,10 +229,13 @@ export function SignInScreen() {
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              onBlur={applyLoginViewport}
               autoComplete={
                 emailMode === "signin" ? "current-password" : "new-password"
               }
+              enterKeyHint={emailMode === "signin" ? "go" : "next"}
               className={fieldClass}
+              style={fieldStyle}
             />
             {emailMode === "signup" && (
               <input
@@ -188,14 +245,17 @@ export function SignInScreen() {
                 placeholder="Retype password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
+                onBlur={applyLoginViewport}
                 autoComplete="new-password"
+                enterKeyHint="go"
                 className={fieldClass}
+                style={fieldStyle}
               />
             )}
             <button
               type="submit"
               disabled={busy}
-              className="w-full min-h-[44px] text-sm px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:opacity-40 font-medium"
+              className="w-full min-h-[44px] touch-manipulation rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-40"
             >
               {emailMode === "signin" ? "Sign in" : "Create account"}
             </button>
@@ -205,7 +265,7 @@ export function SignInScreen() {
                 onClick={() =>
                   switchMode(emailMode === "signin" ? "signup" : "signin")
                 }
-                className="text-xs text-gray-500 hover:text-gray-700"
+                className="touch-manipulation text-xs text-gray-500 hover:text-gray-700"
               >
                 {emailMode === "signin"
                   ? "Need an account? Sign up"
@@ -216,7 +276,7 @@ export function SignInScreen() {
                   type="button"
                   onClick={handleForgotPassword}
                   disabled={busy}
-                  className="text-xs text-gray-500 hover:text-gray-700 disabled:opacity-40"
+                  className="touch-manipulation text-xs text-gray-500 hover:text-gray-700 disabled:opacity-40"
                 >
                   Forgot password?
                 </button>

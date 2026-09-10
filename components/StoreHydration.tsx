@@ -15,7 +15,7 @@ export function StoreHydration({ children }: { children: ReactNode }) {
 
   if (!ready) {
     return (
-      <div className="h-screen flex items-center justify-center text-gray-500 text-sm">
+      <div className="auth-shell box-border flex min-h-dvh items-center justify-center text-gray-500 text-sm">
         Loading resume...
       </div>
     );

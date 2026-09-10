@@ -9,7 +9,9 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  // Do not set maximumScale — keeps pinch-zoom available for a11y.
+  minimumScale: 1,
+  // After layout fixes still left sticky iOS zoom on-device; cap scale on login origin.
+  maximumScale: 1,
   viewportFit: "cover",
   themeColor: "#ffffff",
 };
@@ -20,8 +22,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="max-w-full overflow-x-hidden">
-      <body className="antialiased bg-gray-100 max-w-full overflow-x-hidden">
+    <html lang="en" className="h-full max-w-full overflow-x-hidden">
+      <body className="h-full max-w-full overflow-x-hidden antialiased bg-gray-100">
         {children}
       </body>
     </html>
