@@ -27,7 +27,8 @@ type ResumeStore = {
   createBlankWithContext: (
     name: string,
     jobText?: string,
-    jobUrl?: string
+    jobUrl?: string,
+    templateId?: ResumeVersion["templateId"]
   ) => void;
   renameVersion: (id: string, name: string) => void;
   deleteVersion: (id: string) => void;
@@ -161,8 +162,11 @@ export const useResumeStore = create<ResumeStore>()(
         }));
       },
 
-      createBlankWithContext: (name, jobText, jobUrl) => {
+      createBlankWithContext: (name, jobText, jobUrl, templateId) => {
         const version = createEmptyVersion(name);
+        if (templateId) {
+          version.templateId = templateId;
+        }
         if (jobText?.trim()) {
           version.jobDescription = { url: jobUrl ?? "", text: jobText.trim() };
         }

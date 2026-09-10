@@ -36,7 +36,7 @@ export function ResumeSidebar({
   const setActiveVersion = useResumeStore((s) => s.setActiveVersion);
   const renameVersion = useResumeStore((s) => s.renameVersion);
   const deleteVersion = useResumeStore((s) => s.deleteVersion);
-  const openNewResumeDialog = useUiStore((s) => s.openNewResumeDialog);
+  const openGallery = useUiStore((s) => s.openGallery);
 
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
@@ -179,7 +179,7 @@ export function ResumeSidebar({
             <div className="p-3 border-t border-gray-700 flex items-center gap-2 safe-area-bottom">
               <button
                 type="button"
-                onClick={() => openNewResumeDialog("create")}
+                onClick={() => openGallery()}
                 className="flex-1 text-sm py-2.5 px-3 rounded-lg border border-gray-600 hover:bg-gray-800 transition-colors"
               >
                 + New resume
@@ -193,7 +193,7 @@ export function ResumeSidebar({
           <div className="flex flex-col items-center py-3 gap-2">
             <button
               type="button"
-              onClick={() => openNewResumeDialog("create")}
+              onClick={() => openGallery()}
               className="p-2 rounded hover:bg-gray-800 text-lg"
               title="New resume"
             >

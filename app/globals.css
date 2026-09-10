@@ -5,19 +5,51 @@
 html,
 body {
   height: 100%;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  /* Stop iOS Safari from inflating text (reads as “zoomed” login). */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
   font-family: Arial, Helvetica, sans-serif;
+  position: relative;
+  margin: 0;
 }
 
-/* iOS notch / home-indicator safe areas */
+/* Login / gate shells must never exceed the layout viewport */
+.auth-shell {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  /* Amadeus: keep top breathing room if SignIn still flush */
+  padding-top: max(24px, calc(env(safe-area-inset-top, 0px) + 16px));
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 1rem);
+  padding-left: calc(env(safe-area-inset-left, 0px) + 1rem);
+  padding-right: calc(env(safe-area-inset-right, 0px) + 1rem);
+}
+
+/* iOS notch / home-indicator safe areas (+ small gap so chrome isn't flush) */
 .safe-area-top {
-  padding-top: max(0px, env(safe-area-inset-top));
+  padding-top: calc(env(safe-area-inset-top, 0px) + 0.75rem);
 }
 
 .safe-area-bottom {
-  padding-bottom: max(0px, env(safe-area-inset-bottom));
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 0.5rem);
+}
+
+/**
+ * Gallery First home chrome (GF1) — Amadeus exact mobile top-spacing.
+ * Replaces flat py-3 reliance under the notch / status bar.
+ */
+.gallery-home-chrome {
+  padding-top: calc(env(safe-area-inset-top, 0px) + 12px);
+  padding-bottom: 12px;
+  padding-left: max(1rem, env(safe-area-inset-left, 0px));
+  padding-right: max(1rem, env(safe-area-inset-right, 0px));
 }
 
 /* Prefer dynamic viewport height on mobile browsers */

@@ -12,18 +12,17 @@ import { AuthProvider } from "@/components/auth/AuthProvider";
 import { AuthGate } from "@/components/auth/AuthGate";
 import { CloudSyncManager } from "@/components/sync/CloudSyncManager";
 import { MobileAppShell } from "@/components/mobile/MobileAppShell";
-import { NewResumeDialog } from "@/components/sidebar/NewResumeDialog";
 import { ImportResumeDialog } from "@/components/import/ImportResumeDialog";
+import { GalleryHome } from "@/components/gallery/GalleryHome";
+import { JdPasteSheet } from "@/components/gallery/JdPasteSheet";
+import { VersionPickerSheet } from "@/components/gallery/VersionPickerSheet";
 import { AppToast } from "@/components/Toast";
 import { useIsDesktop } from "@/lib/use-media-query";
 import { useUiStore } from "@/lib/ui-store";
 
-function AppShell() {
+function EditorShell() {
   const isDesktop = useIsDesktop();
   const [sidebarCollapsed, toggleSidebar] = useSidebarCollapsed();
-  const importOpen = useUiStore((s) => s.importResumeDialogOpen);
-  const importFile = useUiStore((s) => s.importResumeInitialFile);
-  const closeImport = useUiStore((s) => s.closeImportResumeDialog);
 
   return (
     <div className="h-dvh flex flex-col overflow-hidden">
@@ -43,15 +42,29 @@ function AppShell() {
       ) : (
         <MobileAppShell />
       )}
+    </div>
+  );
+}
 
-      <NewResumeDialog />
+function AppShell() {
+  const appSurface = useUiStore((s) => s.appSurface);
+  const importOpen = useUiStore((s) => s.importResumeDialogOpen);
+  const importFile = useUiStore((s) => s.importResumeInitialFile);
+  const closeImport = useUiStore((s) => s.closeImportResumeDialog);
+
+  return (
+    <>
+      {appSurface === "gallery" ? <GalleryHome /> : <EditorShell />}
+
       <ImportResumeDialog
         open={importOpen}
         onClose={closeImport}
         initialFile={importFile}
       />
+      <JdPasteSheet />
+      <VersionPickerSheet />
       <AppToast />
-    </div>
+    </>
   );
 }
 

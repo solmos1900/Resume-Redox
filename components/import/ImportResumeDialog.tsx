@@ -82,6 +82,7 @@ export function ImportResumeDialog({ open, onClose, initialFile }: Props) {
   );
   const getActiveVersion = useResumeStore((s) => s.getActiveVersion);
   const setMobileTab = useUiStore((s) => s.setMobileTab);
+  const openEditor = useUiStore((s) => s.openEditor);
   const showToast = useToastStore((s) => s.showToast);
 
   const titleId = useId();
@@ -369,6 +370,7 @@ export function ImportResumeDialog({ open, onClose, initialFile }: Props) {
     }
 
     setMobileTab("edit");
+    openEditor();
     showToast("Imported — review the letter.");
     handleClose();
   };
