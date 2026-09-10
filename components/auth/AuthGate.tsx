@@ -24,7 +24,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
   if (!configured) {
     return (
-      <div className="auth-shell box-border flex min-h-dvh items-center justify-center bg-gray-100 p-4">
+      <div className="auth-shell box-border flex min-h-dvh items-center justify-center bg-gray-100">
         <div className="max-w-md min-w-0 break-words text-center text-sm text-gray-500">
           <p className="font-semibold text-gray-700 mb-1">
             Sign-in isn&apos;t configured yet

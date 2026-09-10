@@ -120,14 +120,10 @@ export function SignInScreen() {
 
   return (
     <div
-      className="box-border flex min-h-dvh w-full max-w-[100%] items-center justify-center overflow-x-hidden overflow-y-auto bg-gray-100"
+      className="auth-shell box-border flex min-h-dvh w-full max-w-[100%] items-center justify-center overflow-x-hidden overflow-y-auto bg-gray-100"
       style={{
         width: "100%",
         maxWidth: "100%",
-        paddingTop: "max(1rem, env(safe-area-inset-top))",
-        paddingBottom: "max(1rem, env(safe-area-inset-bottom))",
-        paddingLeft: "max(1rem, env(safe-area-inset-left))",
-        paddingRight: "max(1rem, env(safe-area-inset-right))",
         // Prevent double-tap zoom on the login chrome itself.
         touchAction: "manipulation",
       }}
