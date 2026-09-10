@@ -1,19 +1,20 @@
 "use client";
 
-import { useState } from "react";
 import { PageFitGuide } from "./PageFitGuide";
 import { TemplatePicker, TemplateCatalogInfo } from "./TemplatePicker";
 import { DesignPanel } from "./DesignPanel";
+import { useUiStore, type RightPanelTab } from "@/lib/ui-store";
 
 type Props = {
   /** Hide the desktop "Preview" tab chrome (mobile bottom nav already labels the view). */
   compact?: boolean;
 };
 
-type RightTab = "preview" | "design";
-
 export function RightPanel({ compact = false }: Props) {
-  const [tab, setTab] = useState<RightTab>("preview");
+  const tab = useUiStore((s) => s.rightPanelTab);
+  const setTab = useUiStore((s) => s.setRightPanelTab);
+
+  const select = (next: RightPanelTab) => setTab(next);
 
   return (
     <div className="flex flex-col h-full min-w-0 flex-1">
@@ -21,7 +22,7 @@ export function RightPanel({ compact = false }: Props) {
         <div className="no-print flex border-b border-gray-200 bg-white shrink-0">
           <button
             type="button"
-            onClick={() => setTab("preview")}
+            onClick={() => select("preview")}
             className={`flex-1 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
               tab === "preview"
                 ? "text-gray-900 border-gray-900"
@@ -32,7 +33,7 @@ export function RightPanel({ compact = false }: Props) {
           </button>
           <button
             type="button"
-            onClick={() => setTab("design")}
+            onClick={() => select("design")}
             className={`flex-1 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
               tab === "design"
                 ? "text-gray-900 border-gray-900"
@@ -48,7 +49,7 @@ export function RightPanel({ compact = false }: Props) {
         <div className="no-print flex border-b border-gray-200 bg-white shrink-0">
           <button
             type="button"
-            onClick={() => setTab("preview")}
+            onClick={() => select("preview")}
             className={`flex-1 px-3 py-2 text-sm font-medium border-b-2 ${
               tab === "preview"
                 ? "text-gray-900 border-gray-900"
@@ -59,7 +60,7 @@ export function RightPanel({ compact = false }: Props) {
           </button>
           <button
             type="button"
-            onClick={() => setTab("design")}
+            onClick={() => select("design")}
             className={`flex-1 px-3 py-2 text-sm font-medium border-b-2 ${
               tab === "design"
                 ? "text-gray-900 border-gray-900"

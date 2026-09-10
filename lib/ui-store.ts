@@ -9,13 +9,28 @@ export type MobileTab = "resumes" | "edit" | "preview";
 /** Gallery-first home vs the three-pane editor (GF1). */
 export type AppSurface = "gallery" | "editor";
 
+/**
+ * Create wall vs non-destructive template swap on the active version (GF2).
+ * Not persisted — always reset when opening gallery intentionally.
+ */
+export type GalleryMode = "create" | "change-design";
+
+/** Desktop / compact right-panel tabs (Preview vs Design). */
+export type RightPanelTab = "preview" | "design";
+
 type UiStore = {
   /** Create wall (gallery) is the front door; editor is last working surface. */
   appSurface: AppSurface;
-  openGallery: () => void;
-  openEditor: () => void;
+  /** GF2: create a new version vs swap template on the current one. */
+  galleryMode: GalleryMode;
+  openGallery: (mode?: GalleryMode) => void;
+  openEditor: (opts?: { preview?: boolean }) => void;
   /** True after the user has entered the editor at least once (this browser). */
   hasEnteredEditor: boolean;
+
+  /** Right panel Preview / Design tab (desktop + mobile preview pane). */
+  rightPanelTab: RightPanelTab;
+  setRightPanelTab: (tab: RightPanelTab) => void;
 
   newResumeDialogOpen: boolean;
   newResumeDialogMode: NewResumeDialogMode;
@@ -48,15 +63,30 @@ export const useUiStore = create<UiStore>()(
     (set) => ({
       // Gallery-first: cold users land on the create wall.
       appSurface: "gallery",
+      galleryMode: "create",
       hasEnteredEditor: false,
+      rightPanelTab: "preview",
 
-      openGallery: () => set({ appSurface: "gallery" }),
+      openGallery: (mode = "create") =>
+        set({
+          appSurface: "gallery",
+          galleryMode: mode,
+        }),
 
-      openEditor: () =>
+      openEditor: (opts) =>
         set({
           appSurface: "editor",
           hasEnteredEditor: true,
+          galleryMode: "create",
+          ...(opts?.preview
+            ? {
+                rightPanelTab: "preview" as const,
+                mobileTab: "preview" as const,
+              }
+            : {}),
         }),
+
+      setRightPanelTab: (tab) => set({ rightPanelTab: tab }),
 
       newResumeDialogOpen: false,
       newResumeDialogMode: "create",
@@ -66,6 +96,7 @@ export const useUiStore = create<UiStore>()(
       openNewResumeDialog: (_mode = "create", _sourceId) =>
         set({
           appSurface: "gallery",
+          galleryMode: "create",
           newResumeDialogOpen: false,
           newResumeDialogMode: "create",
           newResumeSourceId: null,
@@ -115,6 +146,9 @@ export const useUiStore = create<UiStore>()(
         if (!state.hasEnteredEditor) {
           state.appSurface = "gallery";
         }
+        // Session-only fields: always land cold gallery in create mode.
+        state.galleryMode = "create";
+        state.rightPanelTab = "preview";
       },
     }
   )

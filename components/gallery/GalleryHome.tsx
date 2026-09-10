@@ -62,30 +62,68 @@ function PlaceholderThumb({ label }: { label: string }) {
 
 export function GalleryHome() {
   const createBlankWithContext = useResumeStore((s) => s.createBlankWithContext);
+  const updateActiveVersion = useResumeStore((s) => s.updateActiveVersion);
+  const activeVersion = useResumeStore((s) => s.getActiveVersion());
+  const galleryMode = useUiStore((s) => s.galleryMode);
   const openEditor = useUiStore((s) => s.openEditor);
   const hasEnteredEditor = useUiStore((s) => s.hasEnteredEditor);
   const openJdPasteSheet = useUiStore((s) => s.openJdPasteSheet);
   const openImportResumeDialog = useUiStore((s) => s.openImportResumeDialog);
   const openVersionPicker = useUiStore((s) => s.openVersionPicker);
 
+  const isChangeDesign = galleryMode === "change-design";
+  const activeTemplateId = (activeVersion?.templateId ??
+    "classic") as TemplateId;
+
   const goToEditor = () => {
+    // Leave without selecting — no write (change-design) / keep prior versions (create).
     openEditor();
+  };
+
+  /** Open editor with Preview on (desktop right tab + mobile preview). */
+  const openEditorPreviewOn = () => {
+    openEditor({ preview: true });
   };
 
   const createBlank = () => {
+    if (isChangeDesign) {
+      // Blank in swap mode = Classic ATS on the current version only.
+      updateActiveVersion({ templateId: "classic" });
+      openEditorPreviewOn();
+      return;
+    }
     createBlankWithContext("New Resume");
-    openEditor();
+    openEditorPreviewOn();
   };
 
   /**
-   * GF1: Blank is the required create path. Existing catalog cards also create
-   * a version (so the wall is a real create surface); Change design = GF2.
+   * Create mode: new version with templateId → editor (Preview on).
+   * Change-design mode: patch templateId on the active version only.
    * Placeholder slots stay non-interactive until GF7 ships real templates.
    */
-  const createFromTemplate = (templateId: TemplateId, name: string) => {
+  const selectTemplate = (templateId: TemplateId, name: string) => {
+    if (isChangeDesign) {
+      updateActiveVersion({ templateId });
+      openEditorPreviewOn();
+      return;
+    }
     createBlankWithContext(name, undefined, undefined, templateId);
-    openEditor();
+    openEditorPreviewOn();
   };
+
+  const headline = isChangeDesign ? "Change design" : "Choose a design";
+  const subcopy = isChangeDesign
+    ? activeVersion
+      ? `Swap the template on “${activeVersion.name}”. Your content and design settings stay put.`
+      : "Swap the template on this resume. Your content and design settings stay put."
+    : "ATS-safe layouts. You can change templates anytime.";
+
+  const headerCtaLabel = isChangeDesign ? "Back to editor" : "Your resumes";
+  const headerCtaHint = isChangeDesign
+    ? "cancel"
+    : hasEnteredEditor
+      ? "last editor"
+      : "editor";
 
   return (
     <div className="relative flex h-dvh max-w-full flex-col overflow-x-hidden overflow-y-hidden bg-[#f3f5f7]">
@@ -110,12 +148,12 @@ export function GalleryHome() {
           onClick={goToEditor}
           className="inline-flex min-h-[44px] shrink-0 items-center gap-2 rounded-lg border border-[#c9d2dc] bg-white px-3 text-sm font-medium text-[#1c2430] shadow-sm transition hover:border-[#9aa8b8] hover:bg-[#f8fafc] sm:px-3.5"
         >
-          Your resumes
+          {headerCtaLabel}
           <span className="text-[#6b7785]" aria-hidden>
             →
           </span>
           <span className="hidden text-xs font-normal text-[#6b7785] sm:inline">
-            {hasEnteredEditor ? "last editor" : "editor"}
+            {headerCtaHint}
           </span>
         </button>
       </header>
@@ -123,44 +161,52 @@ export function GalleryHome() {
       <div className="relative z-10 mx-auto flex w-full max-w-6xl min-w-0 flex-1 flex-col overflow-hidden px-4 pt-8 sm:px-6 sm:pt-8">
         <div className="min-w-0 shrink-0 max-w-2xl">
           <h1 className="text-3xl font-semibold tracking-tight text-[#121820] sm:text-4xl">
-            Choose a design
+            {headline}
           </h1>
-          <p className="mt-2 text-sm text-[#5a6572] sm:text-base">
-            ATS-safe layouts. You can change templates anytime.
-          </p>
+          <p className="mt-2 text-sm text-[#5a6572] sm:text-base">{subcopy}</p>
         </div>
 
-        {/* Sticky entry chips — equal 3-col grid, never 2+1 wrap */}
-        <div className="sticky top-0 z-20 -mx-4 mt-5 shrink-0 border-y border-[#d8dee6]/70 bg-[#f3f5f7]/90 px-4 py-3 backdrop-blur-md sm:-mx-6 sm:px-6">
-          <div className="grid grid-cols-3 gap-2">
-            <ChipButton
-              onClick={openJdPasteSheet}
-              ariaLabel="Paste a job description"
-            >
-              From a job
-            </ChipButton>
-            <ChipButton
-              onClick={() => openImportResumeDialog()}
-              ariaLabel="Import PDF/DOCX"
-            >
-              From a file
-            </ChipButton>
-            <ChipButton
-              onClick={openVersionPicker}
-              ariaLabel="Use an existing version"
-            >
-              From a resume
-            </ChipButton>
+        {/* Sticky entry chips — create mode only; equal 3-col grid (Sebastian) */}
+        {!isChangeDesign && (
+          <div className="sticky top-0 z-20 -mx-4 mt-5 shrink-0 border-y border-[#d8dee6]/70 bg-[#f3f5f7]/90 px-4 py-3 backdrop-blur-md sm:-mx-6 sm:px-6">
+            <div className="grid grid-cols-3 gap-2">
+              <ChipButton
+                onClick={openJdPasteSheet}
+                ariaLabel="Paste a job description"
+              >
+                From a job
+              </ChipButton>
+              <ChipButton
+                onClick={() => openImportResumeDialog()}
+                ariaLabel="Import PDF/DOCX"
+              >
+                From a file
+              </ChipButton>
+              <ChipButton
+                onClick={openVersionPicker}
+                ariaLabel="Use an existing version"
+              >
+                From a resume
+              </ChipButton>
+            </div>
           </div>
-        </div>
+        )}
 
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain py-5 pb-10">
+        <div
+          className={`min-h-0 flex-1 overflow-y-auto overscroll-contain pb-10 ${
+            isChangeDesign ? "mt-5 py-2" : "py-5"
+          }`}
+        >
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 lg:gap-4">
-            {/* Blank first — always works without JD */}
+            {/* Blank first — create = new Classic; change-design = swap to Classic */}
             <button
               type="button"
               onClick={createBlank}
-              className="group flex flex-col rounded-xl border border-dashed border-[#9aa8b8] bg-white/80 p-3 text-left shadow-sm transition hover:border-[#1c2430] hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1c2430]"
+              className={`group flex flex-col rounded-xl border border-dashed bg-white/80 p-3 text-left shadow-sm transition hover:border-[#1c2430] hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1c2430] ${
+                isChangeDesign && activeTemplateId === "classic"
+                  ? "border-[#1c2430] ring-1 ring-[#1c2430]/30"
+                  : "border-[#9aa8b8]"
+              }`}
             >
               <div className="flex aspect-[8.5/11] w-full items-center justify-center rounded-sm bg-[#f7f9fb]">
                 <span className="text-3xl font-light text-[#8a96a4]" aria-hidden>
@@ -171,7 +217,7 @@ export function GalleryHome() {
                 Blank
               </span>
               <span className="mt-0.5 text-xs text-[#6b7785]">
-                Default Classic ATS
+                {isChangeDesign ? "Classic ATS" : "Default Classic ATS"}
               </span>
             </button>
 
@@ -194,19 +240,27 @@ export function GalleryHome() {
                 );
               }
 
+              const selected =
+                isChangeDesign && activeTemplateId === slot.id;
+
               return (
                 <button
                   key={slot.id}
                   type="button"
-                  onClick={() => createFromTemplate(slot.id, slot.name)}
-                  className="group flex flex-col rounded-xl border border-[#d8dee6] bg-white p-3 text-left shadow-sm transition hover:border-[#1c2430] hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1c2430]"
+                  onClick={() => selectTemplate(slot.id, slot.name)}
+                  aria-current={selected ? "true" : undefined}
+                  className={`group flex flex-col rounded-xl border bg-white p-3 text-left shadow-sm transition hover:border-[#1c2430] hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1c2430] ${
+                    selected
+                      ? "border-[#1c2430] ring-1 ring-[#1c2430]/30"
+                      : "border-[#d8dee6]"
+                  }`}
                 >
                   <PlaceholderThumb label={slot.name} />
                   <span className="mt-3 text-sm font-semibold text-[#121820]">
                     {slot.name}
                   </span>
                   <span className="mt-0.5 text-xs text-[#6b7785]">
-                    {slot.tagline}
+                    {selected ? "Current design" : slot.tagline}
                   </span>
                 </button>
               );
