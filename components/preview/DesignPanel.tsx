@@ -17,6 +17,7 @@ import type {
   ReorderableSectionId,
 } from "@/lib/schema";
 import { useResumeStore } from "@/lib/store";
+import { useUiStore } from "@/lib/ui-store";
 import {
   moveSection,
   normalizeSectionOrder,
@@ -151,6 +152,7 @@ function SectionOrderList({
 export function DesignPanel() {
   const version = useResumeStore((s) => s.getActiveVersion());
   const updateActiveVersion = useResumeStore((s) => s.updateActiveVersion);
+  const openGallery = useUiStore((s) => s.openGallery);
   const hexInputId = useId();
   const [hexDraft, setHexDraft] = useState("#1e5aa8");
 
@@ -177,11 +179,20 @@ export function DesignPanel() {
   return (
     <div className="no-print border-b border-gray-200 bg-white px-3 py-3 sm:px-4 shrink-0 max-h-[46vh] overflow-y-auto overscroll-contain">
       <div className="space-y-4">
-        <div>
-          <h2 className="text-sm font-semibold text-gray-900">Design</h2>
-          <p className="text-[11px] text-gray-500 mt-0.5">
-            Changes update the live preview and Download → PDF together.
-          </p>
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div className="min-w-0">
+            <h2 className="text-sm font-semibold text-gray-900">Design</h2>
+            <p className="text-[11px] text-gray-500 mt-0.5">
+              Changes update the live preview and Download → PDF together.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => openGallery("change-design")}
+            className="inline-flex min-h-[44px] shrink-0 items-center rounded-md border border-gray-300 bg-white px-3 text-sm font-medium text-gray-900 shadow-sm transition hover:border-gray-500 hover:bg-gray-50 touch-manipulation"
+          >
+            Change design
+          </button>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2">
