@@ -99,7 +99,7 @@ export function GalleryHome() {
         className="pointer-events-none absolute -top-24 right-0 h-72 w-72 max-w-[50vw] rounded-full bg-[#d9e2ec]/40 blur-3xl"
       />
 
-      <header className="relative z-10 flex w-full max-w-full shrink-0 items-center justify-between gap-3 border-b border-[#d8dee6]/80 bg-white/70 px-4 pb-3 pt-0 backdrop-blur-md sm:px-6 safe-area-top">
+      <header className="gallery-home-chrome relative z-10 flex w-full max-w-full shrink-0 items-center justify-between gap-3 border-b border-[#d8dee6]/80 bg-white/70 px-4 pb-3.5 backdrop-blur-md sm:px-6">
         <div className="min-w-0">
           <p className="truncate text-[11px] font-semibold uppercase tracking-[0.14em] text-[#5a6572]">
             Resume Redox

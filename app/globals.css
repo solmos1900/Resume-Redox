@@ -41,6 +41,16 @@ body {
   padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 0.5rem);
 }
 
+/**
+ * Gallery First home chrome (GF1) — primary mobile top-spacing bar.
+ * Inset + breathing room so the wall header isn't flush with status bar / notch.
+ */
+.gallery-home-chrome {
+  padding-top: calc(env(safe-area-inset-top, 0px) + 1.25rem);
+  padding-left: max(1rem, env(safe-area-inset-left, 0px));
+  padding-right: max(1rem, env(safe-area-inset-right, 0px));
+}
+
 /* Prefer dynamic viewport height on mobile browsers */
 @supports (height: 100dvh) {
   .h-dvh {
