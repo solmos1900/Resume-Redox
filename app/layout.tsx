@@ -9,6 +9,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  // Do not set maximumScale — keeps pinch-zoom available for a11y.
   viewportFit: "cover",
   themeColor: "#ffffff",
 };
@@ -19,8 +20,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className="antialiased bg-gray-100">{children}</body>
+    <html lang="en" className="max-w-full overflow-x-hidden">
+      <body className="antialiased bg-gray-100 max-w-full overflow-x-hidden">
+        {children}
+      </body>
     </html>
   );
 }

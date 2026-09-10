@@ -5,10 +5,14 @@
 html,
 body {
   height: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 body {
   font-family: Arial, Helvetica, sans-serif;
+  /* Avoid accidental horizontal scroll from abs-positioned / wide children */
+  position: relative;
 }
 
 /* iOS notch / home-indicator safe areas */

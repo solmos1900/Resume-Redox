@@ -88,27 +88,27 @@ export function GalleryHome() {
   };
 
   return (
-    <div className="relative flex h-dvh flex-col overflow-hidden bg-[#f3f5f7]">
+    <div className="relative flex h-dvh max-w-full flex-col overflow-x-hidden overflow-y-hidden bg-[#f3f5f7]">
       {/* Soft atmosphere — not a flat slab */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_#ffffff_0%,_#eef1f4_45%,_#e4e9ee_100%)]"
+        className="pointer-events-none absolute inset-0 overflow-hidden bg-[radial-gradient(ellipse_at_top,_#ffffff_0%,_#eef1f4_45%,_#e4e9ee_100%)]"
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-24 right-0 h-72 w-72 rounded-full bg-[#d9e2ec]/40 blur-3xl"
+        className="pointer-events-none absolute -top-24 right-0 h-72 w-72 max-w-[50vw] rounded-full bg-[#d9e2ec]/40 blur-3xl"
       />
 
-      <header className="relative z-10 flex shrink-0 items-center justify-between gap-3 border-b border-[#d8dee6]/80 bg-white/70 px-4 py-3 backdrop-blur-md sm:px-6 safe-area-top">
+      <header className="relative z-10 flex w-full max-w-full shrink-0 items-center justify-between gap-3 border-b border-[#d8dee6]/80 bg-white/70 px-4 py-3 backdrop-blur-md sm:px-6 safe-area-top">
         <div className="min-w-0">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#5a6572]">
+          <p className="truncate text-[11px] font-semibold uppercase tracking-[0.14em] text-[#5a6572]">
             Resume Redox
           </p>
         </div>
         <button
           type="button"
           onClick={goToEditor}
-          className="inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-[#c9d2dc] bg-white px-3.5 text-sm font-medium text-[#1c2430] shadow-sm transition hover:border-[#9aa8b8] hover:bg-[#f8fafc]"
+          className="inline-flex min-h-[44px] shrink-0 items-center gap-2 rounded-lg border border-[#c9d2dc] bg-white px-3 text-sm font-medium text-[#1c2430] shadow-sm transition hover:border-[#9aa8b8] hover:bg-[#f8fafc] sm:px-3.5"
         >
           Your resumes
           <span className="text-[#6b7785]" aria-hidden>
@@ -120,8 +120,8 @@ export function GalleryHome() {
         </button>
       </header>
 
-      <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 flex-col overflow-hidden px-4 pt-6 sm:px-6 sm:pt-8">
-        <div className="shrink-0 max-w-2xl">
+      <div className="relative z-10 mx-auto flex w-full max-w-6xl min-w-0 flex-1 flex-col overflow-hidden px-4 pt-6 sm:px-6 sm:pt-8">
+        <div className="min-w-0 shrink-0 max-w-2xl">
           <h1 className="text-3xl font-semibold tracking-tight text-[#121820] sm:text-4xl">
             Choose a design
           </h1>
@@ -130,17 +130,26 @@ export function GalleryHome() {
           </p>
         </div>
 
-        {/* Sticky entry chips */}
+        {/* Sticky entry chips — equal 3-col grid, never 2+1 wrap */}
         <div className="sticky top-0 z-20 -mx-4 mt-5 shrink-0 border-y border-[#d8dee6]/70 bg-[#f3f5f7]/90 px-4 py-3 backdrop-blur-md sm:-mx-6 sm:px-6">
-          <div className="flex flex-wrap gap-2">
-            <ChipButton onClick={openJdPasteSheet}>
-              Paste a job description
+          <div className="grid grid-cols-3 gap-2">
+            <ChipButton
+              onClick={openJdPasteSheet}
+              ariaLabel="Paste a job description"
+            >
+              From a job
             </ChipButton>
-            <ChipButton onClick={() => openImportResumeDialog()}>
-              Import PDF/DOCX
+            <ChipButton
+              onClick={() => openImportResumeDialog()}
+              ariaLabel="Import PDF/DOCX"
+            >
+              From a file
             </ChipButton>
-            <ChipButton onClick={openVersionPicker}>
-              Use an existing version
+            <ChipButton
+              onClick={openVersionPicker}
+              ariaLabel="Use an existing version"
+            >
+              From a resume
             </ChipButton>
           </div>
         </div>
@@ -212,15 +221,19 @@ export function GalleryHome() {
 function ChipButton({
   children,
   onClick,
+  ariaLabel,
 }: {
   children: React.ReactNode;
   onClick: () => void;
+  ariaLabel: string;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="inline-flex min-h-[44px] items-center rounded-lg border border-[#c9d2dc] bg-white px-4 text-sm font-medium text-[#1c2430] shadow-sm transition hover:border-[#7d8b9c] hover:bg-[#f8fafc] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1c2430]"
+      aria-label={ariaLabel}
+      title={ariaLabel}
+      className="inline-flex min-h-[44px] w-full min-w-0 items-center justify-center rounded-lg border border-[#c9d2dc] bg-white px-1.5 text-center text-xs font-medium leading-tight text-[#1c2430] shadow-sm transition hover:border-[#7d8b9c] hover:bg-[#f8fafc] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1c2430] sm:px-3 sm:text-sm"
     >
       {children}
     </button>

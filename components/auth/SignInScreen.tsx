@@ -93,17 +93,22 @@ export function SignInScreen() {
     });
   };
 
+  // text-base (16px) on inputs — iOS Safari auto-zooms focused fields under 16px
+  // and often leaves the page zoomed until the user pinches out.
+  const fieldClass =
+    "w-full min-w-0 text-base px-3 py-2.5 border border-gray-300 rounded-lg";
+
   return (
-    <div className="h-screen flex items-center justify-center bg-gray-100 p-4">
-      <div className="w-full max-w-sm bg-white rounded-xl shadow-xl border border-gray-200">
-        <div className="px-6 py-5 border-b border-gray-200 text-center">
+    <div className="box-border flex h-dvh max-w-full items-center justify-center overflow-x-hidden overflow-y-auto bg-gray-100 p-4 safe-area-top safe-area-bottom">
+      <div className="w-full max-w-sm min-w-0 bg-white rounded-xl shadow-xl border border-gray-200">
+        <div className="px-5 py-5 border-b border-gray-200 text-center sm:px-6">
           <h1 className="text-lg font-bold text-gray-900">Resume Redox</h1>
           <p className="text-sm text-gray-500 mt-1">
             Sign in to view and edit your resumes.
           </p>
         </div>
 
-        <div className="px-6 py-5 space-y-4">
+        <div className="px-5 py-5 space-y-4 sm:px-6">
           {error && (
             <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
               {error}
@@ -119,7 +124,7 @@ export function SignInScreen() {
             type="button"
             onClick={() => void handleGoogle()}
             disabled={busy}
-            className="w-full flex items-center justify-center gap-2 text-sm px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40 font-medium"
+            className="w-full flex min-h-[44px] items-center justify-center gap-2 text-sm px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40 font-medium"
           >
             <GoogleIcon />
             Continue with Google
@@ -133,14 +138,15 @@ export function SignInScreen() {
 
           <form onSubmit={handleEmailSubmit} className="space-y-2">
             {emailMode === "signup" && (
-              <div className="flex gap-2">
+              <div className="flex min-w-0 gap-2">
                 <input
                   type="text"
                   required
                   placeholder="First name"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
-                  className="w-full text-sm px-3 py-2 border border-gray-300 rounded-lg"
+                  autoComplete="given-name"
+                  className={fieldClass}
                 />
                 <input
                   type="text"
@@ -148,7 +154,8 @@ export function SignInScreen() {
                   placeholder="Last name"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
-                  className="w-full text-sm px-3 py-2 border border-gray-300 rounded-lg"
+                  autoComplete="family-name"
+                  className={fieldClass}
                 />
               </div>
             )}
@@ -158,7 +165,8 @@ export function SignInScreen() {
               placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full text-sm px-3 py-2 border border-gray-300 rounded-lg"
+              autoComplete="email"
+              className={fieldClass}
             />
             <input
               type="password"
@@ -167,7 +175,10 @@ export function SignInScreen() {
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full text-sm px-3 py-2 border border-gray-300 rounded-lg"
+              autoComplete={
+                emailMode === "signin" ? "current-password" : "new-password"
+              }
+              className={fieldClass}
             />
             {emailMode === "signup" && (
               <input
@@ -177,20 +188,23 @@ export function SignInScreen() {
                 placeholder="Retype password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full text-sm px-3 py-2 border border-gray-300 rounded-lg"
+                autoComplete="new-password"
+                className={fieldClass}
               />
             )}
             <button
               type="submit"
               disabled={busy}
-              className="w-full text-sm px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:opacity-40 font-medium"
+              className="w-full min-h-[44px] text-sm px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:opacity-40 font-medium"
             >
               {emailMode === "signin" ? "Sign in" : "Create account"}
             </button>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <button
                 type="button"
-                onClick={() => switchMode(emailMode === "signin" ? "signup" : "signin")}
+                onClick={() =>
+                  switchMode(emailMode === "signin" ? "signup" : "signin")
+                }
                 className="text-xs text-gray-500 hover:text-gray-700"
               >
                 {emailMode === "signin"

@@ -10,8 +10,8 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
   if (!configured) {
     return (
-      <div className="h-screen flex items-center justify-center bg-gray-100 p-4">
-        <div className="max-w-md text-center text-sm text-gray-500">
+      <div className="box-border flex h-dvh max-w-full items-center justify-center overflow-x-hidden bg-gray-100 p-4">
+        <div className="max-w-md min-w-0 text-center text-sm text-gray-500">
           <p className="font-semibold text-gray-700 mb-1">
             Sign-in isn&apos;t configured yet
           </p>
@@ -27,7 +27,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
   if (initializing) {
     return (
-      <div className="h-screen flex items-center justify-center bg-gray-100 text-gray-500 text-sm">
+      <div className="box-border flex h-dvh max-w-full items-center justify-center overflow-x-hidden bg-gray-100 text-gray-500 text-sm">
         Loading account…
       </div>
     );
