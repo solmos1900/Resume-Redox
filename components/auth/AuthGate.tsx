@@ -1,12 +1,26 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { useAuth } from "./AuthProvider";
 import { SignInScreen } from "./SignInScreen";
+import {
+  applyLoginViewport,
+  restoreAppViewport,
+} from "@/lib/login-viewport";
 
 /** Blocks access to the app entirely until the user is signed in. */
 export function AuthGate({ children }: { children: ReactNode }) {
   const { user, initializing, configured } = useAuth();
+
+  const onAuthShell = !configured || initializing || !user;
+
+  useEffect(() => {
+    if (onAuthShell) {
+      applyLoginViewport();
+      return;
+    }
+    restoreAppViewport();
+  }, [onAuthShell]);
 
   if (!configured) {
     return (

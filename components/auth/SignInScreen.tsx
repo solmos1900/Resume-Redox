@@ -3,23 +3,12 @@
 import { useEffect, useState, type CSSProperties, type FormEvent } from "react";
 import { useAuth } from "./AuthProvider";
 import { authErrorMessage } from "@/lib/auth-errors";
+import {
+  applyLoginViewport,
+  restoreAppViewport,
+} from "@/lib/login-viewport";
 
 type EmailMode = "signin" | "signup";
-
-/** Keep login at device width; reset sticky iOS visual-viewport zoom after fields. */
-const LOGIN_VIEWPORT =
-  "width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover";
-
-function applyLoginViewport() {
-  if (typeof document === "undefined") return;
-  const meta = document.querySelector('meta[name="viewport"]');
-  if (!meta) return;
-  // Toggle forces WebKit to re-apply scale after input auto-zoom.
-  meta.setAttribute("content", `${LOGIN_VIEWPORT}, user-scalable=no`);
-  requestAnimationFrame(() => {
-    meta.setAttribute("content", LOGIN_VIEWPORT);
-  });
-}
 
 function GoogleIcon() {
   return (
@@ -66,6 +55,8 @@ export function SignInScreen() {
     window.visualViewport?.addEventListener("resize", onResize);
     return () => {
       window.visualViewport?.removeEventListener("resize", onResize);
+      // Leaving SignIn → gallery/editor: restore pinch-zoom.
+      restoreAppViewport();
     };
   }, []);
 

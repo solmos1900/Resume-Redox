@@ -6,12 +6,10 @@ export const metadata: Metadata = {
   description: "ATS-friendly resume builder with live preview and role-specific versions",
 };
 
+/** App-wide: allow pinch-zoom. Login-only maximum-scale is applied in AuthGate/SignIn. */
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  minimumScale: 1,
-  // After layout fixes still left sticky iOS zoom on-device; cap scale on login origin.
-  maximumScale: 1,
   viewportFit: "cover",
   themeColor: "#ffffff",
 };
