@@ -1,7 +1,7 @@
 # Resume Redox — Product Requirements Document (PRD)
 
 **Owner:** Product Manager — Stefan  
-**Status:** Living doc (v1.0 — 2026-09-08)  
+**Status:** Living doc (v1.1 — 2026-09-13)  
 **Repo:** https://github.com/solmos1900/Resume-Redox  
 **Live:** https://resume-redox.vercel.app  
 **North-star product:** [FlowCV](https://app.flowcv.com/) / [flowcv.com](https://flowcv.com/)  
@@ -62,6 +62,9 @@ Resume Redox already has multi-version + ATS templates. Gaps vs FlowCV were: **e
 | JSON backup / import | Shipped |
 | **PDF = Chromium text, same templates as preview** | **Shipped (PR #15)** |
 | DOCX / TXT same section order as preview | Shipped (PR #15) |
+| Design panel (font, accent, spacing) + section reorder | Shipped (PR #18, Phase 1) |
+| Import PDF/DOCX → structured fields, review-before-apply | Shipped (PR #20, Phase 2) |
+| Gallery-first create: full-screen template wall + Change design | Shipped (GF1+GF2 — PR #34, PR #35) |
 | Firebase auth / cloud sync in tree | Partial / optional |
 | AI Coach, job-URL fetch | Archived |
 
@@ -147,12 +150,13 @@ Jobs:
 
 | ID | Requirement | Owner | Acceptance |
 |----|-------------|-------|------------|
-| **D1** | Design panel: font, accent color, spacing density | Bobby + Amadeus | Changing a control updates preview **and** PDF; Gregor proves Classic+Accent+one custom accent |
-| **D2** | Drag-reorder sections (and entries where applicable) | Bobby + Amadeus | Order persists; PDF/DOCX follow same order |
-| **I1** | Import PDF → structured fields | Bobby | Happy path: name, contact, experience bullets; user confirms before overwrite |
-| **I2** | Import DOCX → structured fields | Bobby | Same as I1 |
-| **G1** | Create flow: visual template gallery | Amadeus + Bobby | New resume starts with gallery; empty/blank still available |
-| **T1** | Expand to 12–20 ATS templates | Amadeus + Bobby | Each has preview card + PDF spot-check |
+| **D1** | Design panel: font, accent color, spacing density | Bobby + Amadeus | Changing a control updates preview **and** PDF; Gregor proves Classic+Accent+one custom accent — **Shipped, PR #18** |
+| **D2** | Drag-reorder sections (and entries where applicable) | Bobby + Amadeus | Order persists; PDF/DOCX follow same order — **Shipped, PR #18**; further polish soft-parked during the Gallery First pivot (§9) |
+| **I1** | Import PDF → structured fields | Bobby | Happy path: name, contact, experience bullets; user confirms before overwrite — **Shipped, PR #20** |
+| **I2** | Import DOCX → structured fields | Bobby | Same as I1 — **Shipped, PR #20** |
+| **G1** | Create flow: visual template gallery | Amadeus + Bobby | Superseded — reworked as the **Gallery First (GF)** issue set; see §9 |
+| **T1** | Expand to 12–20 ATS templates | Amadeus + Bobby | Superseded — folded into **GF7**; see §9 |
+| **DS1** | Shared design-system tokens (buttons, fields, spacing, colors) across gallery, auth, import, toolbar | Bobby + Amadeus | Single shared `Button`/`Input` component; Gregor proves 44px touch targets; no PDF/export regression; see §9 |
 
 ### P2 — After parity
 
@@ -171,23 +175,41 @@ Jobs:
 
 Export fidelity PR #15 on production. Team model locked.
 
-### Phase 1 — Design controls *(next build)*
+### Phase 1 — Design controls *(complete)*
 
 **Why first:** Biggest “this feels like FlowCV” gap once PDF works.  
-**Ship:** D1 + D2 in one PR if possible.  
+**Shipped:** D1 + D2, PR #18.  
 **Gate:** Amadeus visual LGTM; Gregor: preview ↔ PDF sync + selectable text still holds.
 
-### Phase 2 — Import
+### Phase 2 — Import *(complete)*
 
 **Why:** FlowCV’s onboarding win.  
-**Ship:** I1 then I2 (or together if one parser pipeline).  
+**Shipped:** I1 + I2, PR #20.  
 **Gate:** Gregor golden-file resumes; no silent data loss; user review step.
 
-### Phase 3 — Gallery + more templates
+### Phase 3 — Gallery First (GF) pivot *(in progress)*
 
-**Why:** First-run emotion of FlowCV’s template wall without abandoning ATS.  
-**Ship:** G1 + T1 (add templates in batches of 3–4).  
-**Gate:** Amadeus cards; Gregor PDF per new template.
+**What changed:** G1 (template gallery) and T1 (expand template count) were reworked into a broader **Gallery First (GF)** direction that Sebastian locked with Amadeus — the gallery becomes the app's front door for every create/​+New entry, not just a step in onboarding, and a parallel design-system cleanup (**DS1**) rides alongside it to keep chrome consistent as new surfaces ship. Soft `sectionOrder` (D2, drag-reorder sections) work is **parked**, not removed — it stays as shipped in Phase 1 while engineering focus is on GF.
+
+**Shipped:**
+
+| ID | Requirement | Status |
+|----|-------------|--------|
+| **GF1** | Gallery home shell + entry chips — full-screen "Choose a design" template wall on create/+New, sticky chips for **Paste a job description** / **Import PDF/DOCX** / **Use an existing version** | Shipped — issue #33, merged via PR #34 |
+| **GF2** | Template select → new version → editor, plus a non-destructive **Change design** to swap template on an existing version without wiping content | Shipped — issue #27, merged via PR #35 |
+
+**Planned (not started):**
+
+| ID | Requirement | Notes |
+|----|-------------|-------|
+| **GF3** | Editor right tabs: Preview \| Design \| Match \| Coach, plus a Match % (percentage) pill | Issue #28 |
+| **GF4** | Match panel: "Likely ATS (Applicant Tracking System) read" %, shown only alongside an honest two-column field map; two analysis sources (pick another Redox version, or upload a file for analysis only — never overwrites content) | Issue #29 |
+| **GF5** | JD (Job Description) paste → tailor review sheet; propose summary/bullet edits, review, then Apply/Cancel — same review-before-apply trust model as Import (I1/I2) | Issue #30 |
+| **GF6** | Coach shell + Claude-ready hooks — UI scaffolding and version/JD context plumbing only; explicitly **no live AI (Artificial Intelligence) API calls** in this slice | Issue #31 |
+| **GF7** | Replace placeholder gallery thumbnails with real ones; grow the template set to ~12 ATS single-column templates + Blank; every new template re-proves the PR #15 PDF (Portable Document Format) bar (Skia (2D graphics/rendering library)-rendered, selectable text, US Letter, no browser chrome) | Issue #32 — this is T1's actual delivery vehicle |
+| **DS1** | Shared design-system tokens (buttons, fields, 4px spacing scale, ink/surface/border colors) unified across gallery, auth, import, toolbar, and the Design tab's Change design control | Issue #36 — separate PR track from GF2–GF7; timed to land after PR #35 |
+
+**Gate:** unchanged from Phase 1/2 — Amadeus visual LGTM (Looks Good To Me) plus Gregor's functional approval (no rubber stamps); GF4/GF5 additionally require no silent overwrite of resume content, and GF6 requires no surprise outbound AI calls.
 
 ### Phase 4 — Stretch
 
