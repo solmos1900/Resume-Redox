@@ -1,22 +1,33 @@
 import type { ResumeContent } from "./types";
 import type { CustomSection, Experience } from "@/lib/schema";
-import { formatLinkedInDisplay } from "@/lib/contact-url";
 import {
-  formatContactLine,
-  formatDateRange,
-  withAtsBullet,
-} from "@/lib/utils";
+  formatLinkedInDisplay,
+  formatWebsiteDisplay,
+} from "@/lib/contact-url";
+import { formatDateRange, withAtsBullet } from "@/lib/utils";
 
 export function useResumeSections(data: ResumeContent) {
-  // Match ContactLine / PDF order: phone | email | location | LinkedIn
-  const contactLine = formatContactLine([
-    data.contact.phone,
-    data.contact.email,
-    data.contact.location,
-    data.contact.linkedIn
-      ? formatLinkedInDisplay(data.contact.linkedIn)
-      : "",
-  ]);
+  // Labeled plain-text contact for TXT / fallbacks (matches PDF ContactLine).
+  const labeled: string[] = [];
+  if (data.contact.phone?.trim()) {
+    labeled.push(`Phone: ${data.contact.phone.trim()}`);
+  }
+  if (data.contact.email?.trim()) {
+    labeled.push(`Email: ${data.contact.email.trim()}`);
+  }
+  if (data.contact.location?.trim()) {
+    labeled.push(`Location: ${data.contact.location.trim()}`);
+  }
+  if (data.contact.linkedIn?.trim()) {
+    labeled.push(`LinkedIn: ${formatLinkedInDisplay(data.contact.linkedIn)}`);
+  }
+  if (data.contact.website?.trim()) {
+    labeled.push(`Website: ${formatWebsiteDisplay(data.contact.website)}`);
+  }
+  const contactLine =
+    data.atsContactLayout === "inline"
+      ? labeled.join(" | ")
+      : labeled.join("\n");
 
   const hasSummary = data.summary.trim().length > 0;
   const hasExperience = data.experience.some(
@@ -87,7 +98,9 @@ export function CustomSectionBlocks({
     <>
       {visibleCustomSections.map((section) => (
         <section key={section.id} className={sectionClassName}>
-          <h2 className={headingClassName}>{section.title.trim() || "Section"}</h2>
+          <h2 className={headingClassName}>
+            {(section.title.trim() || "SECTION").toUpperCase()}
+          </h2>
           <ExperienceBlock
             data={data}
             experience={customSectionToExperience(section)}

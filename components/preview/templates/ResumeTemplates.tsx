@@ -2,7 +2,8 @@ import type { ReactNode } from "react";
 import type { ResumeContent } from "@/lib/templates/types";
 import { designDocumentProps } from "@/lib/design";
 import { OrderedBodySections } from "@/lib/templates/ordered-sections";
-import { ContactLine } from "@/components/preview/ContactLine";
+import { ResumeMasthead } from "@/components/preview/ResumeMasthead";
+import { ATS_SECTION } from "@/lib/templates/ats-sections";
 import { withAtsBullet } from "@/lib/utils";
 import {
   customSectionToExperience,
@@ -17,17 +18,30 @@ import {
  * Section order: contact (pinned) → shared body order from version.sectionOrder.
  * Keep in sync with `lib/templates/section-order.ts` and export builders.
  * PDF reuses these components via Chromium; DOCX/TXT follow the same order.
+ *
+ * ATS notes:
+ * - Masthead is a <div>, not <header> (parsers often skip header regions).
+ * - Section titles are literal SUMMARY/EXPERIENCE/SKILLS/EDUCATION strings.
+ * - Contact is labeled plain text with full https LinkedIn / website URLs.
  */
 const articleClass =
   "resume-document bg-white text-black print:shadow-none";
 
+/** Heading chrome only — label text comes from ATS_SECTION literals. */
+const headingClassic =
+  "text-sm font-bold tracking-wide border-b border-gray-800 pb-1 mb-2";
+const headingModern = "text-xs font-bold text-gray-600 mb-2";
+const headingProfessional = "text-sm font-bold text-gray-900 mb-1";
+const headingExecutive =
+  "text-sm font-bold text-center border-b border-gray-400 pb-1 mb-3 mt-1";
+const headingStructured =
+  "text-sm font-bold bg-gray-100 px-2 py-1 mb-2 border-l-4 border-gray-800";
+
 export function ClassicTemplate({ data }: { data: ResumeContent }) {
-  const { contact, summary, design, sectionOrder } = data;
+  const { contact, summary, design, sectionOrder, atsContactLayout, atsSummaryHeading } =
+    data;
   const { hasSummary, hasExperience, hasSkills, hasEducation } =
     useResumeSections(data);
-  // Keep tracking modest — large letter-spacing extracts as spaced-out letters in ATS parsers.
-  const heading =
-    "text-sm font-bold uppercase tracking-wide border-b border-gray-800 pb-1 mb-2";
   const designProps = designDocumentProps(design);
 
   return (
@@ -36,31 +50,25 @@ export function ClassicTemplate({ data }: { data: ResumeContent }) {
       className={`${articleClass} template-classic`}
       {...designProps}
     >
-      {contact.fullName.trim() && (
-        <header className="mb-5">
-          <h1 className="text-2xl font-bold tracking-wide uppercase">
-            {contact.fullName}
-          </h1>
-          {contact.headline?.trim() && (
-            <p className="text-sm text-gray-700 mt-1 leading-snug">
-              {contact.headline}
-            </p>
-          )}
-          <ContactLine contact={contact} className="text-sm text-gray-800 mt-1" />
-        </header>
-      )}
+      <ResumeMasthead
+        contact={contact}
+        contactLayout={atsContactLayout}
+        nameClassName="text-2xl font-bold tracking-wide uppercase"
+        headlineClassName="text-sm text-gray-700 mt-1 leading-snug"
+        contactClassName="text-sm text-gray-800 mt-2"
+      />
       <OrderedBodySections
         order={sectionOrder}
         sections={{
           summary: hasSummary ? (
             <section className="mb-5">
-              <h2 className={heading}>Summary</h2>
+              <h2 className={headingClassic}>{atsSummaryHeading}</h2>
               <p className="text-sm leading-snug">{summary}</p>
             </section>
           ) : null,
           experience: hasExperience ? (
             <section className="mb-5">
-              <h2 className={heading}>Experience</h2>
+              <h2 className={headingClassic}>{ATS_SECTION.experience}</h2>
               <ExperienceBlock
                 data={data}
                 jobSpacing="space-y-3.5"
@@ -71,7 +79,7 @@ export function ClassicTemplate({ data }: { data: ResumeContent }) {
           custom: (
             <CustomSectionBlocks
               data={data}
-              headingClassName={heading}
+              headingClassName={headingClassic}
               sectionClassName="mb-5"
               experienceProps={{
                 jobSpacing: "space-y-3.5",
@@ -81,13 +89,13 @@ export function ClassicTemplate({ data }: { data: ResumeContent }) {
           ),
           skills: hasSkills ? (
             <section className="mb-5">
-              <h2 className={heading}>Skills</h2>
+              <h2 className={headingClassic}>{ATS_SECTION.skills}</h2>
               <SkillsBlock data={data} />
             </section>
           ) : null,
           education: hasEducation ? (
             <section className="mb-5">
-              <h2 className={heading}>Education</h2>
+              <h2 className={headingClassic}>{ATS_SECTION.education}</h2>
               <EducationBlock data={data} />
             </section>
           ) : null,
@@ -98,11 +106,10 @@ export function ClassicTemplate({ data }: { data: ResumeContent }) {
 }
 
 export function ModernTemplate({ data }: { data: ResumeContent }) {
-  const { contact, summary, design, sectionOrder } = data;
+  const { contact, summary, design, sectionOrder, atsContactLayout, atsSummaryHeading } =
+    data;
   const { hasSummary, hasExperience, hasSkills, hasEducation } =
     useResumeSections(data);
-  // No letter-spacing on headings: wide tracking extracts as "E D U C A T I O N" in ATS parsers.
-  const heading = "text-xs font-bold uppercase text-gray-600 mb-2";
   const designProps = designDocumentProps(design);
 
   return (
@@ -111,31 +118,26 @@ export function ModernTemplate({ data }: { data: ResumeContent }) {
       className={`${articleClass} leading-snug template-modern`}
       {...designProps}
     >
-      {contact.fullName.trim() && (
-        <header className="mb-6 pb-4 border-b border-gray-200">
-          <h1 className="text-3xl font-light text-gray-900">
-            {contact.fullName}
-          </h1>
-          {contact.headline?.trim() && (
-            <p className="text-sm text-gray-600 mt-1.5 leading-snug">
-              {contact.headline}
-            </p>
-          )}
-          <ContactLine contact={contact} className="text-sm text-gray-600 mt-2" />
-        </header>
-      )}
+      <ResumeMasthead
+        contact={contact}
+        contactLayout={atsContactLayout}
+        className="mb-5 pb-4 border-b border-gray-200"
+        nameClassName="text-3xl font-light text-gray-900"
+        headlineClassName="text-sm text-gray-600 mt-1.5 leading-snug"
+        contactClassName="text-sm text-gray-600 mt-2"
+      />
       <OrderedBodySections
         order={sectionOrder}
         sections={{
           summary: hasSummary ? (
             <section className="mb-5">
-              <h2 className={heading}>Summary</h2>
+              <h2 className={headingModern}>{atsSummaryHeading}</h2>
               <p className="text-sm text-gray-800 leading-snug">{summary}</p>
             </section>
           ) : null,
           experience: hasExperience ? (
             <section className="mb-5">
-              <h2 className={heading}>Experience</h2>
+              <h2 className={headingModern}>{ATS_SECTION.experience}</h2>
               <ExperienceBlock
                 data={data}
                 jobSpacing="space-y-4"
@@ -147,7 +149,7 @@ export function ModernTemplate({ data }: { data: ResumeContent }) {
           custom: (
             <CustomSectionBlocks
               data={data}
-              headingClassName={heading}
+              headingClassName={headingModern}
               sectionClassName="mb-5"
               experienceProps={{
                 jobSpacing: "space-y-4",
@@ -158,7 +160,7 @@ export function ModernTemplate({ data }: { data: ResumeContent }) {
           ),
           skills: hasSkills ? (
             <section className="mb-5">
-              <h2 className={heading}>Skills</h2>
+              <h2 className={headingModern}>{ATS_SECTION.skills}</h2>
               <SkillsBlock
                 data={data}
                 labelClass="font-semibold text-gray-900"
@@ -168,7 +170,7 @@ export function ModernTemplate({ data }: { data: ResumeContent }) {
           ) : null,
           education: hasEducation ? (
             <section className="mb-5">
-              <h2 className={heading}>Education</h2>
+              <h2 className={headingModern}>{ATS_SECTION.education}</h2>
               <EducationBlock
                 data={data}
                 institutionClass="text-sm font-medium text-gray-800"
@@ -182,10 +184,10 @@ export function ModernTemplate({ data }: { data: ResumeContent }) {
 }
 
 export function ProfessionalTemplate({ data }: { data: ResumeContent }) {
-  const { contact, summary, design, sectionOrder } = data;
+  const { contact, summary, design, sectionOrder, atsContactLayout, atsSummaryHeading } =
+    data;
   const { hasSummary, hasExperience, hasSkills, hasEducation } =
     useResumeSections(data);
-  const heading = "text-sm font-bold text-gray-900 mb-1";
   const designProps = designDocumentProps(design);
 
   return (
@@ -194,32 +196,26 @@ export function ProfessionalTemplate({ data }: { data: ResumeContent }) {
       className={`${articleClass} text-[13px] leading-snug template-professional`}
       {...designProps}
     >
-      {contact.fullName.trim() && (
-        <header className="mb-3.5">
-          <h1 className="text-xl font-bold">{contact.fullName}</h1>
-          {contact.headline?.trim() && (
-            <p className="text-[13px] text-gray-700 mt-0.5 leading-snug">
-              {contact.headline}
-            </p>
-          )}
-          <ContactLine
-            contact={contact}
-            className="text-[13px] text-gray-800 mt-0.5"
-          />
-        </header>
-      )}
+      <ResumeMasthead
+        contact={contact}
+        contactLayout={atsContactLayout}
+        className="mb-3.5"
+        nameClassName="text-xl font-bold"
+        headlineClassName="text-[13px] text-gray-700 mt-0.5 leading-snug"
+        contactClassName="text-[13px] text-gray-800 mt-1"
+      />
       <OrderedBodySections
         order={sectionOrder}
         sections={{
           summary: hasSummary ? (
             <section className="mb-3.5">
-              <h2 className={heading}>Summary</h2>
+              <h2 className={headingProfessional}>{atsSummaryHeading}</h2>
               <p className="text-[13px] leading-snug">{summary}</p>
             </section>
           ) : null,
           experience: hasExperience ? (
             <section className="mb-3.5">
-              <h2 className={heading}>Experience</h2>
+              <h2 className={headingProfessional}>{ATS_SECTION.experience}</h2>
               <ExperienceBlock
                 data={data}
                 jobSpacing="space-y-2.5"
@@ -233,7 +229,7 @@ export function ProfessionalTemplate({ data }: { data: ResumeContent }) {
           custom: (
             <CustomSectionBlocks
               data={data}
-              headingClassName={heading}
+              headingClassName={headingProfessional}
               sectionClassName="mb-3.5"
               experienceProps={{
                 jobSpacing: "space-y-2.5",
@@ -246,13 +242,13 @@ export function ProfessionalTemplate({ data }: { data: ResumeContent }) {
           ),
           skills: hasSkills ? (
             <section className="mb-3.5">
-              <h2 className={heading}>Skills</h2>
+              <h2 className={headingProfessional}>{ATS_SECTION.skills}</h2>
               <SkillsBlock data={data} lineClass="text-[13px]" />
             </section>
           ) : null,
           education: hasEducation ? (
             <section className="mb-3.5">
-              <h2 className={heading}>Education</h2>
+              <h2 className={headingProfessional}>{ATS_SECTION.education}</h2>
               <EducationBlock
                 data={data}
                 institutionClass="text-[13px] font-bold"
@@ -269,13 +265,10 @@ export function ProfessionalTemplate({ data }: { data: ResumeContent }) {
 }
 
 export function ExecutiveTemplate({ data }: { data: ResumeContent }) {
-  const { contact, summary, design, sectionOrder } = data;
+  const { contact, summary, design, sectionOrder, atsContactLayout, atsSummaryHeading } =
+    data;
   const { hasSummary, hasExperience, hasSkills, hasEducation } =
     useResumeSections(data);
-  // Standard ATS section labels (Summary / Experience / Skills), not "Core Competencies".
-  // Avoid tracking-widest — wide letter-spacing breaks keyword matching in ATS text extractors.
-  const heading =
-    "text-sm font-bold uppercase text-center border-b border-gray-400 pb-1 mb-3 mt-1";
   const designProps = designDocumentProps(design);
 
   return (
@@ -284,25 +277,20 @@ export function ExecutiveTemplate({ data }: { data: ResumeContent }) {
       className={`${articleClass} template-executive`}
       {...designProps}
     >
-      {contact.fullName.trim() && (
-        <header className="mb-5 text-center">
-          <h1 className="text-2xl font-bold tracking-wide">
-            {contact.fullName}
-          </h1>
-          {contact.headline?.trim() && (
-            <p className="text-sm text-gray-700 mt-1.5 leading-snug">
-              {contact.headline}
-            </p>
-          )}
-          <ContactLine contact={contact} className="text-sm text-gray-700 mt-2" />
-        </header>
-      )}
+      <ResumeMasthead
+        contact={contact}
+        contactLayout={atsContactLayout}
+        align="center"
+        nameClassName="text-2xl font-bold tracking-wide"
+        headlineClassName="text-sm text-gray-700 mt-1.5 leading-snug"
+        contactClassName="text-sm text-gray-700 mt-2"
+      />
       <OrderedBodySections
         order={sectionOrder}
         sections={{
           summary: hasSummary ? (
             <section className="mb-6">
-              <h2 className={heading}>Summary</h2>
+              <h2 className={headingExecutive}>{atsSummaryHeading}</h2>
               <p className="text-sm leading-snug text-center max-w-none">
                 {summary}
               </p>
@@ -310,7 +298,7 @@ export function ExecutiveTemplate({ data }: { data: ResumeContent }) {
           ) : null,
           experience: hasExperience ? (
             <section className="mb-6">
-              <h2 className={heading}>Experience</h2>
+              <h2 className={headingExecutive}>{ATS_SECTION.experience}</h2>
               <ExperienceBlock
                 data={data}
                 titleClass="text-sm font-semibold not-italic"
@@ -322,7 +310,7 @@ export function ExecutiveTemplate({ data }: { data: ResumeContent }) {
           custom: (
             <CustomSectionBlocks
               data={data}
-              headingClassName={heading}
+              headingClassName={headingExecutive}
               sectionClassName="mb-6"
               experienceProps={{
                 titleClass: "text-sm font-semibold not-italic",
@@ -333,13 +321,13 @@ export function ExecutiveTemplate({ data }: { data: ResumeContent }) {
           ),
           skills: hasSkills ? (
             <section className="mb-6">
-              <h2 className={heading}>Skills</h2>
+              <h2 className={headingExecutive}>{ATS_SECTION.skills}</h2>
               <SkillsBlock data={data} />
             </section>
           ) : null,
           education: hasEducation ? (
             <section className="mb-6">
-              <h2 className={heading}>Education</h2>
+              <h2 className={headingExecutive}>{ATS_SECTION.education}</h2>
               <EducationBlock data={data} />
             </section>
           ) : null,
@@ -350,7 +338,8 @@ export function ExecutiveTemplate({ data }: { data: ResumeContent }) {
 }
 
 export function StructuredTemplate({ data }: { data: ResumeContent }) {
-  const { contact, summary, design, sectionOrder } = data;
+  const { contact, summary, design, sectionOrder, atsContactLayout, atsSummaryHeading } =
+    data;
   const {
     hasSummary,
     hasExperience,
@@ -358,8 +347,6 @@ export function StructuredTemplate({ data }: { data: ResumeContent }) {
     hasEducation,
     visibleCustomSections,
   } = useResumeSections(data);
-  const heading =
-    "text-sm font-bold uppercase bg-gray-100 px-2 py-1 mb-2 border-l-4 border-gray-800";
   const designProps = designDocumentProps(design);
 
   return (
@@ -368,32 +355,26 @@ export function StructuredTemplate({ data }: { data: ResumeContent }) {
       className={`${articleClass} template-structured`}
       {...designProps}
     >
-      {contact.fullName.trim() && (
-        <header className="mb-5 pb-3 border-b-2 border-gray-800">
-          <h1 className="text-2xl font-bold">{contact.fullName}</h1>
-          {contact.headline?.trim() && (
-            <p className="text-sm text-gray-700 mt-1 leading-snug">
-              {contact.headline}
-            </p>
-          )}
-          <ContactLine
-            contact={contact}
-            className="text-sm text-gray-700 mt-1.5"
-          />
-        </header>
-      )}
+      <ResumeMasthead
+        contact={contact}
+        contactLayout={atsContactLayout}
+        className="mb-5 pb-3 border-b-2 border-gray-800"
+        nameClassName="text-2xl font-bold"
+        headlineClassName="text-sm text-gray-700 mt-1 leading-snug"
+        contactClassName="text-sm text-gray-700 mt-1.5"
+      />
       <OrderedBodySections
         order={sectionOrder}
         sections={{
           summary: hasSummary ? (
             <section className="mb-5">
-              <h2 className={heading}>Summary</h2>
+              <h2 className={headingStructured}>{atsSummaryHeading}</h2>
               <p className="text-sm leading-snug pl-2">{summary}</p>
             </section>
           ) : null,
           experience: hasExperience ? (
             <section className="mb-5">
-              <h2 className={heading}>Experience</h2>
+              <h2 className={headingStructured}>{ATS_SECTION.experience}</h2>
               <div className="pl-2">
                 <ExperienceBlock
                   data={data}
@@ -408,8 +389,8 @@ export function StructuredTemplate({ data }: { data: ResumeContent }) {
               <>
                 {visibleCustomSections.map((section) => (
                   <section key={section.id} className="mb-5">
-                    <h2 className={heading}>
-                      {section.title.trim() || "Section"}
+                    <h2 className={headingStructured}>
+                      {section.title.trim().toUpperCase() || "SECTION"}
                     </h2>
                     <div className="pl-2">
                       <ExperienceBlock
@@ -425,7 +406,7 @@ export function StructuredTemplate({ data }: { data: ResumeContent }) {
             ) : null,
           skills: hasSkills ? (
             <section className="mb-5">
-              <h2 className={heading}>Skills</h2>
+              <h2 className={headingStructured}>{ATS_SECTION.skills}</h2>
               <div className="pl-2">
                 <SkillsBlock
                   data={data}
@@ -437,7 +418,7 @@ export function StructuredTemplate({ data }: { data: ResumeContent }) {
           ) : null,
           education: hasEducation ? (
             <section className="mb-5">
-              <h2 className={heading}>Education</h2>
+              <h2 className={headingStructured}>{ATS_SECTION.education}</h2>
               <div className="pl-2">
                 <EducationBlock
                   data={data}
@@ -472,7 +453,8 @@ function AccentSection({
 }
 
 export function AccentTemplate({ data }: { data: ResumeContent }) {
-  const { contact, summary, design, sectionOrder } = data;
+  const { contact, summary, design, sectionOrder, atsContactLayout, atsSummaryHeading } =
+    data;
   const {
     hasSummary,
     hasExperience,
@@ -488,32 +470,23 @@ export function AccentTemplate({ data }: { data: ResumeContent }) {
       className={accentArticleClass}
       {...designProps}
     >
-      {contact.fullName.trim() && (
-        <header className="mb-5">
-          <h1 className="text-[21px] font-bold tracking-wide text-gray-900 uppercase leading-none">
-            {contact.fullName}
-          </h1>
-          {contact.headline?.trim() && (
-            <p className="accent-headline text-sm mt-0.5 leading-snug">
-              {contact.headline}
-            </p>
-          )}
-          <ContactLine
-            contact={contact}
-            className="text-sm text-gray-800 mt-1"
-          />
-        </header>
-      )}
+      <ResumeMasthead
+        contact={contact}
+        contactLayout={atsContactLayout}
+        nameClassName="text-[21px] font-bold tracking-wide text-gray-900 uppercase leading-none"
+        headlineClassName="accent-headline text-sm mt-0.5 leading-snug"
+        contactClassName="text-sm text-gray-800 mt-2"
+      />
       <OrderedBodySections
         order={sectionOrder}
         sections={{
           summary: hasSummary ? (
-            <AccentSection title="Summary">
+            <AccentSection title={atsSummaryHeading}>
               <p className="text-sm leading-snug text-gray-800">{summary}</p>
             </AccentSection>
           ) : null,
           experience: hasExperience ? (
-            <AccentSection title="Experience">
+            <AccentSection title={ATS_SECTION.experience}>
               <ExperienceBlock
                 data={data}
                 jobSpacing="space-y-3"
@@ -530,7 +503,7 @@ export function AccentTemplate({ data }: { data: ResumeContent }) {
                 {visibleCustomSections.map((section) => (
                   <AccentSection
                     key={section.id}
-                    title={section.title.trim() || "Section"}
+                    title={(section.title.trim() || "SECTION").toUpperCase()}
                   >
                     <ExperienceBlock
                       data={data}
@@ -546,7 +519,7 @@ export function AccentTemplate({ data }: { data: ResumeContent }) {
               </>
             ) : null,
           skills: hasSkills ? (
-            <AccentSection title="Skills">
+            <AccentSection title={ATS_SECTION.skills}>
               <div className="space-y-1.5">
                 {data.skillGroups.map((group) => {
                   if (!group.category.trim() && !group.items.trim()) return null;
@@ -568,7 +541,7 @@ export function AccentTemplate({ data }: { data: ResumeContent }) {
             </AccentSection>
           ) : null,
           education: hasEducation ? (
-            <AccentSection title="Education">
+            <AccentSection title={ATS_SECTION.education}>
               <div className="space-y-2">
                 {data.education.map((edu) => {
                   if (!edu.institution.trim() && !edu.details.trim()) return null;

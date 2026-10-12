@@ -9,6 +9,7 @@ import {
   useResumeSections,
 } from "@/lib/templates/sections";
 import { normalizeSectionOrder } from "@/lib/templates/section-order";
+import { ATS_SECTION } from "@/lib/templates/ats-sections";
 import { formatDateRange } from "@/lib/utils";
 
 /**
@@ -37,14 +38,18 @@ export function getExportBlocks(data: ResumeContent): ExportBlock[] {
     switch (id) {
       case "summary":
         if (hasSummary) {
-          blocks.push({ kind: "summary", title: "Summary", body: data.summary });
+          blocks.push({
+            kind: "summary",
+            title: data.atsSummaryHeading || ATS_SECTION.summary,
+            body: data.summary,
+          });
         }
         break;
       case "experience":
         if (hasExperience) {
           blocks.push({
             kind: "experience",
-            title: "Experience",
+            title: ATS_SECTION.experience,
             jobs: data.experience,
           });
         }
@@ -53,7 +58,7 @@ export function getExportBlocks(data: ResumeContent): ExportBlock[] {
         for (const section of visibleCustomSections) {
           blocks.push({
             kind: "custom",
-            title: section.title.trim() || "Section",
+            title: (section.title.trim() || "SECTION").toUpperCase(),
             jobs: customSectionToExperience(section),
           });
         }
@@ -62,7 +67,7 @@ export function getExportBlocks(data: ResumeContent): ExportBlock[] {
         if (hasSkills) {
           blocks.push({
             kind: "skills",
-            title: "Skills",
+            title: ATS_SECTION.skills,
             groups: data.skillGroups,
           });
         }
@@ -71,7 +76,7 @@ export function getExportBlocks(data: ResumeContent): ExportBlock[] {
         if (hasEducation) {
           blocks.push({
             kind: "education",
-            title: "Education",
+            title: ATS_SECTION.education,
             entries: data.education,
           });
         }

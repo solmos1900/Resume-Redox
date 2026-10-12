@@ -38,7 +38,12 @@ function buildResumeText(version: ResumeVersion): string {
 
   lines.push(data.contact.fullName || "Untitled");
   if (data.contact.headline.trim()) lines.push(data.contact.headline);
-  if (contactLine) lines.push(contactLine);
+  if (contactLine) {
+    // stacked layout joins with newlines — keep each labeled field on its own line
+    for (const part of contactLine.split("\n")) {
+      if (part.trim()) lines.push(part);
+    }
+  }
   lines.push("");
 
   for (const block of blocks) {

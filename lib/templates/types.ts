@@ -1,4 +1,6 @@
 import type {
+  AtsContactLayout,
+  AtsSummaryHeading,
   Contact,
   CustomSection,
   DesignSettings,
@@ -15,6 +17,7 @@ import {
 } from "@/lib/schema";
 import { normalizeSectionOrder } from "@/lib/templates/section-order";
 import { getDesignSettings } from "@/lib/design";
+import { ATS_SECTION } from "@/lib/templates/ats-sections";
 
 export type { TemplateId };
 
@@ -27,6 +30,8 @@ export type ResumeContent = {
   customSections: CustomSection[];
   design: DesignSettings;
   sectionOrder: ReorderableSectionId[];
+  atsContactLayout: AtsContactLayout;
+  atsSummaryHeading: AtsSummaryHeading;
 };
 
 export type TemplateDefinition = {
@@ -39,7 +44,10 @@ export type TemplateDefinition = {
 
 export function toResumeContent(version: ResumeVersion): ResumeContent {
   return {
-    contact: version.contact,
+    contact: {
+      ...version.contact,
+      website: version.contact.website ?? "",
+    },
     summary: version.summary,
     experience: version.experience,
     skillGroups: version.skillGroups,
@@ -49,6 +57,9 @@ export function toResumeContent(version: ResumeVersion): ResumeContent {
     sectionOrder: normalizeSectionOrder(
       version.sectionOrder ?? [...DEFAULT_SECTION_ORDER]
     ),
+    atsContactLayout: version.atsContactLayout ?? "stacked",
+    atsSummaryHeading:
+      version.atsSummaryHeading ?? ATS_SECTION.summary,
   };
 }
 

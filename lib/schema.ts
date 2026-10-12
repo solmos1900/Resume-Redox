@@ -7,6 +7,8 @@ export const contactSchema = z.object({
   phone: z.string(),
   location: z.string(),
   linkedIn: z.string().optional(),
+  /** Portfolio, GitHub, or personal site — shown as a labeled https URL. */
+  website: z.string().optional().default(""),
   linkedInHyperlink: z.boolean().default(true),
 });
 
@@ -144,6 +146,9 @@ export const DEFAULT_SECTION_ORDER = [
   "education",
 ] as const;
 
+export const atsContactLayoutSchema = z.enum(["stacked", "inline"]);
+export const atsSummaryHeadingSchema = z.enum(["SUMMARY", "PROFILE"]);
+
 export const resumeVersionSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -154,6 +159,13 @@ export const resumeVersionSchema = z.object({
   sectionOrder: z
     .array(reorderableSectionIdSchema)
     .default([...DEFAULT_SECTION_ORDER]),
+  /**
+   * ATS contact presentation. stacked = labeled lines (default, best parse);
+   * inline = labeled fields on one line.
+   */
+  atsContactLayout: atsContactLayoutSchema.default("stacked"),
+  /** Literal summary section heading text embedded in the PDF text layer. */
+  atsSummaryHeading: atsSummaryHeadingSchema.default("SUMMARY"),
   contact: contactSchema,
   summary: z.string(),
   experience: z.array(experienceSchema),
@@ -186,6 +198,8 @@ export type DesignFontFamily = z.infer<typeof designFontFamilySchema>;
 export type DesignFontSize = z.infer<typeof designFontSizeSchema>;
 export type DesignSpacing = z.infer<typeof designSpacingSchema>;
 export type DesignSettings = z.infer<typeof designSettingsSchema>;
+export type AtsContactLayout = z.infer<typeof atsContactLayoutSchema>;
+export type AtsSummaryHeading = z.infer<typeof atsSummaryHeadingSchema>;
 export type ReorderableSectionId = z.infer<typeof reorderableSectionIdSchema>;
 export type ResumeVersion = z.infer<typeof resumeVersionSchema>;
 export type StoreState = z.infer<typeof storeSchema>;
@@ -199,6 +213,8 @@ export function createEmptyVersion(name: string): ResumeVersion {
     templateId: "classic",
     design: { ...DEFAULT_DESIGN_SETTINGS },
     sectionOrder: [...DEFAULT_SECTION_ORDER],
+    atsContactLayout: "stacked",
+    atsSummaryHeading: "SUMMARY",
     contact: {
       fullName: "",
       headline: "",
@@ -206,6 +222,7 @@ export function createEmptyVersion(name: string): ResumeVersion {
       phone: "",
       location: "",
       linkedIn: "",
+      website: "",
       linkedInHyperlink: true,
     },
     summary: "",

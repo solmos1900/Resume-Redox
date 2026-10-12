@@ -15,27 +15,26 @@ export function ContactForm() {
     });
   };
 
-  const toggleLinkedInHyperlink = (checked: boolean) => {
-    updateActiveVersion({
-      contact: { ...version.contact, linkedInHyperlink: checked },
-    });
-  };
-
-  // Order matches ATS contact line: phone | email | location | LinkedIn
+  // Order matches ATS contact block: phone, email, location, LinkedIn, website
   const fields = [
     { key: "fullName", label: "Full Name", placeholder: "Alex Rivera" },
     {
       key: "headline",
-      label: "Headline / Tagline",
-      placeholder: "Technical PM | Platform Delivery | Integrations",
+      label: "Headline / Target title",
+      placeholder: "Senior Software Engineer | 7+ years | Platform",
     },
-    { key: "phone", label: "Phone", placeholder: "(555) 234-0100" },
+    { key: "phone", label: "Phone", placeholder: "+1 555 234 0100" },
     { key: "email", label: "Email", placeholder: "you@email.com" },
     { key: "location", label: "Location (City, ST)", placeholder: "Austin, TX" },
     {
       key: "linkedIn",
       label: "LinkedIn",
-      placeholder: "linkedin.com/in/your-profile",
+      placeholder: "https://www.linkedin.com/in/your-profile",
+    },
+    {
+      key: "website",
+      label: "Website / GitHub",
+      placeholder: "https://github.com/your-handle",
     },
   ] as const;
 
@@ -57,19 +56,13 @@ export function ContactForm() {
                 className="mt-1 w-full rounded border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </label>
-            {key === "linkedIn" && (
-              <label className="mt-1.5 flex items-center gap-2 text-xs text-gray-600">
-                <input
-                  type="checkbox"
-                  checked={version.contact.linkedInHyperlink}
-                  onChange={(e) => toggleLinkedInHyperlink(e.target.checked)}
-                  className="rounded border-gray-300"
-                />
-                Make this a clickable link
-              </label>
-            )}
           </div>
         ))}
+        <p className="text-xs text-gray-500">
+          Exports show labeled plain-text contact (Phone, Email, Location,
+          LinkedIn, Website) so ATS parsers can read email and https URLs
+          reliably.
+        </p>
       </div>
     </CollapsibleSection>
   );

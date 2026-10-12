@@ -1,7 +1,6 @@
 import {
   AlignmentType,
   Document,
-  ExternalHyperlink,
   HeadingLevel,
   Packer,
   Paragraph,
@@ -14,10 +13,9 @@ import { getExportFilename } from "./export";
 import { downloadBlob } from "./download-history";
 import {
   formatLinkedInDisplay,
+  formatWebsiteDisplay,
   hasContactLineInfo,
-  normalizeLinkedInUrl,
 } from "./contact-url";
-import { CONTACT_FIELD_SEPARATOR } from "./utils";
 
 const HEADING_SPACING = { before: 240, after: 80 };
 const BODY_SPACING = { after: 100 };
@@ -26,45 +24,20 @@ const BODY_SPACING = { after: 100 };
  * DOCX is the ATS / plain-text sibling of the visual templates — same
  * content and section order as preview/PDF, not a pixel twin of Accent/etc.
  */
-function contactLineRuns(
-  contact: Contact,
-  size: number
-): (TextRun | ExternalHyperlink)[] {
-  const runs: (TextRun | ExternalHyperlink)[] = [];
-  const addSeparator = () => {
-    if (runs.length > 0) {
-      runs.push(new TextRun({ text: CONTACT_FIELD_SEPARATOR, size }));
-    }
-  };
-
-  // Match PDF ContactLine: phone | email | location | LinkedIn
-  if (contact.phone?.trim()) {
-    addSeparator();
-    runs.push(new TextRun({ text: contact.phone.trim(), size }));
-  }
-  if (contact.email?.trim()) {
-    addSeparator();
-    runs.push(new TextRun({ text: contact.email.trim(), size }));
-  }
+function contactFieldLines(contact: Contact): string[] {
+  const lines: string[] = [];
+  if (contact.phone?.trim()) lines.push(`Phone: ${contact.phone.trim()}`);
+  if (contact.email?.trim()) lines.push(`Email: ${contact.email.trim()}`);
   if (contact.location?.trim()) {
-    addSeparator();
-    runs.push(new TextRun({ text: contact.location.trim(), size }));
+    lines.push(`Location: ${contact.location.trim()}`);
   }
   if (contact.linkedIn?.trim()) {
-    addSeparator();
-    const linkedIn = contact.linkedIn.trim();
-    const display = formatLinkedInDisplay(linkedIn);
-    runs.push(
-      contact.linkedInHyperlink
-        ? new ExternalHyperlink({
-            link: normalizeLinkedInUrl(linkedIn),
-            children: [new TextRun({ text: display, size, underline: {} })],
-          })
-        : new TextRun({ text: display, size })
-    );
+    lines.push(`LinkedIn: ${formatLinkedInDisplay(contact.linkedIn)}`);
   }
-
-  return runs;
+  if (contact.website?.trim()) {
+    lines.push(`Website: ${formatWebsiteDisplay(contact.website)}`);
+  }
+  return lines;
 }
 
 function heading(text: string): Paragraph {
@@ -82,32 +55,34 @@ function experienceParagraphs(jobs: Experience[]): Paragraph[] {
     const bullets = job.bullets.filter((b) => b.trim());
     if (!companyLine && !job.title.trim() && bullets.length === 0) continue;
 
-    if (companyLine) {
-      paragraphs.push(
-        new Paragraph({
-          spacing: { before: 160, after: 20 },
-          children: [new TextRun({ text: companyLine, bold: true })],
-        })
-      );
-    }
-
     const dateRange = formatExportDateRange(
       job.startDate,
       job.endDate,
       job.current
     );
-    if (job.title.trim() || dateRange) {
+
+    // Company + dates on one line (matches PDF ATS layout)
+    if (companyLine || dateRange) {
+      paragraphs.push(
+        new Paragraph({
+          spacing: { before: 160, after: 20 },
+          children: [
+            ...(companyLine
+              ? [new TextRun({ text: companyLine, bold: true })]
+              : []),
+            ...(dateRange
+              ? [new TextRun({ text: `\t${dateRange}` })]
+              : []),
+          ],
+        })
+      );
+    }
+
+    if (job.title.trim()) {
       paragraphs.push(
         new Paragraph({
           spacing: { after: 40 },
-          children: [
-            ...(job.title.trim()
-              ? [new TextRun({ text: job.title, italics: true })]
-              : []),
-            ...(dateRange
-              ? [new TextRun({ text: `\t${dateRange}`, italics: true })]
-              : []),
-          ],
+          children: [new TextRun({ text: job.title, italics: true })],
         })
       );
     }
@@ -128,10 +103,11 @@ function experienceParagraphs(jobs: Experience[]): Paragraph[] {
 function buildDocxParagraphs(version: ResumeVersion): Paragraph[] {
   const data = toResumeContent(version);
   const blocks = getExportBlocks(data);
+  const stacked = data.atsContactLayout !== "inline";
 
   const paragraphs: Paragraph[] = [
     new Paragraph({
-      alignment: AlignmentType.CENTER,
+      alignment: AlignmentType.LEFT,
       spacing: { after: 40 },
       children: [
         new TextRun({
@@ -146,7 +122,7 @@ function buildDocxParagraphs(version: ResumeVersion): Paragraph[] {
   if (data.contact.headline.trim()) {
     paragraphs.push(
       new Paragraph({
-        alignment: AlignmentType.CENTER,
+        alignment: AlignmentType.LEFT,
         spacing: { after: 40 },
         children: [new TextRun({ text: data.contact.headline, italics: true })],
       })
@@ -154,13 +130,26 @@ function buildDocxParagraphs(version: ResumeVersion): Paragraph[] {
   }
 
   if (hasContactLineInfo(data.contact)) {
-    paragraphs.push(
-      new Paragraph({
-        alignment: AlignmentType.CENTER,
-        spacing: { after: 200 },
-        children: contactLineRuns(data.contact, 20),
-      })
-    );
+    const lines = contactFieldLines(data.contact);
+    if (stacked) {
+      lines.forEach((line, index) => {
+        paragraphs.push(
+          new Paragraph({
+            alignment: AlignmentType.LEFT,
+            spacing: { after: index === lines.length - 1 ? 200 : 20 },
+            children: [new TextRun({ text: line, size: 20 })],
+          })
+        );
+      });
+    } else {
+      paragraphs.push(
+        new Paragraph({
+          alignment: AlignmentType.LEFT,
+          spacing: { after: 200 },
+          children: [new TextRun({ text: lines.join(" | "), size: 20 })],
+        })
+      );
+    }
   }
 
   for (const block of blocks) {
@@ -181,10 +170,11 @@ function buildDocxParagraphs(version: ResumeVersion): Paragraph[] {
           new Paragraph({
             spacing: BODY_SPACING,
             children: [
-              ...(group.category.trim()
-                ? [new TextRun({ text: `${group.category}: `, bold: true })]
-                : []),
-              new TextRun({ text: group.items }),
+              new TextRun({
+                text: group.category.trim()
+                  ? `${group.category}: ${group.items}`
+                  : group.items,
+              }),
             ],
           })
         );
@@ -197,10 +187,10 @@ function buildDocxParagraphs(version: ResumeVersion): Paragraph[] {
           .join(", ");
         paragraphs.push(
           new Paragraph({
-            spacing: { after: 20 },
+            spacing: { before: 80, after: 20 },
             children: [
-              ...(line ? [new TextRun({ text: line, bold: true })] : []),
-              ...(edu.graduationDate
+              new TextRun({ text: line, bold: true }),
+              ...(edu.graduationDate.trim()
                 ? [new TextRun({ text: `\t${edu.graduationDate}` })]
                 : []),
             ],
@@ -223,8 +213,23 @@ function buildDocxParagraphs(version: ResumeVersion): Paragraph[] {
 
 export async function downloadResumeAsDocx(version: ResumeVersion): Promise<void> {
   const doc = new Document({
-    sections: [{ children: buildDocxParagraphs(version) }],
+    sections: [
+      {
+        properties: {
+          page: {
+            margin: {
+              top: 720,
+              right: 720,
+              bottom: 720,
+              left: 720,
+            },
+          },
+        },
+        children: buildDocxParagraphs(version),
+      },
+    ],
   });
+
   const blob = await Packer.toBlob(doc);
   downloadBlob(blob, getExportFilename(version), "docx");
 }
