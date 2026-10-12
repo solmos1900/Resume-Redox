@@ -9,13 +9,14 @@ type ContactLineProps = {
   contact: Contact;
   className?: string;
   /**
-   * stacked = each field on its own labeled line (best for many ATS parsers).
-   * inline = labeled fields on one/two compact lines.
+   * inline (default) = pipe-separated values; URLs on a second line so
+   * https://www.linkedin.com/in/... never soft-wraps mid-slug.
+   * stacked = labeled lines (Phone: … / Email: … / LinkedIn: …)
    */
   layout?: "stacked" | "inline";
 };
 
-type ContactField = { label: string; value: string };
+type ContactField = { label: string; value: string; isUrl?: boolean };
 
 function buildContactFields(contact: Contact): ContactField[] {
   const fields: ContactField[] = [];
@@ -24,8 +25,6 @@ function buildContactFields(contact: Contact): ContactField[] {
     fields.push({ label: "Phone", value: contact.phone.trim() });
   }
   if (contact.email?.trim()) {
-    // Plain text — not a mailto: link. Hyperlinks in the masthead confuse
-    // several ATS checkers (including freecvaudit's "professional link" scan).
     fields.push({ label: "Email", value: contact.email.trim() });
   }
   if (contact.location?.trim()) {
@@ -35,28 +34,32 @@ function buildContactFields(contact: Contact): ContactField[] {
     fields.push({
       label: "LinkedIn",
       value: formatLinkedInDisplay(contact.linkedIn),
+      isUrl: true,
     });
   }
   if (contact.website?.trim()) {
     fields.push({
       label: "Website",
       value: formatWebsiteDisplay(contact.website),
+      isUrl: true,
     });
   }
 
   return fields;
 }
 
+function joinPipe(fields: ContactField[]) {
+  return fields.map((f) => f.value).join(" | ");
+}
+
 /**
- * ATS-oriented contact block.
- * - Labeled Phone / Email / Location / LinkedIn / Website
- * - Plain text only (no <a href>) so parsers see the literal email + https URL
- * - Full https://linkedin.com/in/... visible in the text layer
+ * ATS-oriented contact block — plain text only.
+ * Default: phone | email | location, then a second line with full https URLs.
  */
 export function ContactLine({
   contact,
   className,
-  layout = "stacked",
+  layout = "inline",
 }: ContactLineProps) {
   if (!hasContactLineInfo(contact)) return null;
 
@@ -64,15 +67,24 @@ export function ContactLine({
   if (fields.length === 0) return null;
 
   if (layout === "inline") {
+    const primary = fields.filter((f) => !f.isUrl);
+    const urls = fields.filter((f) => f.isUrl);
     return (
-      <p className={className}>
-        {fields.map((field, index) => (
-          <span key={field.label}>
-            {index > 0 && " | "}
-            {field.label}: {field.value}
-          </span>
-        ))}
-      </p>
+      <div className={className}>
+        {primary.length > 0 && (
+          <p className="leading-snug">{joinPipe(primary)}</p>
+        )}
+        {urls.length > 0 && (
+          <p className="leading-snug" style={{ overflowWrap: "normal" }}>
+            {urls.map((field, index) => (
+              <span key={field.label} style={{ whiteSpace: "nowrap" }}>
+                {index > 0 && " | "}
+                {field.value}
+              </span>
+            ))}
+          </p>
+        )}
+      </div>
     );
   }
 

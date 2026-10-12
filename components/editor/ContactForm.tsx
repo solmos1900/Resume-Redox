@@ -23,7 +23,7 @@ export function ContactForm() {
       label: "Headline / Target title",
       placeholder: "Senior Software Engineer | 7+ years | Platform",
     },
-    { key: "phone", label: "Phone", placeholder: "+1 555 234 0100" },
+    { key: "phone", label: "Phone", placeholder: "(555) 234-0100" },
     { key: "email", label: "Email", placeholder: "you@email.com" },
     { key: "location", label: "Location (City, ST)", placeholder: "Austin, TX" },
     {

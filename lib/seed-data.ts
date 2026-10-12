@@ -11,15 +11,16 @@ export function createSeedVersion(): ResumeVersion {
     id: "seed-technical-pm",
     name: "Technical PM (Demo)",
     templateId: "classic" as const,
-    design: { ...DEFAULT_DESIGN_SETTINGS },
+    design: { ...DEFAULT_DESIGN_SETTINGS, spacing: "compact" },
     sectionOrder: [...DEFAULT_SECTION_ORDER],
-    atsContactLayout: "stacked",
-    atsSummaryHeading: "SUMMARY",
+    atsContactLayout: "inline",
+    atsSummaryHeading: "summary",
+    atsHeadingCase: "title",
     updatedAt: now,
     contact: {
       fullName: "Alex Rivera",
       headline: "Technical Project Manager | 5+ years | Platform Delivery",
-      phone: "+1 555 234 0100",
+      phone: "(555) 234-0100",
       email: "alex.rivera@example.com",
       location: "Austin, TX",
       linkedIn: "https://www.linkedin.com/in/example",
@@ -27,7 +28,7 @@ export function createSeedVersion(): ResumeVersion {
       linkedInHyperlink: true,
     },
     summary:
-      "Technical Project Manager with 5+ years leading platform and integration delivery. Combines a software engineering background with roadmapping, release governance, and cross-functional execution for reliable launches.",
+      "Technical Project Manager with 5+ years leading platform and integration delivery. Combines engineering background with roadmapping and release governance for reliable launches.",
     experience: [
       {
         id: "exp-demo-tpm",
@@ -38,10 +39,10 @@ export function createSeedVersion(): ResumeVersion {
         endDate: "",
         current: true,
         bullets: [
-          "Delivered 12 enterprise integrations across product, engineering, and security on agreed launch dates.",
-          "Established release governance for a multi-service platform that clarified deployment ownership for 6 teams.",
-          "Cut recurring manual reporting by 8 hours/week by automating internal analytics for leadership.",
-          "Unblocked sprint planning with clearer stories, acceptance criteria, and stakeholder updates.",
+          "Delivered 12 enterprise integrations across product, engineering, and security on launch dates.",
+          "Established release governance that clarified deployment ownership for 6 platform teams.",
+          "Cut recurring manual reporting by 8 hours/week with automated leadership analytics.",
+          "Unblocked sprint planning with clearer stories, acceptance criteria, and updates.",
         ],
       },
       {
@@ -54,8 +55,8 @@ export function createSeedVersion(): ResumeVersion {
         current: false,
         bullets: [
           "Saved operations analysts 6 hours/week by automating recurring data workflows.",
-          "Accelerated incident investigation with tooling that surfaced real-time query results.",
-          "Resolved 15 production metric-threshold alerts by coordinating engineer fixes within SLA.",
+          "Accelerated incident investigation with tooling for real-time query results.",
+          "Resolved 15 production metric alerts by coordinating engineer fixes within SLA.",
         ],
       },
     ],
@@ -67,25 +68,14 @@ export function createSeedVersion(): ResumeVersion {
           "TPM, Roadmapping, Backlog Management, Agile/Scrum, Release Governance, Risk Management",
       },
       {
-        id: "skill-stakeholder",
-        category: "Stakeholder & Governance",
-        items:
-          "Cross-functional Alignment, Architecture Reviews, Stakeholder Management, Compliance Coordination",
-      },
-      {
         id: "skill-engineering",
         category: "Engineering",
         items: "Python, SQL, JavaScript, React, REST APIs",
       },
       {
-        id: "skill-data",
-        category: "Data & Analytics",
-        items: "Dashboards, Automated Reporting, Data Pipelines, Schema Design",
-      },
-      {
-        id: "skill-tools",
-        category: "Tools & Platforms",
-        items: "Jira, Confluence, Git, Slack Workflows",
+        id: "skill-soft",
+        category: "Soft Skills",
+        items: "Stakeholder Communication, Cross-functional Collaboration, Mentoring",
       },
     ],
     education: [

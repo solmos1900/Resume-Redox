@@ -159,9 +159,11 @@ body {
 }
 
 .resume-document li {
-  padding-left: 1.15em;
-  text-indent: -1.15em;
-  margin-bottom: 0.2em;
+  padding-left: 1.05em;
+  text-indent: -1.05em;
+  /* Keep bullet gaps tight so soft-wrapped lines stay attached to the verb line. */
+  margin-bottom: 0.12em;
+  line-height: 1.28;
 }
 
 .template-accent {

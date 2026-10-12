@@ -3,7 +3,11 @@ import type { ResumeContent } from "@/lib/templates/types";
 import { designDocumentProps } from "@/lib/design";
 import { OrderedBodySections } from "@/lib/templates/ordered-sections";
 import { ResumeMasthead } from "@/components/preview/ResumeMasthead";
-import { ATS_SECTION } from "@/lib/templates/ats-sections";
+import {
+  formatCustomSectionTitle,
+  getAtsSectionTitle,
+  getAtsSummaryTitle,
+} from "@/lib/templates/ats-sections";
 import { withAtsBullet } from "@/lib/utils";
 import {
   customSectionToExperience,
@@ -27,7 +31,7 @@ import {
 const articleClass =
   "resume-document bg-white text-black print:shadow-none";
 
-/** Heading chrome only — label text comes from ATS_SECTION literals. */
+/** Heading chrome only — label text comes from getAtsSectionTitle(). */
 const headingClassic =
   "text-sm font-bold tracking-wide border-b border-gray-800 pb-1 mb-2";
 const headingModern = "text-xs font-bold text-gray-600 mb-2";
@@ -38,7 +42,7 @@ const headingStructured =
   "text-sm font-bold bg-gray-100 px-2 py-1 mb-2 border-l-4 border-gray-800";
 
 export function ClassicTemplate({ data }: { data: ResumeContent }) {
-  const { contact, summary, design, sectionOrder, atsContactLayout, atsSummaryHeading } =
+  const { contact, summary, design, sectionOrder, atsContactLayout, atsSummaryKind, atsHeadingCase } =
     data;
   const { hasSummary, hasExperience, hasSkills, hasEducation } =
     useResumeSections(data);
@@ -62,13 +66,13 @@ export function ClassicTemplate({ data }: { data: ResumeContent }) {
         sections={{
           summary: hasSummary ? (
             <section className="mb-5">
-              <h2 className={headingClassic}>{atsSummaryHeading}</h2>
+              <h2 className={headingClassic}>{getAtsSummaryTitle(atsSummaryKind, atsHeadingCase)}</h2>
               <p className="text-sm leading-snug">{summary}</p>
             </section>
           ) : null,
           experience: hasExperience ? (
             <section className="mb-5">
-              <h2 className={headingClassic}>{ATS_SECTION.experience}</h2>
+              <h2 className={headingClassic}>{getAtsSectionTitle("experience", atsHeadingCase)}</h2>
               <ExperienceBlock
                 data={data}
                 jobSpacing="space-y-3.5"
@@ -89,13 +93,13 @@ export function ClassicTemplate({ data }: { data: ResumeContent }) {
           ),
           skills: hasSkills ? (
             <section className="mb-5">
-              <h2 className={headingClassic}>{ATS_SECTION.skills}</h2>
+              <h2 className={headingClassic}>{getAtsSectionTitle("skills", atsHeadingCase)}</h2>
               <SkillsBlock data={data} />
             </section>
           ) : null,
           education: hasEducation ? (
             <section className="mb-5">
-              <h2 className={headingClassic}>{ATS_SECTION.education}</h2>
+              <h2 className={headingClassic}>{getAtsSectionTitle("education", atsHeadingCase)}</h2>
               <EducationBlock data={data} />
             </section>
           ) : null,
@@ -106,7 +110,7 @@ export function ClassicTemplate({ data }: { data: ResumeContent }) {
 }
 
 export function ModernTemplate({ data }: { data: ResumeContent }) {
-  const { contact, summary, design, sectionOrder, atsContactLayout, atsSummaryHeading } =
+  const { contact, summary, design, sectionOrder, atsContactLayout, atsSummaryKind, atsHeadingCase } =
     data;
   const { hasSummary, hasExperience, hasSkills, hasEducation } =
     useResumeSections(data);
@@ -131,13 +135,13 @@ export function ModernTemplate({ data }: { data: ResumeContent }) {
         sections={{
           summary: hasSummary ? (
             <section className="mb-5">
-              <h2 className={headingModern}>{atsSummaryHeading}</h2>
+              <h2 className={headingModern}>{getAtsSummaryTitle(atsSummaryKind, atsHeadingCase)}</h2>
               <p className="text-sm text-gray-800 leading-snug">{summary}</p>
             </section>
           ) : null,
           experience: hasExperience ? (
             <section className="mb-5">
-              <h2 className={headingModern}>{ATS_SECTION.experience}</h2>
+              <h2 className={headingModern}>{getAtsSectionTitle("experience", atsHeadingCase)}</h2>
               <ExperienceBlock
                 data={data}
                 jobSpacing="space-y-4"
@@ -160,7 +164,7 @@ export function ModernTemplate({ data }: { data: ResumeContent }) {
           ),
           skills: hasSkills ? (
             <section className="mb-5">
-              <h2 className={headingModern}>{ATS_SECTION.skills}</h2>
+              <h2 className={headingModern}>{getAtsSectionTitle("skills", atsHeadingCase)}</h2>
               <SkillsBlock
                 data={data}
                 labelClass="font-semibold text-gray-900"
@@ -170,7 +174,7 @@ export function ModernTemplate({ data }: { data: ResumeContent }) {
           ) : null,
           education: hasEducation ? (
             <section className="mb-5">
-              <h2 className={headingModern}>{ATS_SECTION.education}</h2>
+              <h2 className={headingModern}>{getAtsSectionTitle("education", atsHeadingCase)}</h2>
               <EducationBlock
                 data={data}
                 institutionClass="text-sm font-medium text-gray-800"
@@ -184,7 +188,7 @@ export function ModernTemplate({ data }: { data: ResumeContent }) {
 }
 
 export function ProfessionalTemplate({ data }: { data: ResumeContent }) {
-  const { contact, summary, design, sectionOrder, atsContactLayout, atsSummaryHeading } =
+  const { contact, summary, design, sectionOrder, atsContactLayout, atsSummaryKind, atsHeadingCase } =
     data;
   const { hasSummary, hasExperience, hasSkills, hasEducation } =
     useResumeSections(data);
@@ -209,13 +213,13 @@ export function ProfessionalTemplate({ data }: { data: ResumeContent }) {
         sections={{
           summary: hasSummary ? (
             <section className="mb-3.5">
-              <h2 className={headingProfessional}>{atsSummaryHeading}</h2>
+              <h2 className={headingProfessional}>{getAtsSummaryTitle(atsSummaryKind, atsHeadingCase)}</h2>
               <p className="text-[13px] leading-snug">{summary}</p>
             </section>
           ) : null,
           experience: hasExperience ? (
             <section className="mb-3.5">
-              <h2 className={headingProfessional}>{ATS_SECTION.experience}</h2>
+              <h2 className={headingProfessional}>{getAtsSectionTitle("experience", atsHeadingCase)}</h2>
               <ExperienceBlock
                 data={data}
                 jobSpacing="space-y-2.5"
@@ -242,13 +246,13 @@ export function ProfessionalTemplate({ data }: { data: ResumeContent }) {
           ),
           skills: hasSkills ? (
             <section className="mb-3.5">
-              <h2 className={headingProfessional}>{ATS_SECTION.skills}</h2>
+              <h2 className={headingProfessional}>{getAtsSectionTitle("skills", atsHeadingCase)}</h2>
               <SkillsBlock data={data} lineClass="text-[13px]" />
             </section>
           ) : null,
           education: hasEducation ? (
             <section className="mb-3.5">
-              <h2 className={headingProfessional}>{ATS_SECTION.education}</h2>
+              <h2 className={headingProfessional}>{getAtsSectionTitle("education", atsHeadingCase)}</h2>
               <EducationBlock
                 data={data}
                 institutionClass="text-[13px] font-bold"
@@ -265,7 +269,7 @@ export function ProfessionalTemplate({ data }: { data: ResumeContent }) {
 }
 
 export function ExecutiveTemplate({ data }: { data: ResumeContent }) {
-  const { contact, summary, design, sectionOrder, atsContactLayout, atsSummaryHeading } =
+  const { contact, summary, design, sectionOrder, atsContactLayout, atsSummaryKind, atsHeadingCase } =
     data;
   const { hasSummary, hasExperience, hasSkills, hasEducation } =
     useResumeSections(data);
@@ -290,7 +294,7 @@ export function ExecutiveTemplate({ data }: { data: ResumeContent }) {
         sections={{
           summary: hasSummary ? (
             <section className="mb-6">
-              <h2 className={headingExecutive}>{atsSummaryHeading}</h2>
+              <h2 className={headingExecutive}>{getAtsSummaryTitle(atsSummaryKind, atsHeadingCase)}</h2>
               <p className="text-sm leading-snug text-center max-w-none">
                 {summary}
               </p>
@@ -298,7 +302,7 @@ export function ExecutiveTemplate({ data }: { data: ResumeContent }) {
           ) : null,
           experience: hasExperience ? (
             <section className="mb-6">
-              <h2 className={headingExecutive}>{ATS_SECTION.experience}</h2>
+              <h2 className={headingExecutive}>{getAtsSectionTitle("experience", atsHeadingCase)}</h2>
               <ExperienceBlock
                 data={data}
                 titleClass="text-sm font-semibold not-italic"
@@ -321,13 +325,13 @@ export function ExecutiveTemplate({ data }: { data: ResumeContent }) {
           ),
           skills: hasSkills ? (
             <section className="mb-6">
-              <h2 className={headingExecutive}>{ATS_SECTION.skills}</h2>
+              <h2 className={headingExecutive}>{getAtsSectionTitle("skills", atsHeadingCase)}</h2>
               <SkillsBlock data={data} />
             </section>
           ) : null,
           education: hasEducation ? (
             <section className="mb-6">
-              <h2 className={headingExecutive}>{ATS_SECTION.education}</h2>
+              <h2 className={headingExecutive}>{getAtsSectionTitle("education", atsHeadingCase)}</h2>
               <EducationBlock data={data} />
             </section>
           ) : null,
@@ -338,7 +342,7 @@ export function ExecutiveTemplate({ data }: { data: ResumeContent }) {
 }
 
 export function StructuredTemplate({ data }: { data: ResumeContent }) {
-  const { contact, summary, design, sectionOrder, atsContactLayout, atsSummaryHeading } =
+  const { contact, summary, design, sectionOrder, atsContactLayout, atsSummaryKind, atsHeadingCase } =
     data;
   const {
     hasSummary,
@@ -368,13 +372,13 @@ export function StructuredTemplate({ data }: { data: ResumeContent }) {
         sections={{
           summary: hasSummary ? (
             <section className="mb-5">
-              <h2 className={headingStructured}>{atsSummaryHeading}</h2>
+              <h2 className={headingStructured}>{getAtsSummaryTitle(atsSummaryKind, atsHeadingCase)}</h2>
               <p className="text-sm leading-snug pl-2">{summary}</p>
             </section>
           ) : null,
           experience: hasExperience ? (
             <section className="mb-5">
-              <h2 className={headingStructured}>{ATS_SECTION.experience}</h2>
+              <h2 className={headingStructured}>{getAtsSectionTitle("experience", atsHeadingCase)}</h2>
               <div className="pl-2">
                 <ExperienceBlock
                   data={data}
@@ -390,7 +394,7 @@ export function StructuredTemplate({ data }: { data: ResumeContent }) {
                 {visibleCustomSections.map((section) => (
                   <section key={section.id} className="mb-5">
                     <h2 className={headingStructured}>
-                      {section.title.trim().toUpperCase() || "SECTION"}
+                      {formatCustomSectionTitle(section.title, atsHeadingCase)}
                     </h2>
                     <div className="pl-2">
                       <ExperienceBlock
@@ -406,7 +410,7 @@ export function StructuredTemplate({ data }: { data: ResumeContent }) {
             ) : null,
           skills: hasSkills ? (
             <section className="mb-5">
-              <h2 className={headingStructured}>{ATS_SECTION.skills}</h2>
+              <h2 className={headingStructured}>{getAtsSectionTitle("skills", atsHeadingCase)}</h2>
               <div className="pl-2">
                 <SkillsBlock
                   data={data}
@@ -418,7 +422,7 @@ export function StructuredTemplate({ data }: { data: ResumeContent }) {
           ) : null,
           education: hasEducation ? (
             <section className="mb-5">
-              <h2 className={headingStructured}>{ATS_SECTION.education}</h2>
+              <h2 className={headingStructured}>{getAtsSectionTitle("education", atsHeadingCase)}</h2>
               <div className="pl-2">
                 <EducationBlock
                   data={data}
@@ -453,7 +457,7 @@ function AccentSection({
 }
 
 export function AccentTemplate({ data }: { data: ResumeContent }) {
-  const { contact, summary, design, sectionOrder, atsContactLayout, atsSummaryHeading } =
+  const { contact, summary, design, sectionOrder, atsContactLayout, atsSummaryKind, atsHeadingCase } =
     data;
   const {
     hasSummary,
@@ -481,12 +485,12 @@ export function AccentTemplate({ data }: { data: ResumeContent }) {
         order={sectionOrder}
         sections={{
           summary: hasSummary ? (
-            <AccentSection title={atsSummaryHeading}>
+            <AccentSection title={getAtsSummaryTitle(atsSummaryKind, atsHeadingCase)}>
               <p className="text-sm leading-snug text-gray-800">{summary}</p>
             </AccentSection>
           ) : null,
           experience: hasExperience ? (
-            <AccentSection title={ATS_SECTION.experience}>
+            <AccentSection title={getAtsSectionTitle("experience", atsHeadingCase)}>
               <ExperienceBlock
                 data={data}
                 jobSpacing="space-y-3"
@@ -503,7 +507,7 @@ export function AccentTemplate({ data }: { data: ResumeContent }) {
                 {visibleCustomSections.map((section) => (
                   <AccentSection
                     key={section.id}
-                    title={(section.title.trim() || "SECTION").toUpperCase()}
+                    title={formatCustomSectionTitle(section.title, atsHeadingCase)}
                   >
                     <ExperienceBlock
                       data={data}
@@ -519,7 +523,7 @@ export function AccentTemplate({ data }: { data: ResumeContent }) {
               </>
             ) : null,
           skills: hasSkills ? (
-            <AccentSection title={ATS_SECTION.skills}>
+            <AccentSection title={getAtsSectionTitle("skills", atsHeadingCase)}>
               <div className="space-y-1.5">
                 {data.skillGroups.map((group) => {
                   if (!group.category.trim() && !group.items.trim()) return null;
@@ -541,7 +545,7 @@ export function AccentTemplate({ data }: { data: ResumeContent }) {
             </AccentSection>
           ) : null,
           education: hasEducation ? (
-            <AccentSection title={ATS_SECTION.education}>
+            <AccentSection title={getAtsSectionTitle("education", atsHeadingCase)}>
               <div className="space-y-2">
                 {data.education.map((edu) => {
                   if (!edu.institution.trim() && !edu.details.trim()) return null;

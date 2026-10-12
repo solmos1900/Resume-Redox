@@ -4,30 +4,40 @@ import {
   formatLinkedInDisplay,
   formatWebsiteDisplay,
 } from "@/lib/contact-url";
+import { formatCustomSectionTitle } from "@/lib/templates/ats-sections";
 import { formatDateRange, withAtsBullet } from "@/lib/utils";
 
 export function useResumeSections(data: ResumeContent) {
-  // Labeled plain-text contact for TXT / fallbacks (matches PDF ContactLine).
+  // Match PDF ContactLine: inline = primary pipes + URL line; stacked = labeled.
+  const primary: string[] = [];
+  const urls: string[] = [];
   const labeled: string[] = [];
   if (data.contact.phone?.trim()) {
+    primary.push(data.contact.phone.trim());
     labeled.push(`Phone: ${data.contact.phone.trim()}`);
   }
   if (data.contact.email?.trim()) {
+    primary.push(data.contact.email.trim());
     labeled.push(`Email: ${data.contact.email.trim()}`);
   }
   if (data.contact.location?.trim()) {
+    primary.push(data.contact.location.trim());
     labeled.push(`Location: ${data.contact.location.trim()}`);
   }
   if (data.contact.linkedIn?.trim()) {
-    labeled.push(`LinkedIn: ${formatLinkedInDisplay(data.contact.linkedIn)}`);
+    const li = formatLinkedInDisplay(data.contact.linkedIn);
+    urls.push(li);
+    labeled.push(`LinkedIn: ${li}`);
   }
   if (data.contact.website?.trim()) {
-    labeled.push(`Website: ${formatWebsiteDisplay(data.contact.website)}`);
+    const web = formatWebsiteDisplay(data.contact.website);
+    urls.push(web);
+    labeled.push(`Website: ${web}`);
   }
   const contactLine =
-    data.atsContactLayout === "inline"
-      ? labeled.join(" | ")
-      : labeled.join("\n");
+    data.atsContactLayout === "stacked"
+      ? labeled.join("\n")
+      : [primary.join(" | "), urls.join(" | ")].filter(Boolean).join("\n");
 
   const hasSummary = data.summary.trim().length > 0;
   const hasExperience = data.experience.some(
@@ -99,7 +109,10 @@ export function CustomSectionBlocks({
       {visibleCustomSections.map((section) => (
         <section key={section.id} className={sectionClassName}>
           <h2 className={headingClassName}>
-            {(section.title.trim() || "SECTION").toUpperCase()}
+            {formatCustomSectionTitle(
+              section.title,
+              data.atsHeadingCase ?? "title"
+            )}
           </h2>
           <ExperienceBlock
             data={data}

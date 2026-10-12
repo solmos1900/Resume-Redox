@@ -1,5 +1,6 @@
 import type {
   AtsContactLayout,
+  AtsHeadingCase,
   AtsSummaryHeading,
   Contact,
   CustomSection,
@@ -17,9 +18,17 @@ import {
 } from "@/lib/schema";
 import { normalizeSectionOrder } from "@/lib/templates/section-order";
 import { getDesignSettings } from "@/lib/design";
-import { ATS_SECTION } from "@/lib/templates/ats-sections";
+import type { AtsSummaryKind } from "@/lib/templates/ats-sections";
 
 export type { TemplateId };
+
+export type TemplateDefinition = {
+  id: TemplateId;
+  name: string;
+  tagline: string;
+  description: string;
+  atsNotes: string[];
+};
 
 export type ResumeContent = {
   contact: Contact;
@@ -31,16 +40,15 @@ export type ResumeContent = {
   design: DesignSettings;
   sectionOrder: ReorderableSectionId[];
   atsContactLayout: AtsContactLayout;
-  atsSummaryHeading: AtsSummaryHeading;
+  atsSummaryKind: AtsSummaryKind;
+  atsHeadingCase: AtsHeadingCase;
 };
 
-export type TemplateDefinition = {
-  id: TemplateId;
-  name: string;
-  tagline: string;
-  description: string;
-  atsNotes: string[];
-};
+function normalizeSummaryKind(value: AtsSummaryHeading | undefined): AtsSummaryKind {
+  if (!value) return "summary";
+  const v = value.toLowerCase();
+  return v === "profile" ? "profile" : "summary";
+}
 
 export function toResumeContent(version: ResumeVersion): ResumeContent {
   return {
@@ -57,9 +65,9 @@ export function toResumeContent(version: ResumeVersion): ResumeContent {
     sectionOrder: normalizeSectionOrder(
       version.sectionOrder ?? [...DEFAULT_SECTION_ORDER]
     ),
-    atsContactLayout: version.atsContactLayout ?? "stacked",
-    atsSummaryHeading:
-      version.atsSummaryHeading ?? ATS_SECTION.summary,
+    atsContactLayout: version.atsContactLayout ?? "inline",
+    atsSummaryKind: normalizeSummaryKind(version.atsSummaryHeading),
+    atsHeadingCase: version.atsHeadingCase ?? "title",
   };
 }
 

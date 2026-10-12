@@ -24,7 +24,26 @@ const BODY_SPACING = { after: 100 };
  * DOCX is the ATS / plain-text sibling of the visual templates — same
  * content and section order as preview/PDF, not a pixel twin of Accent/etc.
  */
-function contactFieldLines(contact: Contact): string[] {
+function contactPrimaryValues(contact: Contact): string[] {
+  const values: string[] = [];
+  if (contact.phone?.trim()) values.push(contact.phone.trim());
+  if (contact.email?.trim()) values.push(contact.email.trim());
+  if (contact.location?.trim()) values.push(contact.location.trim());
+  return values;
+}
+
+function contactUrlValues(contact: Contact): string[] {
+  const values: string[] = [];
+  if (contact.linkedIn?.trim()) {
+    values.push(formatLinkedInDisplay(contact.linkedIn));
+  }
+  if (contact.website?.trim()) {
+    values.push(formatWebsiteDisplay(contact.website));
+  }
+  return values;
+}
+
+function contactLabeledLines(contact: Contact): string[] {
   const lines: string[] = [];
   if (contact.phone?.trim()) lines.push(`Phone: ${contact.phone.trim()}`);
   if (contact.email?.trim()) lines.push(`Email: ${contact.email.trim()}`);
@@ -44,7 +63,8 @@ function heading(text: string): Paragraph {
   return new Paragraph({
     heading: HeadingLevel.HEADING_2,
     spacing: HEADING_SPACING,
-    children: [new TextRun({ text: text.toUpperCase(), bold: true })],
+    // Keep the casing chosen by getExportBlocks (Title Case or ALL CAPS).
+    children: [new TextRun({ text, bold: true })],
   });
 }
 
@@ -130,8 +150,8 @@ function buildDocxParagraphs(version: ResumeVersion): Paragraph[] {
   }
 
   if (hasContactLineInfo(data.contact)) {
-    const lines = contactFieldLines(data.contact);
     if (stacked) {
+      const lines = contactLabeledLines(data.contact);
       lines.forEach((line, index) => {
         paragraphs.push(
           new Paragraph({
@@ -142,13 +162,26 @@ function buildDocxParagraphs(version: ResumeVersion): Paragraph[] {
         );
       });
     } else {
-      paragraphs.push(
-        new Paragraph({
-          alignment: AlignmentType.LEFT,
-          spacing: { after: 200 },
-          children: [new TextRun({ text: lines.join(" | "), size: 20 })],
-        })
-      );
+      const primary = contactPrimaryValues(data.contact).join(" | ");
+      const urls = contactUrlValues(data.contact).join(" | ");
+      if (primary) {
+        paragraphs.push(
+          new Paragraph({
+            alignment: AlignmentType.LEFT,
+            spacing: { after: urls ? 20 : 200 },
+            children: [new TextRun({ text: primary, size: 20 })],
+          })
+        );
+      }
+      if (urls) {
+        paragraphs.push(
+          new Paragraph({
+            alignment: AlignmentType.LEFT,
+            spacing: { after: 200 },
+            children: [new TextRun({ text: urls, size: 20 })],
+          })
+        );
+      }
     }
   }
 

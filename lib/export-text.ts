@@ -47,7 +47,7 @@ function buildResumeText(version: ResumeVersion): string {
   lines.push("");
 
   for (const block of blocks) {
-    lines.push(block.title.toUpperCase());
+    lines.push(block.title);
     if (block.kind === "summary") {
       lines.push(block.body);
       lines.push("");

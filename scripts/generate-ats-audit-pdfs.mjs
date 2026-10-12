@@ -1,11 +1,12 @@
 /**
  * Generate mock resume PDFs via the real app PDF path (render-pdf-worker).
- * Usage: node scripts/generate-ats-audit-pdfs.mjs <output-dir> [label]
+ * Usage: node scripts/generate-ats-audit-pdfs.mjs <output-dir> [label] [slug?]
  *
  * Labels:
- *   v3              — default stacked labeled contact + SUMMARY
- *   v3a-inline      — inline labeled contact (one line)
- *   v3b-profile     — PROFILE heading instead of SUMMARY
+ *   v4              — pipe contact + Title Case (app defaults)
+ *   v4-alt-labeled  — stacked labeled contact + Title Case
+ *   v4-titlecase    — pipe contact + Title Case (explicit; same as v4 defaults)
+ *   v4-upper        — pipe contact + ALL CAPS headings
  */
 import { spawn } from "node:child_process";
 import fs from "node:fs";
@@ -15,12 +16,13 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const outDir = path.resolve(process.argv[2] || path.join(root, "artifacts/ats-audit"));
 const label = process.argv[3] || "sample";
+const onlySlug = process.argv[4];
 
 const DEFAULT_DESIGN = {
   fontFamily: "arial",
   fontSize: "medium",
   accentColor: "#1e5aa8",
-  spacing: "comfortable",
+  spacing: "compact",
 };
 
 const DEFAULT_SECTION_ORDER = [
@@ -32,13 +34,26 @@ const DEFAULT_SECTION_ORDER = [
 ];
 
 function atsOptionsForLabel(labelName) {
-  if (labelName.includes("inline")) {
-    return { atsContactLayout: "inline", atsSummaryHeading: "SUMMARY" };
+  if (labelName.includes("alt-labeled") || labelName.includes("labeled")) {
+    return {
+      atsContactLayout: "stacked",
+      atsSummaryHeading: "summary",
+      atsHeadingCase: "title",
+    };
   }
-  if (labelName.includes("profile")) {
-    return { atsContactLayout: "stacked", atsSummaryHeading: "PROFILE" };
+  if (labelName.includes("upper") || labelName.includes("allcaps")) {
+    return {
+      atsContactLayout: "inline",
+      atsSummaryHeading: "summary",
+      atsHeadingCase: "upper",
+    };
   }
-  return { atsContactLayout: "stacked", atsSummaryHeading: "SUMMARY" };
+  // v4 / v4-titlecase / default
+  return {
+    atsContactLayout: "inline",
+    atsSummaryHeading: "summary",
+    atsHeadingCase: "title",
+  };
 }
 
 function baseVersion(overrides) {
@@ -53,6 +68,7 @@ function baseVersion(overrides) {
     sectionOrder: [...DEFAULT_SECTION_ORDER],
     atsContactLayout: overrides.atsContactLayout ?? ats.atsContactLayout,
     atsSummaryHeading: overrides.atsSummaryHeading ?? ats.atsSummaryHeading,
+    atsHeadingCase: overrides.atsHeadingCase ?? ats.atsHeadingCase,
     contact: overrides.contact,
     summary: overrides.summary,
     experience: overrides.experience,
@@ -74,14 +90,14 @@ const candidates = [
       fullName: "Jordan Blake",
       headline: "Senior Software Engineer | 7+ years | Full-Stack Platform",
       email: "jordan.blake@example.com",
-      phone: "+1 555 234 0100",
+      phone: "(555) 234-0100",
       location: "Seattle, WA",
       linkedIn: "https://www.linkedin.com/in/jordanblake-example",
       website: "https://github.com/jordanblake-example",
       linkedInHyperlink: true,
     },
     summary:
-      "Senior Software Engineer with 7+ years building distributed backends and React frontends. Targets platform and full-stack roles; known for cutting latency, hardening releases, and mentoring engineers through design reviews.",
+      "Senior Software Engineer with 7+ years in distributed backends and React. Targets platform/full-stack roles; cuts latency, hardens releases, and mentors engineers.",
     experience: [
       {
         id: "swe-exp-1",
@@ -92,10 +108,10 @@ const candidates = [
         endDate: "",
         current: true,
         bullets: [
-          "Cut p95 billing-pipeline latency 38% for 2.4M accounts by redesigning event processing and clearing overnight backlogs.",
-          "Shipped a TypeScript/React admin console adopted by 60 support agents, reducing average ticket handle time 22%.",
-          "Lowered Sev-1 mean time to recover from 94 to 41 minutes by rewriting on-call runbooks and alert routing.",
-          "Coached 4 engineers through design reviews, CI quality gates, and production incident retrospectives.",
+          "Cut p95 billing-pipeline latency 38% for 2.4M accounts by redesigning event processing.",
+          "Shipped a TypeScript/React admin console used by 60 agents, cutting handle time 22%.",
+          "Lowered Sev-1 MTTR from 94 to 41 minutes by rewriting on-call runbooks and routing.",
+          "Coached 4 engineers through design reviews, CI gates, and incident retrospectives.",
         ],
       },
       {
@@ -108,8 +124,8 @@ const candidates = [
         current: false,
         bullets: [
           "Scaled Node.js fulfillment services to 120k daily transactions at 99.95% availability.",
-          "Reduced production regressions 45% over two release cycles by adding contract tests and staging canaries.",
-          "Unblocked web and mobile clients by delivering GraphQL APIs with product and data partners.",
+          "Reduced production regressions 45% by adding contract tests and staging canaries.",
+          "Delivered GraphQL and REST APIs that unblocked web and mobile client launches.",
         ],
       },
       {
@@ -121,8 +137,8 @@ const candidates = [
         endDate: "May 2018",
         current: false,
         bullets: [
-          "Accelerated onboarding for 8 enterprise clients by implementing REST endpoints and PostgreSQL schemas.",
-          "Saved 10 analyst hours per month by automating weekly reporting jobs in Python.",
+          "Accelerated onboarding for 8 enterprise clients with REST endpoints and PostgreSQL schemas.",
+          "Saved 10 analyst hours/month by automating weekly reporting jobs in Python.",
         ],
       },
     ],
@@ -134,13 +150,18 @@ const candidates = [
       },
       {
         id: "swe-sk-2",
-        category: "Frameworks",
-        items: "React, Node.js, Next.js, Express, GraphQL",
+        category: "Frameworks & APIs",
+        items: "React, Node.js, Next.js, Express, GraphQL, REST APIs, MongoDB",
       },
       {
         id: "swe-sk-3",
         category: "Infrastructure",
-        items: "AWS, Docker, Kubernetes, PostgreSQL, Redis, CI/CD",
+        items: "AWS, Docker, Kubernetes, PostgreSQL, Redis, CI/CD, Agile/Scrum",
+      },
+      {
+        id: "swe-sk-4",
+        category: "Soft Skills",
+        items: "Technical Communication, Mentoring, Cross-functional Collaboration",
       },
     ],
     education: [
@@ -176,19 +197,23 @@ const candidates = [
     id: "mock-ba-samira-owens",
     name: "Samira Owens - Business Analyst",
     templateId: "modern",
-    design: { fontFamily: "calibri", fontSize: "medium", spacing: "comfortable" },
+    design: {
+      fontFamily: "calibri",
+      fontSize: "medium",
+      spacing: "compact",
+    },
     contact: {
       fullName: "Samira Owens",
       headline: "Senior Business Analyst | 6+ years | Sales Operations",
       email: "samira.owens@example.com",
-      phone: "+1 555 347 0199",
+      phone: "(555) 347-0199",
       location: "Chicago, IL",
       linkedIn: "https://www.linkedin.com/in/samiraowens-example",
       website: "https://github.com/samiraowens-example",
       linkedInHyperlink: true,
     },
     summary:
-      "Senior Business Analyst with 6+ years in B2B SaaS sales operations. Targets senior BA / sales-ops roles; improves forecast accuracy, CRM quality, and pipeline decisions so revenue teams hit quota.",
+      "Senior Business Analyst with 6+ years in B2B SaaS sales operations. Targets senior BA/sales-ops roles; raises forecast accuracy and CRM quality so revenue teams hit quota.",
     experience: [
       {
         id: "ba-exp-1",
@@ -199,10 +224,10 @@ const candidates = [
         endDate: "",
         current: true,
         bullets: [
-          "Raised forecast accuracy from 71% to 91% in three quarters by rebuilding Salesforce dashboards for $48M ARR.",
-          "Eliminated 34% of duplicate accounts and shortened average opportunity stage age by 9 days via CRM hygiene.",
-          "Rebalanced territories for 85 AEs, cutting over/under-assigned regions 28% and improving quota coverage.",
-          "Removed 12 hours of monthly spreadsheet work by automating commission inputs with RevOps and Finance.",
+          "Raised forecast accuracy from 71% to 91% in 3 quarters for $48M ARR Salesforce models.",
+          "Eliminated 34% of duplicate accounts and cut opportunity stage age by 9 days.",
+          "Rebalanced territories for 85 AEs, reducing over/under-assigned regions 28%.",
+          "Removed 12 hours/month of spreadsheet work by automating commission inputs.",
         ],
       },
       {
@@ -214,9 +239,9 @@ const candidates = [
         endDate: "Dec 2021",
         current: false,
         bullets: [
-          "Drove adoption of a quoting tool by 40 sales reps after converting needs into user stories and acceptance criteria.",
-          "Lifted mid-market win rate 6 points by analyzing 1,200 win/loss opportunities and installing pricing guardrails.",
-          "Replaced ad-hoc spreadsheet exports with SQL pipeline reports used in Monday executive reviews.",
+          "Drove quoting-tool adoption by 40 sales reps with clear user stories and criteria.",
+          "Lifted mid-market win rate 6 points after analyzing 1,200 win/loss opportunities.",
+          "Replaced ad-hoc spreadsheet exports with SQL reports for Monday executive reviews.",
         ],
       },
       {
@@ -228,8 +253,8 @@ const candidates = [
         endDate: "Feb 2019",
         current: false,
         bullets: [
-          "Informed a 15% inventory reduction by surfacing underperforming SKUs across 22 store and e-commerce locations.",
-          "Improved peak-season promo ROI decisions with Excel models used by regional managers for staffing.",
+          "Informed a 15% inventory cut by flagging underperforming SKUs across 22 locations.",
+          "Improved peak-season promo ROI with Excel models used by regional managers.",
         ],
       },
     ],
@@ -242,12 +267,12 @@ const candidates = [
       {
         id: "ba-sk-2",
         category: "Sales Operations",
-        items: "CRM Hygiene, Pipeline Management, Territory Planning, Quota Modeling",
+        items: "CRM Hygiene, Pipeline Management, Territory Planning, Quota Modeling, Agile",
       },
       {
         id: "ba-sk-3",
-        category: "Collaboration",
-        items: "Requirements Gathering, Stakeholder Management, Process Documentation",
+        category: "Soft Skills",
+        items: "Stakeholder Communication, Requirements Gathering, Process Documentation",
       },
     ],
     education: [
@@ -283,19 +308,23 @@ const candidates = [
     id: "mock-ops-marcus-chen",
     name: "Marcus Chen - Operations Manager",
     templateId: "executive",
-    design: { fontFamily: "georgia", fontSize: "medium", spacing: "compact" },
+    design: {
+      fontFamily: "georgia",
+      fontSize: "medium",
+      spacing: "tight",
+    },
     contact: {
       fullName: "Marcus Chen",
       headline: "Operations Manager | 9+ years | Supply Chain & Fulfillment",
       email: "marcus.chen@example.com",
-      phone: "+1 555 268 0142",
+      phone: "(555) 268-0142",
       location: "Dallas, TX",
       linkedIn: "https://www.linkedin.com/in/marcuschen-example",
       website: "https://github.com/marcuschen-example",
       linkedInHyperlink: true,
     },
     summary:
-      "Operations Manager with 9+ years scaling warehouse and logistics teams. Targets operations leadership roles; improves on-time fulfillment, cost per order, and safety while growing throughput.",
+      "Operations Manager with 9+ years scaling warehouse and logistics teams. Targets operations leadership; improves on-time ship rate, cost per order, and safety.",
     experience: [
       {
         id: "ops-exp-1",
@@ -306,10 +335,10 @@ const candidates = [
         endDate: "",
         current: true,
         bullets: [
-          "Grew a 70-person, two-shift fulfillment team to 18k orders/day at a 98.7% on-time ship rate.",
-          "Cut cost per order 17% by redesigning pick paths, introducing zone batching, and renegotiating parcel contracts.",
-          "Slashed same-day backlog incidents 52% after launching weekly KPI huddles and visual management boards.",
-          "Reduced recordable incidents 40% year over year while expanding headcount 25% with Safety and HR.",
+          "Grew a 70-person fulfillment team to 18k orders/day at a 98.7% on-time ship rate.",
+          "Cut cost per order 17% via pick-path redesign, zone batching, and parcel renegotiation.",
+          "Slashed same-day backlog incidents 52% with weekly KPI huddles and visual boards.",
+          "Reduced recordable incidents 40% YoY while expanding headcount 25%.",
         ],
       },
       {
@@ -321,9 +350,9 @@ const candidates = [
         endDate: "Mar 2020",
         current: false,
         bullets: [
-          "Shortened dock-to-stock cycle time from 28 to 16 hours across a 220k sq ft DC inbound operation.",
+          "Shortened dock-to-stock cycle time from 28 to 16 hours in a 220k sq ft DC.",
           "Raised picker productivity 21% without overtime by implementing new slotting rules.",
-          "Trimmed average outbound trailer dwell 35 minutes through cross-dock pilots with transportation.",
+          "Trimmed outbound trailer dwell 35 minutes through cross-dock pilots with carriers.",
         ],
       },
       {
@@ -335,8 +364,8 @@ const candidates = [
         endDate: "Jul 2016",
         current: false,
         bullets: [
-          "Stabilized 90+ daily North Texas routes by tightening carrier pickup schedules and exception handling.",
-          "Accelerated vendor root-cause follow-up with Excel trackers for missed scans and damaged freight.",
+          "Stabilized 90+ daily North Texas routes by tightening pickup schedules and exceptions.",
+          "Accelerated vendor follow-up with trackers for missed scans and damaged freight.",
         ],
       },
     ],
@@ -353,8 +382,8 @@ const candidates = [
       },
       {
         id: "ops-sk-3",
-        category: "Leadership",
-        items: "Team Coaching, Safety Programs, Cross-functional Coordination",
+        category: "Soft Skills",
+        items: "Cross-functional Communication, Team Coaching, Safety Programs",
       },
     ],
     education: [
@@ -407,9 +436,7 @@ function renderPdf(version) {
       if (code === 0) resolve(Buffer.concat(stdout));
       else
         reject(
-          new Error(
-            Buffer.concat(stderr).toString("utf8") || `exit ${code}`
-          )
+          new Error(Buffer.concat(stderr).toString("utf8") || `exit ${code}`)
         );
     });
     child.stdin.write(JSON.stringify(version));
@@ -421,16 +448,35 @@ function slugFor(version) {
   return version.contact.fullName.toLowerCase().replace(/\s+/g, "-");
 }
 
-fs.mkdirSync(outDir, { recursive: true });
+function fileNameFor(slug, labelName) {
+  // Match requested artifact names
+  if (labelName === "v4-alt-labeled" && slug === "jordan-blake") {
+    return "jordan-v4-alt-labeled.pdf";
+  }
+  if (labelName === "v4-titlecase" && slug === "jordan-blake") {
+    return "jordan-v4-titlecase.pdf";
+  }
+  return `${slug}-${labelName}.pdf`;
+}
 
-const onlySlug = process.argv[4]; // optional: jordan-blake
+fs.mkdirSync(outDir, { recursive: true });
 
 for (const version of candidates) {
   const slug = slugFor(version);
-  if (onlySlug && slug !== onlySlug) continue;
-  const pdfPath = path.join(outDir, `${slug}-${label}.pdf`);
-  process.stderr.write(`Rendering ${version.contact.fullName} (${version.templateId}) → ${pdfPath}\n`);
-  const pdf = await renderPdf(version);
+  if (onlySlug && slug !== onlySlug && onlySlug !== "jordan-blake") continue;
+  if (onlySlug === "jordan-blake" && slug !== "jordan-blake") continue;
+
+  // jordan-blake-v4 = ALL CAPS control; jordan-v4-titlecase = Title Case (app default).
+  const rendered =
+    label === "v4" && slug === "jordan-blake"
+      ? { ...version, atsHeadingCase: "upper" }
+      : version;
+
+  const pdfPath = path.join(outDir, fileNameFor(slug, label));
+  process.stderr.write(
+    `Rendering ${rendered.contact.fullName} (${rendered.templateId}, ${rendered.atsContactLayout}, ${rendered.atsHeadingCase}) → ${pdfPath}\n`
+  );
+  const pdf = await renderPdf(rendered);
   fs.writeFileSync(pdfPath, pdf);
   process.stderr.write(`  wrote ${pdf.length} bytes\n`);
 }

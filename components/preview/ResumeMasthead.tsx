@@ -27,7 +27,7 @@ export function ResumeMasthead({
   nameClassName,
   headlineClassName,
   contactClassName = "text-sm text-gray-800 mt-1",
-  contactLayout = "stacked",
+  contactLayout = "inline",
   align = "left",
 }: ResumeMastheadProps) {
   if (!contact.fullName.trim()) return null;
