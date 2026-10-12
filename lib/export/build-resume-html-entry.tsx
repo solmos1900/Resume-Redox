@@ -16,12 +16,17 @@ export function buildResumeExportHtml(version: ResumeVersion): string {
     createElement(ResumeTemplateSwitch, { templateId, data })
   );
 
+  // Prefer the candidate name for PDF Title so ATS/document properties parse cleanly.
+  const docTitle =
+    version.contact.fullName.trim() || version.name.trim() || "Resume";
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>${escapeHtml(version.name || "Resume")}</title>
+  <title>${escapeHtml(docTitle)}</title>
+  <meta name="author" content="${escapeHtml(docTitle)}" />
   <style>${EXPORT_RESUME_CSS}</style>
 </head>
 <body>

@@ -128,12 +128,27 @@ export function ExperienceBlock({
         }
         return (
           <div key={job.id}>
-            {companyLine && <p className={companyClass}>{companyLine}</p>}
-            {(job.title.trim() || dateRange) && (
-              <div className="flex justify-between mt-0.5">
-                {job.title.trim() && <span className={titleClass}>{job.title}</span>}
-                {dateRange && <span className={dateClass}>{dateRange}</span>}
+            {/*
+              Dates sit on the company line (standard US resume format). Keeping
+              them off the title/bullet band avoids raw PDF extractors interleaving
+              right-aligned dates between bullet lines.
+            */}
+            {(companyLine || dateRange) && (
+              <div className="flex justify-between items-baseline gap-4">
+                {companyLine ? (
+                  <span className={companyClass}>{companyLine}</span>
+                ) : (
+                  <span />
+                )}
+                {dateRange && (
+                  <span className={`${dateClass} whitespace-nowrap`}>
+                    {dateRange}
+                  </span>
+                )}
               </div>
+            )}
+            {job.title.trim() && (
+              <p className={`${titleClass} mt-0.5`}>{job.title}</p>
             )}
             {bullets.length > 0 && (
               <ul className="mt-1.5 space-y-1">
@@ -228,12 +243,14 @@ export function EducationBlock({
           .filter(Boolean);
         return (
           <div key={edu.id}>
-            <div className="flex justify-between">
+            <div className="flex justify-between items-baseline gap-4">
               {edu.institution.trim() && (
                 <span className={institutionClass}>{edu.institution}</span>
               )}
               {edu.location.trim() && (
-                <span className={locationClass}>{edu.location}</span>
+                <span className={`${locationClass} whitespace-nowrap`}>
+                  {edu.location}
+                </span>
               )}
             </div>
             {(edu.details.trim() || edu.graduationDate.trim()) &&
@@ -246,14 +263,16 @@ export function EducationBlock({
                   ))}
                 </ul>
               ) : (
-                <div className="flex justify-between mt-0.5">
+                <div className="flex justify-between items-baseline gap-4 mt-0.5">
                   {edu.details.trim() ? (
                     <span className={detailsClass}>{edu.details}</span>
                   ) : (
                     <span />
                   )}
                   {edu.graduationDate.trim() && (
-                    <span className={locationClass}>{edu.graduationDate}</span>
+                    <span className={`${locationClass} whitespace-nowrap`}>
+                      {edu.graduationDate}
+                    </span>
                   )}
                 </div>
               ))}

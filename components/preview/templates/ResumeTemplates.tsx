@@ -24,8 +24,9 @@ export function ClassicTemplate({ data }: { data: ResumeContent }) {
   const { contact, summary, design, sectionOrder } = data;
   const { hasSummary, hasExperience, hasSkills, hasEducation } =
     useResumeSections(data);
+  // Keep tracking modest — large letter-spacing extracts as spaced-out letters in ATS parsers.
   const heading =
-    "text-sm font-bold uppercase tracking-wider border-b border-gray-800 pb-1 mb-2";
+    "text-sm font-bold uppercase tracking-wide border-b border-gray-800 pb-1 mb-2";
   const designProps = designDocumentProps(design);
 
   return (
@@ -99,13 +100,14 @@ export function ModernTemplate({ data }: { data: ResumeContent }) {
   const { contact, summary, design, sectionOrder } = data;
   const { hasSummary, hasExperience, hasSkills, hasEducation } =
     useResumeSections(data);
-  const heading = "text-xs font-bold uppercase tracking-[0.2em] text-gray-600 mb-2";
+  // No letter-spacing on headings: wide tracking extracts as "E D U C A T I O N" in ATS parsers.
+  const heading = "text-xs font-bold uppercase text-gray-600 mb-2";
   const designProps = designDocumentProps(design);
 
   return (
     <article
       id="resume-preview"
-      className={`${articleClass} leading-relaxed template-modern`}
+      className={`${articleClass} leading-snug template-modern`}
       {...designProps}
     >
       {contact.fullName.trim() && (
@@ -125,13 +127,13 @@ export function ModernTemplate({ data }: { data: ResumeContent }) {
         order={sectionOrder}
         sections={{
           summary: hasSummary ? (
-            <section className="mb-6">
+            <section className="mb-5">
               <h2 className={heading}>Summary</h2>
               <p className="text-sm text-gray-800 leading-snug">{summary}</p>
             </section>
           ) : null,
           experience: hasExperience ? (
-            <section className="mb-6">
+            <section className="mb-5">
               <h2 className={heading}>Experience</h2>
               <ExperienceBlock
                 data={data}
@@ -145,7 +147,7 @@ export function ModernTemplate({ data }: { data: ResumeContent }) {
             <CustomSectionBlocks
               data={data}
               headingClassName={heading}
-              sectionClassName="mb-6"
+              sectionClassName="mb-5"
               experienceProps={{
                 jobSpacing: "space-y-4",
                 titleClass: "text-sm font-medium text-gray-800",
@@ -154,7 +156,7 @@ export function ModernTemplate({ data }: { data: ResumeContent }) {
             />
           ),
           skills: hasSkills ? (
-            <section className="mb-6">
+            <section className="mb-5">
               <h2 className={heading}>Skills</h2>
               <SkillsBlock
                 data={data}
@@ -164,7 +166,7 @@ export function ModernTemplate({ data }: { data: ResumeContent }) {
             </section>
           ) : null,
           education: hasEducation ? (
-            <section className="mb-6">
+            <section className="mb-5">
               <h2 className={heading}>Education</h2>
               <EducationBlock
                 data={data}
@@ -269,8 +271,10 @@ export function ExecutiveTemplate({ data }: { data: ResumeContent }) {
   const { contact, summary, design, sectionOrder } = data;
   const { hasSummary, hasExperience, hasSkills, hasEducation } =
     useResumeSections(data);
+  // Standard ATS section labels (Summary / Experience / Skills), not "Core Competencies".
+  // Avoid tracking-widest — wide letter-spacing breaks keyword matching in ATS text extractors.
   const heading =
-    "text-sm font-bold uppercase text-center tracking-widest border-b border-gray-400 pb-1 mb-3 mt-1";
+    "text-sm font-bold uppercase text-center border-b border-gray-400 pb-1 mb-3 mt-1";
   const designProps = designDocumentProps(design);
 
   return (
@@ -297,7 +301,7 @@ export function ExecutiveTemplate({ data }: { data: ResumeContent }) {
         sections={{
           summary: hasSummary ? (
             <section className="mb-6">
-              <h2 className={heading}>Professional Summary</h2>
+              <h2 className={heading}>Summary</h2>
               <p className="text-sm leading-snug text-center max-w-none">
                 {summary}
               </p>
@@ -305,7 +309,7 @@ export function ExecutiveTemplate({ data }: { data: ResumeContent }) {
           ) : null,
           experience: hasExperience ? (
             <section className="mb-6">
-              <h2 className={heading}>Professional Experience</h2>
+              <h2 className={heading}>Experience</h2>
               <ExperienceBlock
                 data={data}
                 titleClass="text-sm font-semibold not-italic"
@@ -328,7 +332,7 @@ export function ExecutiveTemplate({ data }: { data: ResumeContent }) {
           ),
           skills: hasSkills ? (
             <section className="mb-6">
-              <h2 className={heading}>Core Competencies</h2>
+              <h2 className={heading}>Skills</h2>
               <SkillsBlock data={data} />
             </section>
           ) : null,
@@ -576,20 +580,20 @@ export function AccentTemplate({ data }: { data: ResumeContent }) {
 
                   return (
                     <div key={edu.id}>
-                      <div className="flex justify-between gap-4">
+                      <div className="flex justify-between items-baseline gap-4">
                         {edu.institution.trim() && (
                           <span className="text-sm font-bold text-gray-900">
                             {edu.institution}
                           </span>
                         )}
                         {edu.location.trim() && (
-                          <span className="text-sm text-gray-700 shrink-0">
+                          <span className="text-sm text-gray-700 shrink-0 whitespace-nowrap">
                             {edu.location}
                           </span>
                         )}
                       </div>
                       {(degree || edu.graduationDate.trim()) && (
-                        <div className="flex justify-between gap-4 mt-0.5">
+                        <div className="flex justify-between items-baseline gap-4 mt-0.5">
                           {degree ? (
                             <span className="text-sm leading-[1.3] text-gray-800">
                               {degree}
@@ -598,7 +602,7 @@ export function AccentTemplate({ data }: { data: ResumeContent }) {
                             <span />
                           )}
                           {edu.graduationDate.trim() && (
-                            <span className="text-sm text-gray-700 shrink-0">
+                            <span className="text-sm text-gray-700 shrink-0 whitespace-nowrap">
                               {edu.graduationDate}
                             </span>
                           )}
