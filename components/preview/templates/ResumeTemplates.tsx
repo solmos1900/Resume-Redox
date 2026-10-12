@@ -31,13 +31,18 @@ import {
 const articleClass =
   "resume-document bg-white text-black print:shadow-none";
 
-/** Heading chrome only — label text comes from getAtsSectionTitle(). */
+/**
+ * Heading chrome — label text comes from getAtsSectionTitle().
+ * Modern/Executive intentionally share Classic's dark underlined left-aligned
+ * headings: TheLadders missed Experience when Modern used gray text-xs titles
+ * and Executive centered section headers (v4 regression).
+ */
 const headingClassic =
   "text-sm font-bold tracking-wide border-b border-gray-800 pb-1 mb-2";
-const headingModern = "text-xs font-bold text-gray-600 mb-2";
-const headingProfessional = "text-sm font-bold text-gray-900 mb-1";
-const headingExecutive =
-  "text-sm font-bold text-center border-b border-gray-400 pb-1 mb-3 mt-1";
+const headingAtsSafe = headingClassic;
+const headingModern = headingAtsSafe;
+const headingProfessional = "text-sm font-bold text-gray-900 mb-1 border-b border-gray-300 pb-1";
+const headingExecutive = headingAtsSafe;
 const headingStructured =
   "text-sm font-bold bg-gray-100 px-2 py-1 mb-2 border-l-4 border-gray-800";
 
@@ -58,7 +63,7 @@ export function ClassicTemplate({ data }: { data: ResumeContent }) {
         contact={contact}
         contactLayout={atsContactLayout}
         nameClassName="text-2xl font-bold tracking-wide uppercase"
-        headlineClassName="text-sm text-gray-700 mt-1 leading-snug"
+        headlineClassName="text-sm font-medium text-gray-800 mt-1 leading-snug"
         contactClassName="text-sm text-gray-800 mt-2"
       />
       <OrderedBodySections
@@ -125,10 +130,11 @@ export function ModernTemplate({ data }: { data: ResumeContent }) {
       <ResumeMasthead
         contact={contact}
         contactLayout={atsContactLayout}
-        className="mb-5 pb-4 border-b border-gray-200"
-        nameClassName="text-3xl font-light text-gray-900"
-        headlineClassName="text-sm text-gray-600 mt-1.5 leading-snug"
-        contactClassName="text-sm text-gray-600 mt-2"
+        className="mb-5 pb-3 border-b border-gray-300"
+        // Bold (not light) so parsers reliably detect the name line.
+        nameClassName="text-2xl font-bold text-gray-900"
+        headlineClassName="text-sm font-medium text-gray-800 mt-1 leading-snug"
+        contactClassName="text-sm text-gray-800 mt-2"
       />
       <OrderedBodySections
         order={sectionOrder}
@@ -136,7 +142,7 @@ export function ModernTemplate({ data }: { data: ResumeContent }) {
           summary: hasSummary ? (
             <section className="mb-5">
               <h2 className={headingModern}>{getAtsSummaryTitle(atsSummaryKind, atsHeadingCase)}</h2>
-              <p className="text-sm text-gray-800 leading-snug">{summary}</p>
+              <p className="text-sm text-gray-900 leading-snug">{summary}</p>
             </section>
           ) : null,
           experience: hasExperience ? (
@@ -144,9 +150,10 @@ export function ModernTemplate({ data }: { data: ResumeContent }) {
               <h2 className={headingModern}>{getAtsSectionTitle("experience", atsHeadingCase)}</h2>
               <ExperienceBlock
                 data={data}
-                jobSpacing="space-y-4"
+                jobSpacing="space-y-3.5"
+                companyClass="text-sm font-semibold text-gray-900"
                 titleClass="text-sm font-medium text-gray-800"
-                bulletClass="text-sm leading-[1.3]"
+                bulletClass="text-sm leading-[1.35]"
               />
             </section>
           ) : null,
@@ -156,9 +163,10 @@ export function ModernTemplate({ data }: { data: ResumeContent }) {
               headingClassName={headingModern}
               sectionClassName="mb-5"
               experienceProps={{
-                jobSpacing: "space-y-4",
+                jobSpacing: "space-y-3.5",
+                companyClass: "text-sm font-semibold text-gray-900",
                 titleClass: "text-sm font-medium text-gray-800",
-                bulletClass: "text-sm leading-[1.3]",
+                bulletClass: "text-sm leading-[1.35]",
               }}
             />
           ),
@@ -168,7 +176,7 @@ export function ModernTemplate({ data }: { data: ResumeContent }) {
               <SkillsBlock
                 data={data}
                 labelClass="font-semibold text-gray-900"
-                lineClass="text-sm text-gray-700"
+                lineClass="text-sm text-gray-800"
               />
             </section>
           ) : null,
@@ -177,7 +185,7 @@ export function ModernTemplate({ data }: { data: ResumeContent }) {
               <h2 className={headingModern}>{getAtsSectionTitle("education", atsHeadingCase)}</h2>
               <EducationBlock
                 data={data}
-                institutionClass="text-sm font-medium text-gray-800"
+                institutionClass="text-sm font-semibold text-gray-900"
               />
             </section>
           ) : null,
@@ -281,33 +289,38 @@ export function ExecutiveTemplate({ data }: { data: ResumeContent }) {
       className={`${articleClass} template-executive`}
       {...designProps}
     >
+      {/*
+        Left-aligned masthead + body (not centered): TheLadders failed to find
+        Experience on centered Executive v4 even though text was in the PDF.
+      */}
       <ResumeMasthead
         contact={contact}
         contactLayout={atsContactLayout}
-        align="center"
+        align="left"
         nameClassName="text-2xl font-bold tracking-wide"
-        headlineClassName="text-sm text-gray-700 mt-1.5 leading-snug"
-        contactClassName="text-sm text-gray-700 mt-2"
+        headlineClassName="text-sm font-medium text-gray-800 mt-1.5 leading-snug"
+        contactClassName="text-sm text-gray-800 mt-2"
       />
       <OrderedBodySections
         order={sectionOrder}
         sections={{
           summary: hasSummary ? (
-            <section className="mb-6">
+            <section className="mb-5">
               <h2 className={headingExecutive}>{getAtsSummaryTitle(atsSummaryKind, atsHeadingCase)}</h2>
-              <p className="text-sm leading-snug text-center max-w-none">
+              <p className="text-sm leading-snug text-gray-900 max-w-none">
                 {summary}
               </p>
             </section>
           ) : null,
           experience: hasExperience ? (
-            <section className="mb-6">
+            <section className="mb-5">
               <h2 className={headingExecutive}>{getAtsSectionTitle("experience", atsHeadingCase)}</h2>
               <ExperienceBlock
                 data={data}
-                titleClass="text-sm font-semibold not-italic"
+                companyClass="text-sm font-semibold"
+                titleClass="text-sm font-medium not-italic"
                 jobSpacing="space-y-3.5"
-                bulletClass="text-sm leading-[1.3]"
+                bulletClass="text-sm leading-[1.35]"
               />
             </section>
           ) : null,
@@ -315,22 +328,23 @@ export function ExecutiveTemplate({ data }: { data: ResumeContent }) {
             <CustomSectionBlocks
               data={data}
               headingClassName={headingExecutive}
-              sectionClassName="mb-6"
+              sectionClassName="mb-5"
               experienceProps={{
-                titleClass: "text-sm font-semibold not-italic",
+                companyClass: "text-sm font-semibold",
+                titleClass: "text-sm font-medium not-italic",
                 jobSpacing: "space-y-3.5",
-                bulletClass: "text-sm leading-[1.3]",
+                bulletClass: "text-sm leading-[1.35]",
               }}
             />
           ),
           skills: hasSkills ? (
-            <section className="mb-6">
+            <section className="mb-5">
               <h2 className={headingExecutive}>{getAtsSectionTitle("skills", atsHeadingCase)}</h2>
               <SkillsBlock data={data} />
             </section>
           ) : null,
           education: hasEducation ? (
-            <section className="mb-6">
+            <section className="mb-5">
               <h2 className={headingExecutive}>{getAtsSectionTitle("education", atsHeadingCase)}</h2>
               <EducationBlock data={data} />
             </section>

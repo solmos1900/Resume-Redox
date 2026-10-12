@@ -162,8 +162,8 @@ body {
   padding-left: 1.05em;
   text-indent: -1.05em;
   /* Keep bullet gaps tight so soft-wrapped lines stay attached to the verb line. */
-  margin-bottom: 0.12em;
-  line-height: 1.28;
+  margin-bottom: 0.14em;
+  line-height: 1.32;
 }
 
 .template-accent {

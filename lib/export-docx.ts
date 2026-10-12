@@ -16,6 +16,7 @@ import {
   formatWebsiteDisplay,
   hasContactLineInfo,
 } from "./contact-url";
+import { formatAtsPhone } from "./utils";
 
 const HEADING_SPACING = { before: 240, after: 80 };
 const BODY_SPACING = { after: 100 };
@@ -26,7 +27,7 @@ const BODY_SPACING = { after: 100 };
  */
 function contactPrimaryValues(contact: Contact): string[] {
   const values: string[] = [];
-  if (contact.phone?.trim()) values.push(contact.phone.trim());
+  if (contact.phone?.trim()) values.push(formatAtsPhone(contact.phone));
   if (contact.email?.trim()) values.push(contact.email.trim());
   if (contact.location?.trim()) values.push(contact.location.trim());
   return values;
@@ -45,7 +46,9 @@ function contactUrlValues(contact: Contact): string[] {
 
 function contactLabeledLines(contact: Contact): string[] {
   const lines: string[] = [];
-  if (contact.phone?.trim()) lines.push(`Phone: ${contact.phone.trim()}`);
+  if (contact.phone?.trim()) {
+    lines.push(`Phone: ${formatAtsPhone(contact.phone)}`);
+  }
   if (contact.email?.trim()) lines.push(`Email: ${contact.email.trim()}`);
   if (contact.location?.trim()) {
     lines.push(`Location: ${contact.location.trim()}`);

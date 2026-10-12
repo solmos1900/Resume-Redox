@@ -3,9 +3,10 @@
  * Usage: node scripts/generate-ats-audit-pdfs.mjs <output-dir> [label] [slug?]
  *
  * Labels:
- *   v4              — pipe contact + Title Case (app defaults)
+ *   v5              — pipe contact + Title Case (app defaults); Ladders-safe headings
+ *   v4              — pipe contact + Title Case (Jordan forced ALL CAPS control)
  *   v4-alt-labeled  — stacked labeled contact + Title Case
- *   v4-titlecase    — pipe contact + Title Case (explicit; same as v4 defaults)
+ *   v4-titlecase    — pipe contact + Title Case (explicit; same as app defaults)
  *   v4-upper        — pipe contact + ALL CAPS headings
  */
 import { spawn } from "node:child_process";
@@ -48,7 +49,7 @@ function atsOptionsForLabel(labelName) {
       atsHeadingCase: "upper",
     };
   }
-  // v4 / v4-titlecase / default
+  // v5 / v4 / v4-titlecase / default
   return {
     atsContactLayout: "inline",
     atsSummaryHeading: "summary",
@@ -311,7 +312,8 @@ const candidates = [
     design: {
       fontFamily: "georgia",
       fontSize: "medium",
-      spacing: "tight",
+      // compact (not tight): AutoApplyMax Readability + TheLadders phone/date extract
+      spacing: "compact",
     },
     contact: {
       fullName: "Marcus Chen",
@@ -466,7 +468,7 @@ for (const version of candidates) {
   if (onlySlug && slug !== onlySlug && onlySlug !== "jordan-blake") continue;
   if (onlySlug === "jordan-blake" && slug !== "jordan-blake") continue;
 
-  // jordan-blake-v4 = ALL CAPS control; jordan-v4-titlecase = Title Case (app default).
+  // jordan-blake-v4 only = ALL CAPS control; v5+ and jordan-v4-titlecase = Title Case.
   const rendered =
     label === "v4" && slug === "jordan-blake"
       ? { ...version, atsHeadingCase: "upper" }

@@ -4,6 +4,7 @@ import {
   formatWebsiteDisplay,
   hasContactLineInfo,
 } from "@/lib/contact-url";
+import { formatAtsPhone } from "@/lib/utils";
 
 type ContactLineProps = {
   contact: Contact;
@@ -22,7 +23,7 @@ function buildContactFields(contact: Contact): ContactField[] {
   const fields: ContactField[] = [];
 
   if (contact.phone?.trim()) {
-    fields.push({ label: "Phone", value: contact.phone.trim() });
+    fields.push({ label: "Phone", value: formatAtsPhone(contact.phone) });
   }
   if (contact.email?.trim()) {
     fields.push({ label: "Email", value: contact.email.trim() });

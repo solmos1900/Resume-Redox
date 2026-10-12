@@ -5,7 +5,7 @@ import {
   formatWebsiteDisplay,
 } from "@/lib/contact-url";
 import { formatCustomSectionTitle } from "@/lib/templates/ats-sections";
-import { formatDateRange, withAtsBullet } from "@/lib/utils";
+import { formatAtsPhone, formatDateRange, withAtsBullet } from "@/lib/utils";
 
 export function useResumeSections(data: ResumeContent) {
   // Match PDF ContactLine: inline = primary pipes + URL line; stacked = labeled.
@@ -13,8 +13,9 @@ export function useResumeSections(data: ResumeContent) {
   const urls: string[] = [];
   const labeled: string[] = [];
   if (data.contact.phone?.trim()) {
-    primary.push(data.contact.phone.trim());
-    labeled.push(`Phone: ${data.contact.phone.trim()}`);
+    const phone = formatAtsPhone(data.contact.phone);
+    primary.push(phone);
+    labeled.push(`Phone: ${phone}`);
   }
   if (data.contact.email?.trim()) {
     primary.push(data.contact.email.trim());
