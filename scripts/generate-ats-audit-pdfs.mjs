@@ -3,6 +3,7 @@
  * Usage: node scripts/generate-ats-audit-pdfs.mjs <output-dir> [label] [slug?]
  *
  * Labels:
+ *   v6              — v5 + Executive Summary separation, Company • City ST, certs one-line
  *   v5              — pipe contact + Title Case (app defaults); Ladders-safe headings
  *   v4              — pipe contact + Title Case (Jordan forced ALL CAPS control)
  *   v4-alt-labeled  — stacked labeled contact + Title Case
@@ -49,7 +50,7 @@ function atsOptionsForLabel(labelName) {
       atsHeadingCase: "upper",
     };
   }
-  // v5 / v4 / v4-titlecase / default
+  // v6 / v5 / v4 / v4-titlecase / default
   return {
     atsContactLayout: "inline",
     atsSummaryHeading: "summary",

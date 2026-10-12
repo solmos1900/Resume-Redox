@@ -5,7 +5,12 @@ import {
   formatWebsiteDisplay,
 } from "@/lib/contact-url";
 import { formatCustomSectionTitle } from "@/lib/templates/ats-sections";
-import { formatAtsPhone, formatDateRange, withAtsBullet } from "@/lib/utils";
+import {
+  formatAtsPhone,
+  formatCompanyLocation,
+  formatDateRange,
+  withAtsBullet,
+} from "@/lib/utils";
 
 export function useResumeSections(data: ResumeContent) {
   // Match PDF ContactLine: inline = primary pipes + URL line; stacked = labeled.
@@ -71,16 +76,36 @@ export function useResumeSections(data: ResumeContent) {
 }
 
 export function customSectionToExperience(section: CustomSection): Experience[] {
-  return section.entries.map((entry) => ({
-    id: entry.id,
-    company: entry.name,
-    location: entry.location,
-    title: entry.subtitle,
-    startDate: entry.startDate,
-    endDate: entry.endDate,
-    current: entry.current,
-    bullets: entry.bullets,
-  }));
+  const isCerts = /^certifications?$/i.test(section.title.trim());
+  return section.entries.map((entry) => {
+    // One line for ATS: "Name, Issuer, Year" (Ladders only kept the name before).
+    if (isCerts) {
+      const year = entry.endDate.trim() || entry.startDate.trim();
+      const line = [entry.name.trim(), entry.subtitle.trim(), year]
+        .filter(Boolean)
+        .join(", ");
+      return {
+        id: entry.id,
+        company: line,
+        location: "",
+        title: "",
+        startDate: "",
+        endDate: "",
+        current: false,
+        bullets: entry.bullets,
+      };
+    }
+    return {
+      id: entry.id,
+      company: entry.name,
+      location: entry.location,
+      title: entry.subtitle,
+      startDate: entry.startDate,
+      endDate: entry.endDate,
+      current: entry.current,
+      bullets: entry.bullets,
+    };
+  });
 }
 
 type ExperienceBlockProps = {
@@ -149,9 +174,7 @@ export function ExperienceBlock({
   return (
     <div className={jobSpacing}>
       {jobs.map((job) => {
-        const companyLine = [job.company, job.location]
-          .filter((s) => s.trim())
-          .join(", ");
+        const companyLine = formatCompanyLocation(job.company, job.location);
         const dateRange = formatDateRange(
           job.startDate,
           job.endDate,

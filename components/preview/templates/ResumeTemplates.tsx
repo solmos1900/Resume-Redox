@@ -290,15 +290,18 @@ export function ExecutiveTemplate({ data }: { data: ResumeContent }) {
       {...designProps}
     >
       {/*
-        Left-aligned masthead + body (not centered): TheLadders failed to find
-        Experience on centered Executive v4 even though text was in the PDF.
+        Masthead matches Classic spacing/weight (left-aligned). A light rule under
+        contact separates headline from Summary — TheLadders missed Summary on
+        Executive v5 when headline ("Operations Manager | …") sat flush above
+        a Summary body that opened with the same title.
       */}
       <ResumeMasthead
         contact={contact}
         contactLayout={atsContactLayout}
         align="left"
+        className="mb-5 pb-3 border-b border-gray-300"
         nameClassName="text-2xl font-bold tracking-wide"
-        headlineClassName="text-sm font-medium text-gray-800 mt-1.5 leading-snug"
+        headlineClassName="text-sm text-gray-700 mt-1 leading-snug"
         contactClassName="text-sm text-gray-800 mt-2"
       />
       <OrderedBodySections
@@ -307,9 +310,8 @@ export function ExecutiveTemplate({ data }: { data: ResumeContent }) {
           summary: hasSummary ? (
             <section className="mb-5">
               <h2 className={headingExecutive}>{getAtsSummaryTitle(atsSummaryKind, atsHeadingCase)}</h2>
-              <p className="text-sm leading-snug text-gray-900 max-w-none">
-                {summary}
-              </p>
+              {/* Same body chrome as Classic — no max-w / gray overrides. */}
+              <p className="text-sm leading-snug">{summary}</p>
             </section>
           ) : null,
           experience: hasExperience ? (

@@ -14,6 +14,20 @@ export function formatDateRange(
   return `${startDate} – ${end}`;
 }
 
+/**
+ * Company • City, ST — bullet (not comma) so names like "Horizon SaaS Co."
+ * don't steal the state when ATS split on commas (TheLadders dropped "IL").
+ */
+export function formatCompanyLocation(
+  company: string,
+  location: string
+): string {
+  const c = company.trim();
+  const l = location.trim();
+  if (c && l) return `${c} • ${l}`;
+  return c || l;
+}
+
 /** ATS-friendly contact separator — pipes parse more reliably than bullet glyphs. */
 export const CONTACT_FIELD_SEPARATOR = " | ";
 

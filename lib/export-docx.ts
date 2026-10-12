@@ -16,7 +16,7 @@ import {
   formatWebsiteDisplay,
   hasContactLineInfo,
 } from "./contact-url";
-import { formatAtsPhone } from "./utils";
+import { formatAtsPhone, formatCompanyLocation } from "./utils";
 
 const HEADING_SPACING = { before: 240, after: 80 };
 const BODY_SPACING = { after: 100 };
@@ -74,7 +74,7 @@ function heading(text: string): Paragraph {
 function experienceParagraphs(jobs: Experience[]): Paragraph[] {
   const paragraphs: Paragraph[] = [];
   for (const job of jobs) {
-    const companyLine = [job.company, job.location].filter((s) => s.trim()).join(", ");
+    const companyLine = formatCompanyLocation(job.company, job.location);
     const bullets = job.bullets.filter((b) => b.trim());
     if (!companyLine && !job.title.trim() && bullets.length === 0) continue;
 
