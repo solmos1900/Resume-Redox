@@ -99,6 +99,7 @@ body {
   text-decoration: none;
 }
 
+/* Real • glyphs live in the HTML text layer (withAtsBullet) — not ::before. */
 .resume-document ul {
   list-style: none;
   padding: 0;
@@ -106,17 +107,9 @@ body {
 }
 
 .resume-document li {
-  position: relative;
   padding-left: 1.15em;
+  text-indent: -1.15em;
   margin-bottom: 0.2em;
-}
-
-.resume-document li::before {
-  content: "•";
-  position: absolute;
-  left: 0;
-  top: 0;
-  font-weight: bold;
 }
 
 .template-accent {
@@ -138,6 +131,7 @@ body {
 
 .template-accent li {
   padding-left: 1.05em;
+  text-indent: -1.05em;
 }
 
 @page {

@@ -3,6 +3,7 @@ import type { ResumeContent } from "@/lib/templates/types";
 import { designDocumentProps } from "@/lib/design";
 import { OrderedBodySections } from "@/lib/templates/ordered-sections";
 import { ContactLine } from "@/components/preview/ContactLine";
+import { withAtsBullet } from "@/lib/utils";
 import {
   customSectionToExperience,
   CustomSectionBlocks,
@@ -612,7 +613,7 @@ export function AccentTemplate({ data }: { data: ResumeContent }) {
                         <ul className="mt-1 space-y-0.5">
                           {extras.map((part, index) => (
                             <li key={index} className="text-sm text-gray-800">
-                              {part}
+                              {withAtsBullet(part)}
                             </li>
                           ))}
                         </ul>

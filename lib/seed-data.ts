@@ -17,14 +17,14 @@ export function createSeedVersion(): ResumeVersion {
     contact: {
       fullName: "Alex Rivera",
       headline: "Technical Project Manager | Platform Delivery",
-      phone: "+1 (555) 010-2000",
+      phone: "(555) 234-0100",
       email: "alex.rivera@example.com",
       location: "Austin, TX",
       linkedIn: "linkedin.com/in/example",
       linkedInHyperlink: true,
     },
     summary:
-      "Technical project manager with a software engineering background, focused on cross-functional delivery of platform and integration work. Experienced in roadmapping, stakeholder alignment, release governance, and partnering with product and engineering teams to ship reliable outcomes.",
+      "Technical project manager with a software engineering background. Ships platform and integration work through clear roadmaps, release governance, and tight partnering with product and engineering.",
     experience: [
       {
         id: "exp-demo-tpm",
@@ -35,10 +35,10 @@ export function createSeedVersion(): ResumeVersion {
         endDate: "",
         current: true,
         bullets: [
-          "Lead delivery for enterprise integrations across product, engineering, and security partners; own timelines, risks, and readiness from design through launch.",
-          "Established release governance for a multi-service platform, including weekly syncs, dependency tracking, and clearer deployment ownership.",
-          "Built internal analytics automation that reduced recurring manual reporting and improved visibility for leadership stakeholders.",
-          "Facilitate planning and refinement with engineering teams; produce clear stories, acceptance criteria, and stakeholder updates.",
+          "Delivered enterprise integrations across product, engineering, and security partners on agreed timelines from design through launch.",
+          "Established release governance for a multi-service platform that clarified deployment ownership and dependency tracking.",
+          "Cut recurring manual reporting effort by automating internal analytics used by leadership stakeholders.",
+          "Unblocked engineering planning with clearer stories, acceptance criteria, and stakeholder updates each sprint.",
         ],
       },
       {
@@ -50,9 +50,9 @@ export function createSeedVersion(): ResumeVersion {
         endDate: "Aug 2021",
         current: false,
         bullets: [
-          "Automated recurring data workflows that reduced manual reporting effort for an operations team.",
-          "Built internal tooling to surface real-time query results for incident investigation.",
-          "Triaged production metric thresholds and coordinated bug fixes with engineers.",
+          "Saved operations analysts recurring hours by automating weekly data workflows.",
+          "Accelerated incident investigation with internal tooling that surfaced real-time query results.",
+          "Resolved production metric threshold issues by triaging alerts and coordinating engineer fixes.",
         ],
       },
     ],

@@ -1,13 +1,21 @@
 import type { ResumeContent } from "./types";
 import type { CustomSection, Experience } from "@/lib/schema";
-import { formatContactLine, formatDateRange } from "@/lib/utils";
+import { formatLinkedInDisplay } from "@/lib/contact-url";
+import {
+  formatContactLine,
+  formatDateRange,
+  withAtsBullet,
+} from "@/lib/utils";
 
 export function useResumeSections(data: ResumeContent) {
+  // Match ContactLine / PDF order: phone | email | location | LinkedIn
   const contactLine = formatContactLine([
     data.contact.phone,
     data.contact.email,
-    data.contact.linkedIn,
     data.contact.location,
+    data.contact.linkedIn
+      ? formatLinkedInDisplay(data.contact.linkedIn)
+      : "",
   ]);
 
   const hasSummary = data.summary.trim().length > 0;
@@ -154,7 +162,7 @@ export function ExperienceBlock({
               <ul className="mt-1.5 space-y-1">
                 {bullets.map((bullet, i) => (
                   <li key={i} className={bulletClass}>
-                    {bullet}
+                    {withAtsBullet(bullet)}
                   </li>
                 ))}
               </ul>
@@ -197,7 +205,7 @@ export function SkillsBlock({
               <ul className="space-y-0.5">
                 {items.map((item, i) => (
                   <li key={i} className={lineClass}>
-                    {item}
+                    {withAtsBullet(item)}
                   </li>
                 ))}
               </ul>
@@ -258,7 +266,7 @@ export function EducationBlock({
                 <ul className="mt-1 space-y-0.5">
                   {detailParts.map((part, i) => (
                     <li key={i} className={detailsClass}>
-                      {part}
+                      {withAtsBullet(part)}
                     </li>
                   ))}
                 </ul>

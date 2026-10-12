@@ -1,7 +1,7 @@
 /**
  * Generate mock resume PDFs via the real app PDF path (render-pdf-worker).
  * Usage: node scripts/generate-ats-audit-pdfs.mjs <output-dir> [label]
- * label is used in filenames, e.g. "before" or "after".
+ * label is used in filenames, e.g. "before", "after", or "v2".
  */
 import { spawn } from "node:child_process";
 import fs from "node:fs";
@@ -57,13 +57,14 @@ const candidates = [
       fullName: "Jordan Blake",
       headline: "Senior Software Engineer | Full-Stack Platform",
       email: "jordan.blake@example.com",
-      phone: "+1 (555) 014-8821",
+      // Valid NANP shape (555-01xx fictional subscriber range)
+      phone: "(555) 234-0100",
       location: "Seattle, WA",
       linkedIn: "linkedin.com/in/jordanblake-example",
       linkedInHyperlink: true,
     },
     summary:
-      "Software engineer with 7+ years building distributed backend services and React frontends. Known for shipping reliable APIs, improving system latency, and mentoring engineers on design reviews and testing practices.",
+      "Software engineer with 7+ years shipping distributed backend services and React frontends. Cuts latency, hardens releases, and mentors engineers through design reviews and production readiness.",
     experience: [
       {
         id: "swe-exp-1",
@@ -74,10 +75,10 @@ const candidates = [
         endDate: "",
         current: true,
         bullets: [
-          "Led redesign of billing event pipeline serving 2.4M accounts; cut p95 processing latency by 38% and eliminated recurring overnight backlogs.",
-          "Built TypeScript/React admin console used by 60 support agents, reducing average ticket handle time by 22%.",
-          "Owned on-call rotation improvements and runbooks that lowered Sev-1 mean time to recover from 94 to 41 minutes.",
-          "Mentored 4 engineers through design reviews, CI quality gates, and production incident retrospectives.",
+          "Cut p95 billing-pipeline latency 38% for 2.4M accounts by redesigning event processing and eliminating overnight backlogs.",
+          "Shipped a TypeScript/React admin console adopted by 60 support agents, reducing average ticket handle time 22%.",
+          "Lowered Sev-1 mean time to recover from 94 to 41 minutes by rewriting on-call runbooks and alert routing.",
+          "Coached 4 engineers through design reviews, CI quality gates, and production incident retrospectives.",
         ],
       },
       {
@@ -89,9 +90,9 @@ const candidates = [
         endDate: "Feb 2021",
         current: false,
         bullets: [
-          "Delivered Node.js microservices for order fulfillment that processed 120k daily transactions with 99.95% availability.",
-          "Introduced contract tests and staging canaries that reduced production regressions by 45% over two release cycles.",
-          "Partnered with product and data teams to ship GraphQL APIs consumed by web and mobile clients.",
+          "Scaled Node.js fulfillment services to 120k daily transactions at 99.95% availability.",
+          "Reduced production regressions 45% over two release cycles by adding contract tests and staging canaries.",
+          "Unblocked web and mobile clients by delivering GraphQL APIs with product and data partners.",
         ],
       },
       {
@@ -103,8 +104,8 @@ const candidates = [
         endDate: "May 2018",
         current: false,
         bullets: [
-          "Implemented REST endpoints and PostgreSQL schemas for customer onboarding workflows used by 8 enterprise clients.",
-          "Automated weekly reporting jobs in Python that saved ~10 hours of manual analyst work each month.",
+          "Accelerated onboarding for 8 enterprise clients by implementing REST endpoints and PostgreSQL schemas.",
+          "Saved ~10 analyst hours per month by automating weekly reporting jobs in Python.",
         ],
       },
     ],
@@ -145,13 +146,13 @@ const candidates = [
       fullName: "Samira Owens",
       headline: "Sales Operations & Business Analyst",
       email: "samira.owens@example.com",
-      phone: "+1 (555) 017-4490",
+      phone: "(555) 347-0199",
       location: "Chicago, IL",
       linkedIn: "linkedin.com/in/samiraowens-example",
       linkedInHyperlink: true,
     },
     summary:
-      "Business analyst with 6 years in B2B SaaS sales operations. Partners with revenue leaders to forecast accurately, clean CRM data, and turn pipeline insights into actionable playbooks for account executives.",
+      "Business analyst with 6 years in B2B SaaS sales operations. Improves forecast accuracy, CRM data quality, and pipeline decisions so revenue teams hit quota with clearer playbooks.",
     experience: [
       {
         id: "ba-exp-1",
@@ -162,10 +163,10 @@ const candidates = [
         endDate: "",
         current: true,
         bullets: [
-          "Built Salesforce dashboards and weekly forecast models covering $48M ARR; improved forecast accuracy from 71% to 91% within three quarters.",
-          "Led CRM hygiene program that reduced duplicate accounts by 34% and cut average opportunity stage age by 9 days.",
-          "Designed territory realignment analysis for 85 AEs, increasing balanced quota coverage and reducing over/under-assigned regions by 28%.",
-          "Partnered with RevOps and Finance to automate commission inputs, eliminating 12+ hours of manual spreadsheet work each month.",
+          "Raised forecast accuracy from 71% to 91% in three quarters by rebuilding Salesforce dashboards for $48M ARR.",
+          "Eliminated 34% of duplicate accounts and shortened average opportunity stage age by 9 days through a CRM hygiene program.",
+          "Rebalanced territories for 85 AEs, cutting over/under-assigned regions 28% and improving quota coverage.",
+          "Removed 12+ hours of monthly spreadsheet work by automating commission inputs with RevOps and Finance.",
         ],
       },
       {
@@ -177,9 +178,9 @@ const candidates = [
         endDate: "Dec 2021",
         current: false,
         bullets: [
-          "Translated stakeholder requirements into user stories and acceptance criteria for a quoting tool adopted by 40 sales reps.",
-          "Analyzed win/loss data across 1,200 opportunities and recommended pricing guardrails that lifted win rate 6 points in mid-market.",
-          "Created SQL-backed pipeline reports for Monday executive reviews, replacing ad-hoc spreadsheet exports.",
+          "Drove adoption of a quoting tool by 40 sales reps after converting stakeholder needs into clear user stories and acceptance criteria.",
+          "Lifted mid-market win rate 6 points by analyzing 1,200 win/loss opportunities and installing pricing guardrails.",
+          "Replaced ad-hoc spreadsheet exports with SQL pipeline reports used in Monday executive reviews.",
         ],
       },
       {
@@ -191,8 +192,8 @@ const candidates = [
         endDate: "Feb 2019",
         current: false,
         bullets: [
-          "Tracked weekly store and e-commerce KPIs for 22 locations; flagged underperforming SKUs that informed a 15% inventory reduction.",
-          "Supported regional managers with Excel models for promo ROI and staffing scenarios during peak seasons.",
+          "Informed a 15% inventory reduction by surfacing underperforming SKUs across 22 store and e-commerce locations.",
+          "Improved peak-season promo ROI decisions with Excel models used by regional managers for staffing scenarios.",
         ],
       },
     ],
@@ -233,13 +234,13 @@ const candidates = [
       fullName: "Marcus Chen",
       headline: "Operations Manager | Supply Chain & Fulfillment",
       email: "marcus.chen@example.com",
-      phone: "+1 (555) 019-3364",
+      phone: "(555) 268-0142",
       location: "Dallas, TX",
       linkedIn: "linkedin.com/in/marcuschen-example",
       linkedInHyperlink: true,
     },
     summary:
-      "Operations manager with 9 years leading warehouse, logistics, and cross-functional process improvement. Delivers measurable gains in on-time fulfillment, cost per order, and team safety while scaling throughput.",
+      "Operations manager with 9 years scaling warehouse and logistics teams. Improves on-time fulfillment, cost per order, and safety while growing throughput.",
     experience: [
       {
         id: "ops-exp-1",
@@ -250,10 +251,10 @@ const candidates = [
         endDate: "",
         current: true,
         bullets: [
-          "Direct a 70-person fulfillment team across two shifts processing 18k orders/day with 98.7% on-time ship rate.",
+          "Grew a 70-person, two-shift fulfillment team to 18k orders/day at a 98.7% on-time ship rate.",
           "Cut cost per order 17% by redesigning pick paths, introducing zone batching, and renegotiating parcel contracts.",
-          "Launched weekly KPI huddles and visual management boards that reduced same-day backlog incidents by 52%.",
-          "Partnered with Safety and HR to lower recordable incidents 40% year over year while growing headcount 25%.",
+          "Slashed same-day backlog incidents 52% after launching weekly KPI huddles and visual management boards.",
+          "Reduced recordable incidents 40% year over year while expanding headcount 25%, partnering with Safety and HR.",
         ],
       },
       {
@@ -265,9 +266,9 @@ const candidates = [
         endDate: "Mar 2020",
         current: false,
         bullets: [
-          "Supervised inbound receiving and putaway for a 220k sq ft DC; improved dock-to-stock cycle time from 28 to 16 hours.",
-          "Implemented slotting rules that raised picker productivity 21% without adding overtime spend.",
-          "Coordinated cross-dock pilots with transportation that trimmed average outbound trailer dwell by 35 minutes.",
+          "Shortened dock-to-stock cycle time from 28 to 16 hours across a 220k sq ft DC inbound operation.",
+          "Raised picker productivity 21% without overtime by implementing new slotting rules.",
+          "Trimmed average outbound trailer dwell 35 minutes through cross-dock pilots with transportation.",
         ],
       },
       {
@@ -279,8 +280,8 @@ const candidates = [
         endDate: "Jul 2016",
         current: false,
         bullets: [
-          "Scheduled carrier pickups and exception handling for 90+ daily routes serving North Texas retailers.",
-          "Built Excel trackers for missed scans and damaged freight that accelerated root-cause follow-up with vendors.",
+          "Stabilized 90+ daily North Texas routes by tightening carrier pickup schedules and exception handling.",
+          "Accelerated vendor root-cause follow-up with Excel trackers for missed scans and damaged freight.",
         ],
       },
     ],

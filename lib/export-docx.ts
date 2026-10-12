@@ -12,7 +12,12 @@ import { toResumeContent } from "./templates/types";
 import { getExportBlocks, formatExportDateRange } from "./export/export-blocks";
 import { getExportFilename } from "./export";
 import { downloadBlob } from "./download-history";
-import { hasContactLineInfo, normalizeLinkedInUrl } from "./contact-url";
+import {
+  formatLinkedInDisplay,
+  hasContactLineInfo,
+  normalizeLinkedInUrl,
+} from "./contact-url";
+import { CONTACT_FIELD_SEPARATOR } from "./utils";
 
 const HEADING_SPACING = { before: 240, after: 80 };
 const BODY_SPACING = { after: 100 };
@@ -27,9 +32,12 @@ function contactLineRuns(
 ): (TextRun | ExternalHyperlink)[] {
   const runs: (TextRun | ExternalHyperlink)[] = [];
   const addSeparator = () => {
-    if (runs.length > 0) runs.push(new TextRun({ text: "  •  ", size }));
+    if (runs.length > 0) {
+      runs.push(new TextRun({ text: CONTACT_FIELD_SEPARATOR, size }));
+    }
   };
 
+  // Match PDF ContactLine: phone | email | location | LinkedIn
   if (contact.phone?.trim()) {
     addSeparator();
     runs.push(new TextRun({ text: contact.phone.trim(), size }));
@@ -38,21 +46,22 @@ function contactLineRuns(
     addSeparator();
     runs.push(new TextRun({ text: contact.email.trim(), size }));
   }
+  if (contact.location?.trim()) {
+    addSeparator();
+    runs.push(new TextRun({ text: contact.location.trim(), size }));
+  }
   if (contact.linkedIn?.trim()) {
     addSeparator();
     const linkedIn = contact.linkedIn.trim();
+    const display = formatLinkedInDisplay(linkedIn);
     runs.push(
       contact.linkedInHyperlink
         ? new ExternalHyperlink({
             link: normalizeLinkedInUrl(linkedIn),
-            children: [new TextRun({ text: linkedIn, size, underline: {} })],
+            children: [new TextRun({ text: display, size, underline: {} })],
           })
-        : new TextRun({ text: linkedIn, size })
+        : new TextRun({ text: display, size })
     );
-  }
-  if (contact.location?.trim()) {
-    addSeparator();
-    runs.push(new TextRun({ text: contact.location.trim(), size }));
   }
 
   return runs;

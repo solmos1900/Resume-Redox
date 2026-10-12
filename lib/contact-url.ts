@@ -1,8 +1,31 @@
-export function normalizeLinkedInUrl(value: string): string {
+/**
+ * Normalize LinkedIn for hrefs and ATS-visible display.
+ * Prefer www.linkedin.com so parsers recognize the profile URL.
+ */
+export function formatLinkedInDisplay(value: string): string {
   const trimmed = value.trim();
   if (!trimmed) return "";
-  if (/^https?:\/\//i.test(trimmed)) return trimmed;
-  return `https://${trimmed.replace(/^www\./i, "")}`;
+
+  let path = trimmed.replace(/^https?:\/\//i, "").replace(/^www\./i, "");
+
+  // Bare profile slug → /in/slug
+  if (!/[./]/.test(path)) {
+    path = `linkedin.com/in/${path}`;
+  } else if (/^linkedin\.com\/?$/i.test(path)) {
+    return "www.linkedin.com";
+  } else if (!/^linkedin\.com\//i.test(path)) {
+    // Non-LinkedIn URL — return cleaned host/path without forcing linkedin.com
+    return trimmed.replace(/^https?:\/\//i, "");
+  }
+
+  return `www.${path.replace(/^linkedin\.com/i, "linkedin.com")}`;
+}
+
+export function normalizeLinkedInUrl(value: string): string {
+  const display = formatLinkedInDisplay(value);
+  if (!display) return "";
+  if (/^https?:\/\//i.test(display)) return display;
+  return `https://${display}`;
 }
 
 export function hasContactLineInfo(contact: {

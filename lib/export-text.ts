@@ -23,7 +23,7 @@ function formatExperienceLines(jobs: Experience[]): string[] {
     if (companyLine) lines.push(companyLine);
     const titleLine = [job.title, dateRange].filter((s) => s.trim()).join("  |  ");
     if (titleLine) lines.push(titleLine);
-    for (const bullet of bullets) lines.push(`  - ${bullet}`);
+    for (const bullet of bullets) lines.push(`• ${bullet.trim().replace(/^[\u2022•●◦\-*–—]\s+/, "")}`);
     lines.push("");
   }
   return lines;

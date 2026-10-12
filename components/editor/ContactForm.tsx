@@ -21,6 +21,7 @@ export function ContactForm() {
     });
   };
 
+  // Order matches ATS contact line: phone | email | location | LinkedIn
   const fields = [
     { key: "fullName", label: "Full Name", placeholder: "Alex Rivera" },
     {
@@ -28,10 +29,14 @@ export function ContactForm() {
       label: "Headline / Tagline",
       placeholder: "Technical PM | Platform Delivery | Integrations",
     },
-    { key: "phone", label: "Phone", placeholder: "+1 (555) 010-2000" },
+    { key: "phone", label: "Phone", placeholder: "(555) 234-0100" },
     { key: "email", label: "Email", placeholder: "you@email.com" },
-    { key: "linkedIn", label: "LinkedIn", placeholder: "linkedin.com/in/..." },
-    { key: "location", label: "Location", placeholder: "Austin, TX" },
+    { key: "location", label: "Location (City, ST)", placeholder: "Austin, TX" },
+    {
+      key: "linkedIn",
+      label: "LinkedIn",
+      placeholder: "linkedin.com/in/your-profile",
+    },
   ] as const;
 
   return (

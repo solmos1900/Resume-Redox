@@ -198,7 +198,7 @@ export function ExperienceForm() {
                   value={bullet}
                   onChange={(e) => updateBullet(exp.id, bi, e.target.value)}
                   rows={2}
-                  placeholder="Achievement with metrics..."
+                  placeholder="Result + metric (e.g. Cut p95 latency 38% by redesigning…)"
                   className="flex-1 rounded border px-2 py-1.5 text-sm"
                 />
                 <RepeatableControls
