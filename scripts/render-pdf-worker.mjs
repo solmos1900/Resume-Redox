@@ -16,6 +16,26 @@ const requireFromRoot = createRequire(path.join(root, "package.json"));
 const { buildResumeExportHtml } = requireFromRoot(
   path.join(root, "lib/export/generated/build-resume-html.cjs")
 );
+const { PDFDocument } = requireFromRoot("pdf-lib");
+
+/**
+ * Chromium leaves Creator as the browser UA and omits Author. Rewrite document
+ * info so ATS checkers and OS preview show the candidate name cleanly.
+ */
+async function applyAtsPdfMetadata(pdfBytes, version) {
+  const author =
+    (version.contact?.fullName || "").trim() ||
+    (version.name || "").trim() ||
+    "Resume";
+  const title = author;
+  const pdfDoc = await PDFDocument.load(pdfBytes);
+  pdfDoc.setTitle(title);
+  pdfDoc.setAuthor(author);
+  pdfDoc.setSubject("Resume");
+  pdfDoc.setCreator("Resume Redox");
+  pdfDoc.setProducer("Resume Redox");
+  return Buffer.from(await pdfDoc.save());
+}
 
 async function readStdin() {
   const chunks = [];
@@ -50,9 +70,11 @@ async function main() {
       format: "letter",
       printBackground: true,
       preferCSSPageSize: true,
+      tagged: true,
       margin: { top: 0, right: 0, bottom: 0, left: 0 },
     });
-    process.stdout.write(Buffer.from(pdf));
+    const withMeta = await applyAtsPdfMetadata(Buffer.from(pdf), version);
+    process.stdout.write(withMeta);
   } finally {
     await browser.close();
   }

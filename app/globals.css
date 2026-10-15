@@ -143,33 +143,27 @@ body {
   margin: 0;
 }
 
-/* Hanging-indent bullets: wrapped lines align with first line of text, not the bullet */
+/*
+ * Real U+2022 characters are rendered in the <li> text (see withAtsBullet).
+ * CSS ::before bullets often extract as detached glyphs, so ATS checkers
+ * treat experience as running paragraphs instead of scannable points.
+ *
+ * Hanging indent keeps wrapped lines aligned under the text, not the bullet.
+ * Keep margin-bottom modest: several ATS parsers (e.g. OpenResume) flag a
+ * line as a new entry when its gap exceeds ~1.4x the typical line gap.
+ */
 .resume-document ul {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-/**
- * Kept well under the wrapped-line-height gap: several ATS parsers (e.g.
- * OpenResume) flag a line as the start of a new resume entry when its gap
- * to the previous line exceeds ~1.4x the document's typical line gap. A
- * bigger margin here pushes the bullet-to-bullet gap close enough to that
- * ratio that a bullet's own wrapped second line can get misread as a new,
- * orphaned entry instead of a continuation of the same bullet.
- */
 .resume-document li {
-  position: relative;
-  padding-left: 1.15em;
-  margin-bottom: 0.2em;
-}
-
-.resume-document li::before {
-  content: "•";
-  position: absolute;
-  left: 0;
-  top: 0;
-  font-weight: bold;
+  padding-left: 1.05em;
+  text-indent: -1.05em;
+  /* Keep bullet gaps tight so soft-wrapped lines stay attached to the verb line. */
+  margin-bottom: 0.14em;
+  line-height: 1.32;
 }
 
 .template-accent {
@@ -191,6 +185,7 @@ body {
 
 .template-accent li {
   padding-left: 1.05em;
+  text-indent: -1.05em;
 }
 
 .page-fit-print-measure {

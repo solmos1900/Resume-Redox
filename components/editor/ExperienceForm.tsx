@@ -198,7 +198,7 @@ export function ExperienceForm() {
                   value={bullet}
                   onChange={(e) => updateBullet(exp.id, bi, e.target.value)}
                   rows={2}
-                  placeholder="Achievement with metrics..."
+                  placeholder="One line: Verb + metric (e.g. Cut p95 latency 38% by redesigning the pipeline.)"
                   className="flex-1 rounded border px-2 py-1.5 text-sm"
                 />
                 <RepeatableControls
@@ -210,6 +210,10 @@ export function ExperienceForm() {
                 />
               </div>
             ))}
+            <p className="text-[11px] text-gray-500">
+              Keep each bullet to 1 line (2 max). Put the number in the first
+              line and start with a past-tense action verb.
+            </p>
           </div>
         </div>
       ))}

@@ -142,6 +142,7 @@ function parseContactFromPreamble(preamble: string[]): Contact {
     phone: "",
     location: "",
     linkedIn: "",
+    website: "",
     linkedInHyperlink: true,
   };
 
@@ -153,16 +154,27 @@ function parseContactFromPreamble(preamble: string[]): Contact {
   const email = blob.match(EMAIL_RE)?.[0];
   const phone = blob.match(PHONE_RE)?.[0];
   const linkedIn = blob.match(LINKEDIN_RE)?.[0];
+  const website = blob.match(
+    /(?:Website|GitHub|Portfolio):\s*(https?:\/\/\S+)/i
+  )?.[1];
   if (email) contact.email = email;
   if (phone) contact.phone = phone;
   if (linkedIn) {
-    contact.linkedIn = linkedIn.replace(/^https?:\/\//i, "").replace(/\/$/, "");
+    // Keep full URL so re-export stays ATS-detectable
+    contact.linkedIn = linkedIn.replace(/\/$/, "");
   }
+  if (website) contact.website = website.replace(/\/$/, "");
+
+  const isLabeledContactLine = (line: string) =>
+    /^(Phone|Email|Location|LinkedIn|Website|GitHub|Portfolio)\s*:/i.test(
+      line.trim()
+    );
 
   // Headline: second line if it doesn't look like contact metadata
   if (nonEmpty.length > 1) {
     const second = nonEmpty[1];
     const isContactish =
+      isLabeledContactLine(second) ||
       EMAIL_RE.test(second) ||
       PHONE_RE.test(second) ||
       LINKEDIN_RE.test(second) ||

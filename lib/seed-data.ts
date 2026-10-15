@@ -11,20 +11,24 @@ export function createSeedVersion(): ResumeVersion {
     id: "seed-technical-pm",
     name: "Technical PM (Demo)",
     templateId: "classic" as const,
-    design: { ...DEFAULT_DESIGN_SETTINGS },
+    design: { ...DEFAULT_DESIGN_SETTINGS, spacing: "compact" },
     sectionOrder: [...DEFAULT_SECTION_ORDER],
+    atsContactLayout: "inline",
+    atsSummaryHeading: "summary",
+    atsHeadingCase: "title",
     updatedAt: now,
     contact: {
       fullName: "Alex Rivera",
-      headline: "Technical Project Manager | Platform Delivery",
-      phone: "+1 (555) 010-2000",
+      headline: "Technical Project Manager | 5+ years | Platform Delivery",
+      phone: "(555) 234-0100",
       email: "alex.rivera@example.com",
       location: "Austin, TX",
-      linkedIn: "linkedin.com/in/example",
+      linkedIn: "https://www.linkedin.com/in/example",
+      website: "https://github.com/example",
       linkedInHyperlink: true,
     },
     summary:
-      "Technical project manager with a software engineering background, focused on cross-functional delivery of platform and integration work. Experienced in roadmapping, stakeholder alignment, release governance, and partnering with product and engineering teams to ship reliable outcomes.",
+      "Technical Project Manager with 5+ years leading platform and integration delivery. Combines engineering background with roadmapping and release governance for reliable launches.",
     experience: [
       {
         id: "exp-demo-tpm",
@@ -35,10 +39,10 @@ export function createSeedVersion(): ResumeVersion {
         endDate: "",
         current: true,
         bullets: [
-          "Lead delivery for enterprise integrations across product, engineering, and security partners; own timelines, risks, and readiness from design through launch.",
-          "Established release governance for a multi-service platform, including weekly syncs, dependency tracking, and clearer deployment ownership.",
-          "Built internal analytics automation that reduced recurring manual reporting and improved visibility for leadership stakeholders.",
-          "Facilitate planning and refinement with engineering teams; produce clear stories, acceptance criteria, and stakeholder updates.",
+          "Delivered 12 enterprise integrations across product, engineering, and security on launch dates.",
+          "Established release governance that clarified deployment ownership for 6 platform teams.",
+          "Cut recurring manual reporting by 8 hours/week with automated leadership analytics.",
+          "Unblocked sprint planning with clearer stories, acceptance criteria, and updates.",
         ],
       },
       {
@@ -50,9 +54,9 @@ export function createSeedVersion(): ResumeVersion {
         endDate: "Aug 2021",
         current: false,
         bullets: [
-          "Automated recurring data workflows that reduced manual reporting effort for an operations team.",
-          "Built internal tooling to surface real-time query results for incident investigation.",
-          "Triaged production metric thresholds and coordinated bug fixes with engineers.",
+          "Saved operations analysts 6 hours/week by automating recurring data workflows.",
+          "Accelerated incident investigation with tooling for real-time query results.",
+          "Resolved 15 production metric alerts by coordinating engineer fixes within SLA.",
         ],
       },
     ],
@@ -64,25 +68,14 @@ export function createSeedVersion(): ResumeVersion {
           "TPM, Roadmapping, Backlog Management, Agile/Scrum, Release Governance, Risk Management",
       },
       {
-        id: "skill-stakeholder",
-        category: "Stakeholder & Governance",
-        items:
-          "Cross-functional Alignment, Architecture Reviews, Stakeholder Management, Compliance Coordination",
-      },
-      {
         id: "skill-engineering",
         category: "Engineering",
         items: "Python, SQL, JavaScript, React, REST APIs",
       },
       {
-        id: "skill-data",
-        category: "Data & Analytics",
-        items: "Dashboards, Automated Reporting, Data Pipelines, Schema Design",
-      },
-      {
-        id: "skill-tools",
-        category: "Tools & Platforms",
-        items: "Jira, Confluence, Git, Slack Workflows",
+        id: "skill-soft",
+        category: "Soft Skills",
+        items: "Stakeholder Communication, Cross-functional Collaboration, Mentoring",
       },
     ],
     education: [
@@ -94,7 +87,24 @@ export function createSeedVersion(): ResumeVersion {
         graduationDate: "May 2021",
       },
     ],
-    customSections: [],
+    customSections: [
+      {
+        id: "custom-certs",
+        title: "Certifications",
+        entries: [
+          {
+            id: "cert-1",
+            name: "Certified ScrumMaster (CSM)",
+            location: "",
+            subtitle: "Scrum Alliance",
+            startDate: "",
+            endDate: "2023",
+            current: false,
+            bullets: ["Credential ID demo-csm-0001"],
+          },
+        ],
+      },
+    ],
     jobDescription: { url: "", text: "" },
     aiRecommendations: [],
     aiMeta: {},
