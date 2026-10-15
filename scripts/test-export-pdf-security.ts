@@ -210,12 +210,14 @@ async function main() {
 
   await test("legacy payload without ATS fields gets defaults and renders", async () => {
     resetPdfExportRateLimitsForTests();
-    const version = createSeedVersion() as ResumeVersion & Record<string, unknown>;
-    delete version.atsContactLayout;
-    delete version.atsSummaryHeading;
-    delete version.atsHeadingCase;
+    const {
+      atsContactLayout: _layout,
+      atsSummaryHeading: _heading,
+      atsHeadingCase: _case,
+      ...legacyVersion
+    } = createSeedVersion();
 
-    const parsed = parseExportResumeVersion(version);
+    const parsed = parseExportResumeVersion(legacyVersion);
     assert.equal(parsed.ok, true);
     if (!parsed.ok) return;
     assert.equal(parsed.data.atsContactLayout, "inline");
@@ -228,7 +230,7 @@ async function main() {
       atsSummaryHeading: string;
       atsHeadingCase: string;
     } | null = null;
-    const res = await handleExportPdfPost(jsonRequest({ version }), {
+    const res = await handleExportPdfPost(jsonRequest({ version: legacyVersion }), {
       requireUser: async () => ({ ok: true, user: mockUser() }),
       checkRateLimits: async () => ({ ok: true }),
       render: async (v) => {
