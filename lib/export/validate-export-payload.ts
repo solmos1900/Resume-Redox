@@ -1,5 +1,8 @@
 import { z } from "zod";
 import {
+  atsContactLayoutSchema,
+  atsHeadingCaseSchema,
+  atsSummaryHeadingSchema,
   designFontFamilySchema,
   designFontSizeSchema,
   designSpacingSchema,
@@ -27,6 +30,8 @@ const exportContactSchema = z.object({
   phone: boundedShort,
   location: boundedShort,
   linkedIn: boundedShort.optional(),
+  /** Older clients may omit website; default keeps saved resumes valid. */
+  website: boundedShort.optional().default(""),
   linkedInHyperlink: z.boolean().default(true),
 });
 
@@ -120,6 +125,13 @@ export const resumeVersionExportSchema = z.object({
     .array(reorderableSectionIdSchema)
     .max(PDF_EXPORT_MAX_ARRAY)
     .default([...DEFAULT_SECTION_ORDER]),
+  /**
+   * ATS fields from #39. Defaults match resumeVersionSchema so older clients
+   * and saved resumes that omit them still parse and render.
+   */
+  atsContactLayout: atsContactLayoutSchema.default("inline"),
+  atsSummaryHeading: atsSummaryHeadingSchema.default("summary"),
+  atsHeadingCase: atsHeadingCaseSchema.default("title"),
   contact: exportContactSchema,
   summary: boundedLong,
   experience: z.array(exportExperienceSchema).max(PDF_EXPORT_MAX_ARRAY),
