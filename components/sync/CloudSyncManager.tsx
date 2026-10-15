@@ -5,6 +5,10 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { useResumeStore } from "@/lib/store";
 import { useSyncStatus } from "@/lib/sync-status";
 import { fetchCloudStore, saveCloudStore } from "@/lib/cloud-sync";
+import {
+  clearSaveDebounceTimer,
+  cloudSyncSessionKey,
+} from "@/lib/cloud-sync-lifecycle";
 import type { StoreState } from "@/lib/schema";
 
 const SEED_VERSION_ID = "seed-technical-pm";
@@ -27,6 +31,7 @@ function storesAreInSync(a: StoreState, b: StoreState): boolean {
 
 export function CloudSyncManager() {
   const { user } = useAuth();
+  const uid = cloudSyncSessionKey(user);
   const setSyncStatus = useSyncStatus((s) => s.set);
   const [conflict, setConflict] = useState<{
     uid: string;
@@ -37,13 +42,23 @@ export function CloudSyncManager() {
   const unsubscribeRef = useRef<(() => void) | null>(null);
   const timeoutRef = useRef<number | null>(null);
 
-  const startAutosave = (uid: string) => {
+  const clearPendingSave = () => {
+    timeoutRef.current = clearSaveDebounceTimer(timeoutRef.current);
+  };
+
+  const stopAutosave = () => {
     unsubscribeRef.current?.();
+    unsubscribeRef.current = null;
+    clearPendingSave();
+  };
+
+  const startAutosave = (sessionUid: string) => {
+    stopAutosave();
     unsubscribeRef.current = useResumeStore.subscribe((state) => {
-      if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
+      clearPendingSave();
       setSyncStatus("syncing");
       timeoutRef.current = window.setTimeout(() => {
-        void saveCloudStore(uid, {
+        void saveCloudStore(sessionUid, {
           activeVersionId: state.activeVersionId,
           versions: state.versions,
         })
@@ -54,10 +69,12 @@ export function CloudSyncManager() {
   };
 
   useEffect(() => {
-    if (!user) {
-      unsubscribeRef.current?.();
-      unsubscribeRef.current = null;
-      if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
+    // Tear down any prior session before syncing (or idling). Clears a
+    // pending debounced save so mid-flight edits are not written under the
+    // wrong account, and so a same-user re-entry cannot double-save.
+    stopAutosave();
+
+    if (!uid) {
       setSyncStatus("idle");
       setConflict(null);
       return;
@@ -72,37 +89,41 @@ export function CloudSyncManager() {
         activeVersionId: local.activeVersionId,
         versions: local.versions,
       };
-      const cloud = await fetchCloudStore(user.uid).catch(() => null);
+      const cloud = await fetchCloudStore(uid).catch(() => null);
       if (cancelled) return;
 
       if (!cloud) {
-        await saveCloudStore(user.uid, localState).catch(() => undefined);
+        await saveCloudStore(uid, localState).catch(() => undefined);
+        if (cancelled) return;
         setSyncStatus("synced");
-        startAutosave(user.uid);
+        startAutosave(uid);
         return;
       }
 
       if (isUntouchedSeed(localState) || storesAreInSync(localState, cloud)) {
         useResumeStore.setState(cloud);
         setSyncStatus("synced");
-        startAutosave(user.uid);
+        startAutosave(uid);
         return;
       }
 
-      setConflict({ uid: user.uid, cloud, local: localState });
+      setConflict({ uid, cloud, local: localState });
     })();
 
     return () => {
       cancelled = true;
+      stopAutosave();
     };
+    // Key on uid only — profile-only User object replacements must not
+    // re-run initial sync (see #59 / email signup displayName update).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [uid]);
 
   useEffect(
     () => () => {
-      unsubscribeRef.current?.();
-      if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
+      stopAutosave();
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
 
