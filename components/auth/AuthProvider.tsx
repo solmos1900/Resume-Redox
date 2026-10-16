@@ -44,6 +44,10 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [initializing, setInitializing] = useState(isFirebaseConfigured);
+  // Bumped after in-place profile updates (e.g. displayName on signup) so
+  // context consumers re-render without replacing the user object identity.
+  // Replacing the user object would re-trigger cloud sync mid-session (#59).
+  const [profileEpoch, setProfileEpoch] = useState(0);
 
   useEffect(() => {
     if (!auth) return;
@@ -81,9 +85,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           await updateProfile(credential.user, {
             displayName: displayName.trim(),
           });
-          // onAuthStateChanged doesn't re-fire for profile-only updates, so
-          // force a re-render with a fresh reference carrying the new name.
-          setUser({ ...credential.user } as User);
+          // Firebase mutates the User in place; onAuthStateChanged does not
+          // re-fire. Bump epoch so UI picks up displayName without a new
+          // object reference (which would restart cloud sync).
+          setProfileEpoch((n) => n + 1);
         }
       },
 
@@ -110,7 +115,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await signOut(auth);
       },
     }),
-    [user, initializing]
+    // profileEpoch is intentionally included so displayName updates propagate.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [user, initializing, profileEpoch]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
