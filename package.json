@@ -11,6 +11,7 @@
     "test:import-fixtures": "tsx scripts/test-import-fixtures.ts",
     "test:export-pdf-security": "tsx scripts/test-export-pdf-security.ts",
     "test:cloud-sync-lifecycle": "tsx scripts/test-cloud-sync-lifecycle.ts",
+    "test:cloud-sync-save-queue": "tsx scripts/test-cloud-sync-save-queue.ts",
     "build": "npm run build:pdf-assets && next build",
     "start": "next start",
     "lint": "next lint"
