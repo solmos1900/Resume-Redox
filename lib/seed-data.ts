@@ -4,12 +4,15 @@ import {
   type ResumeVersion,
 } from "./schema";
 
+/** Stable id of the built-in sample resume. */
+export const SEED_VERSION_ID = "seed-technical-pm";
+
 /** Demo seed only — no real personal data. */
 export function createSeedVersion(): ResumeVersion {
   const now = new Date().toISOString();
   return {
-    id: "seed-technical-pm",
-    name: "Technical PM (Demo)",
+    id: SEED_VERSION_ID,
+    name: "Sample — Alex Rivera",
     templateId: "classic" as const,
     design: { ...DEFAULT_DESIGN_SETTINGS, spacing: "compact" },
     sectionOrder: [...DEFAULT_SECTION_ORDER],

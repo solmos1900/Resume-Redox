@@ -1,7 +1,7 @@
 import type { ResumeVersion, Experience } from "./schema";
 import { toResumeContent } from "./templates/types";
 import { getExportBlocks, formatExportDateRange } from "./export/export-blocks";
-import { useResumeSections } from "./templates/sections";
+import { getResumeSections } from "./templates/sections";
 import { getExportFilename } from "./export";
 import { downloadBlob } from "./download-history";
 import { formatCompanyLocation } from "./utils";
@@ -30,7 +30,7 @@ function formatExperienceLines(jobs: Experience[]): string[] {
 
 function buildResumeText(version: ResumeVersion): string {
   const data = toResumeContent(version);
-  const { contactLine } = useResumeSections(data);
+  const { contactLine } = getResumeSections(data);
   const blocks = getExportBlocks(data);
 
   const lines: string[] = [];

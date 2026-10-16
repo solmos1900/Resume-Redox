@@ -53,18 +53,18 @@ export default function ResetPasswordClient() {
   };
 
   return (
-    <div className="h-screen flex items-center justify-center bg-gray-100 p-4">
-      <div className="w-full max-w-sm bg-white rounded-xl shadow-xl border border-gray-200">
-        <div className="px-6 py-5 border-b border-gray-200 text-center">
-          <h1 className="text-lg font-bold text-gray-900">Resume Redox</h1>
-          <p className="text-sm text-gray-500 mt-1">
+    <div className="h-screen flex items-center justify-center bg-paper-deep p-4">
+      <div className="w-full max-w-sm bg-white rounded-xl shadow-xl border border-line">
+        <div className="px-6 py-5 border-b border-line text-center">
+          <h1 className="text-lg font-bold text-ink">Resume Redox</h1>
+          <p className="text-sm text-ink-muted mt-1">
             {status === "done" ? "Password updated" : "Reset your password"}
           </p>
         </div>
 
         <div className="px-6 py-5 space-y-4">
           {status === "verifying" && (
-            <p className="text-sm text-gray-500 text-center">Checking your link…</p>
+            <p className="text-sm text-ink-muted text-center">Checking your link…</p>
           )}
 
           {status === "invalid" && (
@@ -73,8 +73,8 @@ export default function ResetPasswordClient() {
                 {error ?? "This reset link is invalid or has expired."}
               </p>
               <a
-                href="/"
-                className="block w-full text-sm px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium text-center"
+                href="/app"
+                className="block w-full text-sm px-4 py-2 border border-line-strong rounded-lg hover:bg-paper font-medium text-center"
               >
                 Back to sign in
               </a>
@@ -84,7 +84,7 @@ export default function ResetPasswordClient() {
           {status === "ready" && (
             <form onSubmit={handleSubmit} className="space-y-2">
               {email && (
-                <p className="text-sm text-gray-500 text-center mb-1">
+                <p className="text-sm text-ink-muted text-center mb-1">
                   Setting a new password for <strong>{email}</strong>
                 </p>
               )}
@@ -100,7 +100,7 @@ export default function ResetPasswordClient() {
                 placeholder="New password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full text-sm px-3 py-2 border border-gray-300 rounded-lg"
+                className="w-full text-sm px-3 py-2 border border-line-strong rounded-lg"
               />
               <input
                 type="password"
@@ -109,12 +109,12 @@ export default function ResetPasswordClient() {
                 placeholder="Retype new password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full text-sm px-3 py-2 border border-gray-300 rounded-lg"
+                className="w-full text-sm px-3 py-2 border border-line-strong rounded-lg"
               />
               <button
                 type="submit"
                 disabled={busy}
-                className="w-full text-sm px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:opacity-40 font-medium"
+                className="w-full text-sm px-4 py-2 bg-ink text-white rounded-lg hover:bg-ink-soft disabled:opacity-40 font-medium"
               >
                 Save new password
               </button>
@@ -127,8 +127,8 @@ export default function ResetPasswordClient() {
                 Your password has been updated.
               </p>
               <a
-                href="/"
-                className="block w-full text-sm px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 font-medium text-center"
+                href="/app"
+                className="block w-full text-sm px-4 py-2 bg-ink text-white rounded-lg hover:bg-ink-soft font-medium text-center"
               >
                 Continue to sign in
               </a>

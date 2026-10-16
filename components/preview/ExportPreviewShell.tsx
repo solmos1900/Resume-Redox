@@ -50,11 +50,10 @@ export function ExportPreviewShell({
       {autoPrint && (
         <div className="no-print export-status-banner">
           <p>
-            Print dialog opening… In the dialog, turn off{" "}
-            <strong>Headers and footers</strong> (and set margins to None /
-            Default) so the page URL and date don’t appear on the resume.
-            Prefer <strong>Download → PDF</strong> for a clean text PDF with no
-            browser chrome.
+            Your print dialog is opening. To save a PDF, set{" "}
+            <strong>Destination → Save as PDF</strong>, then under More
+            settings turn off <strong>Headers and footers</strong> so the page
+            URL and date don&apos;t appear on your resume.
           </p>
         </div>
       )}

@@ -14,9 +14,88 @@ body {
 }
 
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  /* App chrome only — .resume-document sets its own font from Design settings. */
+  font-family: "Inter Variable", Inter, ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", sans-serif;
+  font-feature-settings: "cv11", "ss01";
+  color: #1a1815;
+  background: #f6f3ee;
   position: relative;
   margin: 0;
+}
+
+::selection {
+  background: #ffc8aa;
+  color: #1a1815;
+}
+
+@layer components {
+  /* Buttons — one vocabulary across the app */
+  .btn {
+    @apply inline-flex min-h-[40px] select-none items-center justify-center gap-2 whitespace-nowrap rounded-full px-4 text-sm font-medium transition duration-150 touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-paper disabled:pointer-events-none disabled:opacity-40;
+  }
+  .btn-lg {
+    @apply min-h-[48px] px-6 text-[15px];
+  }
+  .btn-sm {
+    @apply min-h-[34px] px-3 text-[13px];
+  }
+  .btn-primary {
+    @apply bg-ink text-white shadow-sm hover:bg-ink-soft active:scale-[0.98];
+  }
+  .btn-brand {
+    @apply bg-brand-500 text-white shadow-[0_6px_16px_-6px_rgba(238,84,25,0.6)] hover:bg-brand-600 active:scale-[0.98];
+  }
+  .btn-secondary {
+    @apply border border-line-strong bg-white text-ink hover:border-ink-faint hover:bg-paper active:scale-[0.98];
+  }
+  .btn-ghost {
+    @apply text-ink-soft hover:bg-ink/5 hover:text-ink;
+  }
+  .btn-icon {
+    @apply inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-ink-soft transition hover:bg-ink/5 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 touch-manipulation;
+  }
+
+  /* Form fields */
+  .field-label {
+    @apply mb-1.5 block text-[12px] font-medium text-ink-muted;
+  }
+  .field {
+    @apply w-full rounded-xl border border-line-strong/80 bg-white px-3.5 py-2.5 text-base text-ink shadow-[inset_0_1px_0_rgba(26,24,21,0.03)] transition placeholder:text-ink-faint/80 hover:border-ink-faint focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/15 sm:text-sm;
+  }
+
+  .card {
+    @apply rounded-2xl border border-line bg-white shadow-card;
+  }
+
+  .eyebrow {
+    @apply text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-muted;
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-full border border-line bg-white px-2.5 py-1 text-xs font-medium text-ink-soft;
+  }
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #cdc5b8 transparent;
+}
+
+.paper-grain {
+  background-color: #f6f3ee;
+  background-image: radial-gradient(
+      circle at 1px 1px,
+      rgba(26, 24, 21, 0.045) 1px,
+      transparent 0
+    );
+  background-size: 22px 22px;
+}
+
+/* Thumbnails of real templates: never interactive, never measured. */
+.resume-thumb .resume-document {
+  pointer-events: none;
+  user-select: none;
 }
 
 /* Login / gate shells must never exceed the layout viewport */
@@ -41,15 +120,11 @@ body {
   padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 0.5rem);
 }
 
-/**
- * Gallery First home chrome (GF1) — Amadeus exact mobile top-spacing.
- * Replaces flat py-3 reliance under the notch / status bar.
- */
-.gallery-home-chrome {
-  padding-top: calc(env(safe-area-inset-top, 0px) + 12px);
-  padding-bottom: 12px;
-  padding-left: max(1rem, env(safe-area-inset-left, 0px));
-  padding-right: max(1rem, env(safe-area-inset-right, 0px));
+/* Notch-safe padding for top-level app chrome. */
+.app-chrome {
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
 }
 
 /* Prefer dynamic viewport height on mobile browsers */
@@ -134,7 +209,8 @@ body {
 }
 
 .page-fit-frame {
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 1px 2px rgba(26, 24, 21, 0.06),
+    0 18px 44px -14px rgba(26, 24, 21, 0.22);
   background: white;
 }
 

@@ -65,3 +65,11 @@ export function withAtsBullet(text: string): string {
   if (!trimmed) return "";
   return `• ${trimmed.replace(LEADING_BULLET_RE, "")}`;
 }
+
+/** Name to show for a resume: its own name, or "<Full name> — Resume" while still untitled. */
+export function resumeDisplayName(version: { name: string; contact: { fullName: string } }): string {
+  const name = version.name.trim();
+  if (name && !/^(untitled resume|new resume)$/i.test(name)) return name;
+  const person = version.contact.fullName.trim();
+  return person ? `${person} — Resume` : "Untitled resume";
+}

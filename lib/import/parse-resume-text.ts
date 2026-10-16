@@ -379,8 +379,8 @@ function parseEducationBlock(lines: string[]): Education[] {
     if (BULLET_RE.test(line)) continue;
 
     const pipeParts = line.split(/\s*\|\s*/).map((p) => p.trim());
-    let institutionLine = pipeParts[0];
-    let graduationDate = pipeParts[1] ?? "";
+    const institutionLine = pipeParts[0];
+    const graduationDate = pipeParts[1] ?? "";
     const institutionParts = institutionLine.split(",").map((p) => p.trim());
     const institution = institutionParts[0] ?? "";
     const location = institutionParts.slice(1).join(", ");

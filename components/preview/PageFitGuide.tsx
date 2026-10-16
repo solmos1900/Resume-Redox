@@ -15,33 +15,35 @@ import {
 } from "@/lib/page-fit";
 import { ResumePreview } from "./ResumePreview";
 
-function PageFitBanner({ result }: { result: PageFitResult }) {
+export function PageFitBadge({ result }: { result: PageFitResult }) {
   const styles = {
-    fits: "border-green-200 bg-green-50 text-green-900",
-    tight: "border-amber-200 bg-amber-50 text-amber-900",
-    overflow: "border-red-200 bg-red-50 text-red-900",
-    margin: "border-orange-200 bg-orange-50 text-orange-900",
+    fits: "bg-moss-50 text-moss-700 ring-moss-100",
+    tight: "bg-amber-50 text-amber-800 ring-amber-200",
+    overflow: "bg-red-50 text-red-700 ring-red-200",
+    margin: "bg-amber-50 text-amber-800 ring-amber-200",
   } as const;
-
   const labels = {
-    fits: "One page",
+    fits: "Fits on one page",
     tight: "Nearly full",
-    overflow: "Page 2 overflow",
-    margin: "Margin warning",
+    overflow: "Spills onto page 2",
+    margin: "Check the margins",
+  } as const;
+  const dot = {
+    fits: "bg-moss-500",
+    tight: "bg-amber-500",
+    overflow: "bg-red-500",
+    margin: "bg-amber-500",
   } as const;
 
   return (
-    <div
-      className={`no-print mb-3 rounded-lg border px-3 py-2 text-xs ${styles[result.status]}`}
+    <span
+      className={`no-print inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold ring-1 ${styles[result.status]}`}
+      title={formatOverflowMessage(result)}
     >
-      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-        <span className="font-semibold">{labels[result.status]}</span>
-        <span className="text-[11px] opacity-80">
-          US Letter · 8.5×11 in · 0.5 in margins
-        </span>
-      </div>
-      <p className="mt-1 leading-relaxed">{formatOverflowMessage(result)}</p>
-    </div>
+      <span className={`h-2 w-2 rounded-full ${dot[result.status]}`} aria-hidden />
+      {labels[result.status]}
+      <span className="sr-only">. {formatOverflowMessage(result)}</span>
+    </span>
   );
 }
 
@@ -72,7 +74,12 @@ function usePreviewScale() {
   return { containerRef, scale };
 }
 
-export function PageFitGuide() {
+export function PageFitGuide({
+  onResult,
+}: {
+  /** Reports the fit status so the surrounding chrome can show it. */
+  onResult?: (result: PageFitResult | null) => void;
+}) {
   const activeVersionId = useResumeStore((s) => s.activeVersionId);
   const templateId = useResumeStore((s) => s.getActiveVersion()?.templateId);
   const designKey = useResumeStore((s) => {
@@ -94,8 +101,13 @@ export function PageFitGuide() {
   const frameRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Scope to this frame: thumbnails elsewhere on the page render the same
+    // templates (and the same element id).
+    const findDocument = () =>
+      frameRef.current?.querySelector<HTMLElement>(".resume-document") ?? null;
+
     const measure = () => {
-      const element = document.getElementById("resume-preview");
+      const element = findDocument();
       if (!element) return;
       setResult(measurePrintPageFit(element));
       if (frameRef.current) {
@@ -107,7 +119,7 @@ export function PageFitGuide() {
 
     measure();
 
-    const element = document.getElementById("resume-preview");
+    const element = findDocument();
     if (!element) return;
 
     const resizeObserver = new ResizeObserver(measure);
@@ -131,13 +143,16 @@ export function PageFitGuide() {
     };
   }, [activeVersionId, templateId, designKey]);
 
+  useEffect(() => {
+    onResult?.(result);
+  }, [result, onResult]);
+
   const marginX = PAGE_MARGIN_X_IN * PX_PER_IN;
   const marginTop = PAGE_MARGIN_TOP_IN * PX_PER_IN;
   const scaledHeight = frameHeight * scale;
 
   return (
     <div className="flex w-full flex-col items-stretch sm:items-center">
-      {result && <PageFitBanner result={result} />}
       <div ref={containerRef} className="w-full flex justify-center">
         <div
           className="relative"
@@ -156,7 +171,7 @@ export function PageFitGuide() {
             }}
           >
             <div
-              className="page-fit-margin-guide pointer-events-none absolute border border-dashed border-blue-300/70 rounded-sm"
+              className="page-fit-margin-guide pointer-events-none absolute rounded-sm border border-dashed border-brand-300/40"
               style={{
                 top: marginTop,
                 left: marginX,
@@ -168,12 +183,12 @@ export function PageFitGuide() {
             {result && !result.fitsOnePage && result.overflowPx > 0 && (
               <>
                 <div
-                  className="page-fit-break-line pointer-events-none absolute left-0 right-0 z-20 border-t-2 border-dashed border-red-500"
+                  className="page-fit-break-line pointer-events-none absolute left-0 right-0 z-20 border-t-2 border-dashed border-red-400"
                   style={{ top: PRINT_CONTENT_AREA_BOTTOM_PX }}
                   aria-hidden
                 />
                 <div
-                  className="page-fit-overflow-region pointer-events-none absolute left-0 right-0 z-10 bg-red-200/35"
+                  className="page-fit-overflow-region pointer-events-none absolute left-0 right-0 z-10 bg-red-100/40"
                   style={{
                     top: PRINT_CONTENT_AREA_BOTTOM_PX,
                     height: result.overflowPx,
@@ -181,10 +196,10 @@ export function PageFitGuide() {
                   aria-hidden
                 />
                 <div
-                  className="page-fit-page-label pointer-events-none absolute z-20 rounded bg-red-600 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white"
+                  className="page-fit-page-label pointer-events-none absolute z-20 rounded-full bg-red-600 px-2.5 py-1 text-[11px] font-semibold text-white"
                   style={{ top: PRINT_CONTENT_AREA_BOTTOM_PX + 8, right: 12 }}
                 >
-                  Page 2
+                  Page 2 starts here
                 </div>
               </>
             )}
@@ -192,12 +207,7 @@ export function PageFitGuide() {
           </div>
         </div>
       </div>
-      {scale < 0.99 && (
-        <p className="no-print mt-2 mb-2 text-center text-[11px] text-gray-500">
-          Preview scaled to {Math.round(scale * 100)}% — print/PDF stays full
-          letter size.
-        </p>
-      )}
+
     </div>
   );
 }

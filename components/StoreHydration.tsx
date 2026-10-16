@@ -15,8 +15,9 @@ export function StoreHydration({ children }: { children: ReactNode }) {
 
   if (!ready) {
     return (
-      <div className="auth-shell box-border flex min-h-dvh items-center justify-center text-gray-500 text-sm">
-        Loading resume...
+      <div className="flex h-dvh items-center justify-center bg-paper" aria-busy="true">
+        <span className="h-2 w-2 animate-pulse rounded-full bg-brand-500" />
+        <span className="sr-only">Loading your resumes…</span>
       </div>
     );
   }

@@ -1,66 +1,88 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import { useAuth } from "./AuthProvider";
+import { useUiStore } from "@/lib/ui-store";
+import { useSyncStatus } from "@/lib/sync-status";
+import { Menu, MenuItem } from "@/components/ui/Menu";
+import { IconCloud } from "@/components/ui/icons";
 
-/** Only ever mounted inside AuthGate, so `user` is always present here. */
-export function AccountMenu() {
-  const { user, signOutUser } = useAuth();
-  const [menuOpen, setMenuOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
+const SYNC_LABEL = {
+  idle: "Sync is on",
+  syncing: "Syncing…",
+  synced: "All changes synced",
+  error: "Sync failed — we'll retry on your next edit",
+} as const;
 
-  useEffect(() => {
-    if (!menuOpen) return;
-    const handleClickOutside = (event: MouseEvent) => {
-      if (!containerRef.current?.contains(event.target as Node)) {
-        setMenuOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [menuOpen]);
+/** "Sync" button when signed out; avatar menu when signed in. Hidden if auth isn't configured. */
+export function AccountMenu({ compact = false }: { compact?: boolean }) {
+  const { user, configured, initializing, signOutUser } = useAuth();
+  const openSignIn = useUiStore((s) => s.openSignIn);
+  const syncStatus = useSyncStatus((s) => s.status);
 
-  if (!user) return null;
+  if (!configured || initializing) return null;
+
+  if (!user) {
+    return (
+      <button
+        type="button"
+        onClick={() => openSignIn()}
+        className={compact ? "btn-icon" : "btn btn-ghost btn-sm"}
+        aria-label="Sign in to sync across devices"
+        title="Sign in to sync across devices"
+      >
+        <IconCloud />
+        {!compact && <span className="hidden md:inline">Sync</span>}
+      </button>
+    );
+  }
 
   const label = user.displayName || user.email || "Account";
   const initial = label.charAt(0).toUpperCase();
 
   return (
-    <div className="relative" ref={containerRef}>
-      <button
-        type="button"
-        onClick={() => setMenuOpen((v) => !v)}
-        className="flex items-center gap-2 text-sm px-2 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 touch-manipulation"
-        aria-haspopup="menu"
-        aria-expanded={menuOpen}
-        aria-label="Account menu"
-      >
-        <span className="w-6 h-6 rounded-full bg-gray-900 text-white text-xs flex items-center justify-center font-semibold shrink-0">
-          {initial}
-        </span>
-        <span className="hidden sm:inline max-w-[140px] truncate text-gray-700">
-          {label}
-        </span>
-      </button>
-
-      {menuOpen && (
-        <div
-          role="menu"
-          className="absolute right-0 mt-1 w-44 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-40"
+    <Menu
+      width="w-72"
+      trigger={(props) => (
+        <button
+          type="button"
+          {...props}
+          className="inline-flex h-10 w-10 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+          aria-label="Account menu"
         >
-          <button
-            type="button"
-            role="menuitem"
+          <span className="relative flex h-8 w-8 items-center justify-center rounded-full bg-ink text-xs font-semibold text-paper">
+            {initial}
+            <span
+              className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full ring-2 ring-white ${
+                syncStatus === "error" ? "bg-red-500" : syncStatus === "syncing" ? "bg-amber-400" : "bg-moss-500"
+              }`}
+              aria-hidden
+            />
+          </span>
+        </button>
+      )}
+    >
+      {(close) => (
+        <>
+          <div className="px-3 pb-2 pt-2">
+            <p className="truncate text-sm font-semibold text-ink">{label}</p>
+            {user.email && user.displayName && (
+              <p className="truncate text-xs text-ink-muted">{user.email}</p>
+            )}
+            <p className="mt-2 flex items-center gap-1.5 text-xs text-ink-muted">
+              <IconCloud size={14} /> {SYNC_LABEL[syncStatus]}
+            </p>
+          </div>
+          <div className="my-1 h-px bg-line" />
+          <MenuItem
+            label="Sign out"
+            hint="Resumes stay on this device."
             onClick={() => {
-              setMenuOpen(false);
+              close();
               void signOutUser();
             }}
-            className="w-full text-left text-sm px-3 py-2 hover:bg-gray-50 text-red-600"
-          >
-            Sign out
-          </button>
-        </div>
+          />
+        </>
       )}
-    </div>
+    </Menu>
   );
 }
