@@ -381,8 +381,8 @@ export function AddCustomSectionControls() {
     <div className="rounded-lg border border-dashed border-gray-300 p-3 bg-white">
       <p className="text-xs text-gray-500 mb-2">
         Add a custom section with the same layout as Experience (name, subtitle,
-        dates, bullets). New sections appear above Skills in the editor and
-        preview.
+        dates, bullets). Titles export in uppercase (e.g. CERTIFICATIONS) for
+        ATS scanners. New sections appear above Skills in the editor and preview.
       </p>
       <div className="flex flex-wrap gap-2">
         <button
@@ -391,6 +391,13 @@ export function AddCustomSectionControls() {
           className="text-xs px-3 py-1.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800"
         >
           + Projects
+        </button>
+        <button
+          type="button"
+          onClick={() => addSection("Certifications")}
+          className="text-xs px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50"
+        >
+          + Certifications
         </button>
         <button
           type="button"

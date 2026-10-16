@@ -11,7 +11,7 @@ A local-first resume builder with live ATS-friendly preview and role-specific ve
 - **Download → PDF** — Chromium text PDF of the **same React templates** as the live preview (selectable text, embedded fonts, US Letter, no browser URL footer / Vercel toolbar)
 - **Download → Word / TXT** — ATS text siblings with the **same content and section order** as preview (not a visual twin of Accent/etc.)
 - **Backup & Import** — download/upload a JSON backup of all resumes
-- **No account required** — all data persists in localStorage
+- **Signed-in PDF export** — Chromium PDF generation requires a Firebase account (server-verified); resume data still persists in localStorage / cloud sync
 
 AI Coach, job-URL fetch, and disk sync are **archived** under [`_archived/`](_archived/README.md) for later re-enable.
 
@@ -29,8 +29,21 @@ Open [http://localhost:3000](http://localhost:3000).
 1. Push this repo to GitHub.
 2. Import the project at [vercel.com/new](https://vercel.com/new).
 3. Framework preset: **Next.js** (auto-detected). Build command `npm run build`, output default.
-4. No environment variables required for core features.
+4. Set Firebase env vars (see [Environment variables](#environment-variables) below). Sign-in and PDF export both require them.
 5. Deploy.
+
+## Environment variables
+
+Copy [`.env.example`](.env.example) for a full list.
+
+| Variable | Required | Purpose |
+|----------|----------|---------|
+| `NEXT_PUBLIC_FIREBASE_*` | Yes (for auth UI) | Client Firebase config used by `AuthGate` / sign-in |
+| `FIREBASE_PROJECT_ID` | Recommended | Server verification of Firebase ID tokens for `POST /api/export-pdf`. Falls back to `NEXT_PUBLIC_FIREBASE_PROJECT_ID`. **If neither is set, PDF export denies requests (503)** — fail closed. |
+| `PDF_EXPORT_MAX_CONCURRENCY` | No (default `2`) | Max concurrent Chromium PDF workers per serverless isolate |
+| `PDF_EXPORT_TIMEOUT_MS` | No (default `45000`) | Hard kill timeout for the PDF worker / browser |
+
+**PDF export security:** `POST /api/export-pdf` requires `Authorization: Bearer <Firebase ID token>`, caps JSON body size (256 KiB) and field sizes, rate-limits per user (5/min) and IP (10/min), and kills timed-out Chromium workers. Rate limits use an **in-memory** store per serverless isolate — they reduce abuse on warm instances but are not a durable global quota across Vercel instances. A Redis-backed limiter can be added later if needed.
 
 Or from the CLI:
 
