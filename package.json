@@ -22,7 +22,7 @@
     "firebase": "^12.18.0",
     "jose": "^6.2.12",
     "mammoth": "^1.12.2",
-    "next": "^15.1.0",
+    "next": "^15.5.27",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^6.3.289",
     "puppeteer-core": "^25.10.0",
