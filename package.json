@@ -15,7 +15,8 @@
     "test:cloud-sync-save-queue": "tsx scripts/test-cloud-sync-save-queue.ts",
     "build": "npm run build:pdf-assets && next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:lint-config": "node scripts/assert-eslint-config.mjs"
   },
   "dependencies": {
     "@sparticuz/chromium-min": "^147.0.1",
@@ -33,6 +34,7 @@
     "zustand": "^5.0.2"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.7",
     "@types/node": "^22.20.5",
     "@types/react": "^19.0.2",
     "@types/react-dom": "^19.0.2",
