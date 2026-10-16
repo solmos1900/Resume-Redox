@@ -208,6 +208,92 @@ async function main() {
     assert.equal(parsed.ok, true);
   });
 
+  await test("legacy payload without ATS fields gets defaults and renders", async () => {
+    resetPdfExportRateLimitsForTests();
+    const {
+      atsContactLayout: _layout,
+      atsSummaryHeading: _heading,
+      atsHeadingCase: _case,
+      ...legacyVersion
+    } = createSeedVersion();
+
+    const parsed = parseExportResumeVersion(legacyVersion);
+    assert.equal(parsed.ok, true);
+    if (!parsed.ok) return;
+    assert.equal(parsed.data.atsContactLayout, "inline");
+    assert.equal(parsed.data.atsSummaryHeading, "summary");
+    assert.equal(parsed.data.atsHeadingCase, "title");
+
+    const fakePdf = new Uint8Array([0x25, 0x50, 0x44, 0x46]);
+    let renderedAts: {
+      atsContactLayout: string;
+      atsSummaryHeading: string;
+      atsHeadingCase: string;
+    } | null = null;
+    const res = await handleExportPdfPost(jsonRequest({ version: legacyVersion }), {
+      requireUser: async () => ({ ok: true, user: mockUser() }),
+      checkRateLimits: async () => ({ ok: true }),
+      render: async (v) => {
+        renderedAts = {
+          atsContactLayout: v.atsContactLayout,
+          atsSummaryHeading: v.atsSummaryHeading,
+          atsHeadingCase: v.atsHeadingCase,
+        };
+        return fakePdf;
+      },
+      withSlot: async (fn) => fn(),
+      maxBodyBytes: PDF_EXPORT_MAX_BODY_BYTES,
+    });
+    assert.equal(res.status, 200);
+    assert.deepEqual(renderedAts, {
+      atsContactLayout: "inline",
+      atsSummaryHeading: "summary",
+      atsHeadingCase: "title",
+    });
+  });
+
+  await test("payload with ATS fields passes them through to render", async () => {
+    resetPdfExportRateLimitsForTests();
+    const version = createSeedVersion();
+    version.atsContactLayout = "stacked";
+    version.atsSummaryHeading = "profile";
+    version.atsHeadingCase = "upper";
+
+    const parsed = parseExportResumeVersion(version);
+    assert.equal(parsed.ok, true);
+    if (!parsed.ok) return;
+    assert.equal(parsed.data.atsContactLayout, "stacked");
+    assert.equal(parsed.data.atsSummaryHeading, "profile");
+    assert.equal(parsed.data.atsHeadingCase, "upper");
+
+    const fakePdf = new Uint8Array([0x25, 0x50, 0x44, 0x46]);
+    let renderedAts: {
+      atsContactLayout: string;
+      atsSummaryHeading: string;
+      atsHeadingCase: string;
+    } | null = null;
+    const res = await handleExportPdfPost(jsonRequest({ version }), {
+      requireUser: async () => ({ ok: true, user: mockUser() }),
+      checkRateLimits: async () => ({ ok: true }),
+      render: async (v) => {
+        renderedAts = {
+          atsContactLayout: v.atsContactLayout,
+          atsSummaryHeading: v.atsSummaryHeading,
+          atsHeadingCase: v.atsHeadingCase,
+        };
+        return fakePdf;
+      },
+      withSlot: async (fn) => fn(),
+      maxBodyBytes: PDF_EXPORT_MAX_BODY_BYTES,
+    });
+    assert.equal(res.status, 200);
+    assert.deepEqual(renderedAts, {
+      atsContactLayout: "stacked",
+      atsSummaryHeading: "profile",
+      atsHeadingCase: "upper",
+    });
+  });
+
   await test("rate limiter blocks after limit", async () => {
     const store = new MemoryRateLimitStore();
     const limiter = createRateLimiter({
