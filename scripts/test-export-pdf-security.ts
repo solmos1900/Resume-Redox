@@ -28,6 +28,11 @@ import {
   withPdfExportSlot,
   getActivePdfExportCount,
 } from "../lib/server/pdf-concurrency";
+import {
+  PayloadTooLargeError,
+  readLimitedBodyBytes,
+  readLimitedJson,
+} from "../lib/server/read-limited-json";
 import type { VerifiedFirebaseUser } from "../lib/server/firebase-auth";
 import type { ResumeVersion } from "../lib/schema";
 
@@ -86,6 +91,75 @@ function jsonRequest(
     body: raw,
   });
 }
+
+/**
+ * Pull-based body stream so tests can prove we stop reading once the
+ * byte cap is exceeded (no unbounded buffering in our reader).
+ */
+function trackedChunkStream(
+  chunkSize: number,
+  totalBytes: number
+): { stream: ReadableStream<Uint8Array>; getBytesPulled: () => number } {
+  let remaining = totalBytes;
+  let bytesPulled = 0;
+  const stream = new ReadableStream<Uint8Array>({
+    pull(controller) {
+      if (remaining <= 0) {
+        controller.close();
+        return;
+      }
+      const size = Math.min(chunkSize, remaining);
+      bytesPulled += size;
+      remaining -= size;
+      controller.enqueue(new Uint8Array(size).fill(0x61)); // 'a'
+    },
+  });
+  return {
+    stream,
+    getBytesPulled: () => bytesPulled,
+  };
+}
+
+function streamRequest(
+  stream: ReadableStream<Uint8Array>,
+  init?: {
+    authorization?: string | null;
+    contentLength?: string | null;
+    ip?: string;
+  }
+): NextRequest {
+  const headers = new Headers({
+    "content-type": "application/json",
+  });
+  if (init?.authorization !== null) {
+    headers.set(
+      "authorization",
+      init?.authorization ?? "Bearer valid-test-token"
+    );
+  }
+  if (init?.contentLength != null) {
+    headers.set("content-length", init.contentLength);
+  }
+  if (init?.ip) {
+    headers.set("x-forwarded-for", init.ip);
+  }
+  return new NextRequest("http://localhost/api/export-pdf", {
+    method: "POST",
+    headers,
+    // duplex is required by undici/fetch for streaming request bodies
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ...( { body: stream, duplex: "half" } as any ),
+  });
+}
+
+const okAuthDeps = {
+  requireUser: async () => ({ ok: true as const, user: mockUser() }),
+  checkRateLimits: async () => ({ ok: true as const }),
+  render: async () => {
+    throw new Error("render should not run");
+  },
+  withSlot: async <T>(fn: () => Promise<T>) => fn(),
+};
 
 async function main() {
   await test("extractBearerToken parses Authorization header", () => {
@@ -168,17 +242,168 @@ async function main() {
         }
       ),
       {
-        requireUser: async () => ({ ok: true, user: mockUser() }),
-        checkRateLimits: async () => ({ ok: true }),
-        render: async () => {
-          throw new Error("render should not run");
-        },
-        withSlot: async (fn) => fn(),
+        ...okAuthDeps,
         maxBodyBytes: PDF_EXPORT_MAX_BODY_BYTES,
       }
     );
     assert.equal(res.status, 413);
   });
+
+  await test("under-limit JSON body is accepted by readLimitedJson", async () => {
+    const payload = JSON.stringify({ ok: true, n: 1 });
+    const req = jsonRequest(payload);
+    const parsed = await readLimitedJson(req, PDF_EXPORT_MAX_BODY_BYTES);
+    assert.deepEqual(parsed, { ok: true, n: 1 });
+  });
+
+  await test(
+    "stream reader accepts body exactly at maxBytes",
+    async () => {
+      const maxBytes = 64;
+      const { stream, getBytesPulled } = trackedChunkStream(16, maxBytes);
+      const text = await readLimitedBodyBytes(stream, maxBytes);
+      assert.equal(Buffer.byteLength(text, "utf8"), maxBytes);
+      assert.equal(getBytesPulled(), maxBytes);
+    }
+  );
+
+  await test(
+    "stream reader aborts over-limit body without unbounded pull",
+    async () => {
+      const maxBytes = 256;
+      const chunkSize = 64;
+      // Pretend a multi-megabyte body; only a bounded prefix should be pulled.
+      const claimedTotal = 5 * 1024 * 1024;
+      const { stream, getBytesPulled } = trackedChunkStream(
+        chunkSize,
+        claimedTotal
+      );
+
+      await assert.rejects(
+        () => readLimitedBodyBytes(stream, maxBytes),
+        (err: unknown) => {
+          assert.ok(err instanceof PayloadTooLargeError);
+          assert.equal(err.status, 413);
+          return true;
+        }
+      );
+
+      const pulled = getBytesPulled();
+      // One chunk past the limit is enough to detect overflow; never the full body.
+      assert.ok(pulled > maxBytes);
+      assert.ok(
+        pulled <= maxBytes + chunkSize,
+        `expected bounded pull <= ${maxBytes + chunkSize}, got ${pulled}`
+      );
+      assert.ok(
+        pulled < claimedTotal,
+        `reader must not pull the full ${claimedTotal} byte body`
+      );
+    }
+  );
+
+  await test(
+    "missing Content-Length still enforces stream byte cap (413)",
+    async () => {
+      resetPdfExportRateLimitsForTests();
+      const maxBytes = 512;
+      const chunkSize = 128;
+      const claimedTotal = 8 * 1024 * 1024;
+      const { stream, getBytesPulled } = trackedChunkStream(
+        chunkSize,
+        claimedTotal
+      );
+      const res = await handleExportPdfPost(
+        streamRequest(stream, { contentLength: null }),
+        {
+          ...okAuthDeps,
+          maxBodyBytes: maxBytes,
+        }
+      );
+      assert.equal(res.status, 413);
+      const pulled = getBytesPulled();
+      // Allow a couple of queued chunks from stream HWM / cancel races,
+      // but never anything near the claimed multi-megabyte body.
+      assert.ok(
+        pulled <= maxBytes + chunkSize * 4,
+        `expected bounded pull <= ${maxBytes + chunkSize * 4}, got ${pulled}`
+      );
+      assert.ok(pulled < claimedTotal / 100);
+    }
+  );
+
+  await test(
+    "lying undersized Content-Length cannot bypass stream cap (413)",
+    async () => {
+      resetPdfExportRateLimitsForTests();
+      const maxBytes = 512;
+      const chunkSize = 128;
+      const claimedTotal = 4 * 1024 * 1024;
+      const { stream, getBytesPulled } = trackedChunkStream(
+        chunkSize,
+        claimedTotal
+      );
+      const res = await handleExportPdfPost(
+        streamRequest(stream, {
+          // Claim a small body while streaming far more bytes.
+          contentLength: String(Math.floor(maxBytes / 2)),
+        }),
+        {
+          ...okAuthDeps,
+          maxBodyBytes: maxBytes,
+        }
+      );
+      assert.equal(res.status, 413);
+      const pulled = getBytesPulled();
+      assert.ok(
+        pulled <= maxBytes + chunkSize * 4,
+        `expected bounded pull <= ${maxBytes + chunkSize * 4}, got ${pulled}`
+      );
+      assert.ok(pulled < claimedTotal / 100);
+    }
+  );
+
+  await test(
+    "under-limit streamed body without Content-Length reaches JSON parse",
+    async () => {
+      resetPdfExportRateLimitsForTests();
+      const version = createSeedVersion();
+      const raw = JSON.stringify({ version });
+      assert.ok(Buffer.byteLength(raw, "utf8") < PDF_EXPORT_MAX_BODY_BYTES);
+
+      const bytes = new TextEncoder().encode(raw);
+      let pulled = 0;
+      const stream = new ReadableStream<Uint8Array>({
+        pull(controller) {
+          if (pulled >= bytes.byteLength) {
+            controller.close();
+            return;
+          }
+          const next = bytes.subarray(pulled, pulled + 64);
+          pulled += next.byteLength;
+          controller.enqueue(next);
+        },
+      });
+
+      let rendered = false;
+      const fakePdf = new Uint8Array([0x25, 0x50, 0x44, 0x46]);
+      const res = await handleExportPdfPost(
+        streamRequest(stream, { contentLength: null }),
+        {
+          requireUser: async () => ({ ok: true, user: mockUser() }),
+          checkRateLimits: async () => ({ ok: true }),
+          render: async () => {
+            rendered = true;
+            return fakePdf;
+          },
+          withSlot: async (fn) => fn(),
+          maxBodyBytes: PDF_EXPORT_MAX_BODY_BYTES,
+        }
+      );
+      assert.equal(res.status, 200);
+      assert.equal(rendered, true);
+    }
+  );
 
   await test("oversized string field is rejected", () => {
     const version = createSeedVersion() as ResumeVersion;
