@@ -40,9 +40,9 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
   {
     id: "executive",
     name: "Executive Formal",
-    tagline: "Centered & authoritative",
+    tagline: "Formal & authoritative",
     description:
-      "Centered name and contact block with formal section treatment. Strong first impression for senior roles.",
+      "Left-aligned formal layout with Classic-style section headings. Strong first impression for senior roles.",
     atsNotes: [
       "No graphics or icons",
       "Standard h1/h2 hierarchy",

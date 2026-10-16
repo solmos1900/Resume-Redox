@@ -9,6 +9,11 @@ import {
   useResumeSections,
 } from "@/lib/templates/sections";
 import { normalizeSectionOrder } from "@/lib/templates/section-order";
+import {
+  formatCustomSectionTitle,
+  getAtsSectionTitle,
+  getAtsSummaryTitle,
+} from "@/lib/templates/ats-sections";
 import { formatDateRange } from "@/lib/utils";
 
 /**
@@ -31,20 +36,25 @@ export function getExportBlocks(data: ResumeContent): ExportBlock[] {
     visibleCustomSections,
   } = useResumeSections(data);
 
+  const headingCase = data.atsHeadingCase ?? "title";
   const blocks: ExportBlock[] = [];
 
   for (const id of normalizeSectionOrder(data.sectionOrder)) {
     switch (id) {
       case "summary":
         if (hasSummary) {
-          blocks.push({ kind: "summary", title: "Summary", body: data.summary });
+          blocks.push({
+            kind: "summary",
+            title: getAtsSummaryTitle(data.atsSummaryKind, headingCase),
+            body: data.summary,
+          });
         }
         break;
       case "experience":
         if (hasExperience) {
           blocks.push({
             kind: "experience",
-            title: "Experience",
+            title: getAtsSectionTitle("experience", headingCase),
             jobs: data.experience,
           });
         }
@@ -53,7 +63,7 @@ export function getExportBlocks(data: ResumeContent): ExportBlock[] {
         for (const section of visibleCustomSections) {
           blocks.push({
             kind: "custom",
-            title: section.title.trim() || "Section",
+            title: formatCustomSectionTitle(section.title, headingCase),
             jobs: customSectionToExperience(section),
           });
         }
@@ -62,7 +72,7 @@ export function getExportBlocks(data: ResumeContent): ExportBlock[] {
         if (hasSkills) {
           blocks.push({
             kind: "skills",
-            title: "Skills",
+            title: getAtsSectionTitle("skills", headingCase),
             groups: data.skillGroups,
           });
         }
@@ -71,7 +81,7 @@ export function getExportBlocks(data: ResumeContent): ExportBlock[] {
         if (hasEducation) {
           blocks.push({
             kind: "education",
-            title: "Education",
+            title: getAtsSectionTitle("education", headingCase),
             entries: data.education,
           });
         }

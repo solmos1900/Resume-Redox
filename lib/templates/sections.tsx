@@ -1,14 +1,49 @@
 import type { ResumeContent } from "./types";
 import type { CustomSection, Experience } from "@/lib/schema";
-import { formatContactLine, formatDateRange } from "@/lib/utils";
+import {
+  formatLinkedInDisplay,
+  formatWebsiteDisplay,
+} from "@/lib/contact-url";
+import { formatCustomSectionTitle } from "@/lib/templates/ats-sections";
+import {
+  formatAtsPhone,
+  formatCompanyLocation,
+  formatDateRange,
+  withAtsBullet,
+} from "@/lib/utils";
 
 export function useResumeSections(data: ResumeContent) {
-  const contactLine = formatContactLine([
-    data.contact.phone,
-    data.contact.email,
-    data.contact.linkedIn,
-    data.contact.location,
-  ]);
+  // Match PDF ContactLine: inline = primary pipes + URL line; stacked = labeled.
+  const primary: string[] = [];
+  const urls: string[] = [];
+  const labeled: string[] = [];
+  if (data.contact.phone?.trim()) {
+    const phone = formatAtsPhone(data.contact.phone);
+    primary.push(phone);
+    labeled.push(`Phone: ${phone}`);
+  }
+  if (data.contact.email?.trim()) {
+    primary.push(data.contact.email.trim());
+    labeled.push(`Email: ${data.contact.email.trim()}`);
+  }
+  if (data.contact.location?.trim()) {
+    primary.push(data.contact.location.trim());
+    labeled.push(`Location: ${data.contact.location.trim()}`);
+  }
+  if (data.contact.linkedIn?.trim()) {
+    const li = formatLinkedInDisplay(data.contact.linkedIn);
+    urls.push(li);
+    labeled.push(`LinkedIn: ${li}`);
+  }
+  if (data.contact.website?.trim()) {
+    const web = formatWebsiteDisplay(data.contact.website);
+    urls.push(web);
+    labeled.push(`Website: ${web}`);
+  }
+  const contactLine =
+    data.atsContactLayout === "stacked"
+      ? labeled.join("\n")
+      : [primary.join(" | "), urls.join(" | ")].filter(Boolean).join("\n");
 
   const hasSummary = data.summary.trim().length > 0;
   const hasExperience = data.experience.some(
@@ -41,16 +76,36 @@ export function useResumeSections(data: ResumeContent) {
 }
 
 export function customSectionToExperience(section: CustomSection): Experience[] {
-  return section.entries.map((entry) => ({
-    id: entry.id,
-    company: entry.name,
-    location: entry.location,
-    title: entry.subtitle,
-    startDate: entry.startDate,
-    endDate: entry.endDate,
-    current: entry.current,
-    bullets: entry.bullets,
-  }));
+  const isCerts = /^certifications?$/i.test(section.title.trim());
+  return section.entries.map((entry) => {
+    // One line for ATS: "Name, Issuer, Year" (Ladders only kept the name before).
+    if (isCerts) {
+      const year = entry.endDate.trim() || entry.startDate.trim();
+      const line = [entry.name.trim(), entry.subtitle.trim(), year]
+        .filter(Boolean)
+        .join(", ");
+      return {
+        id: entry.id,
+        company: line,
+        location: "",
+        title: "",
+        startDate: "",
+        endDate: "",
+        current: false,
+        bullets: entry.bullets,
+      };
+    }
+    return {
+      id: entry.id,
+      company: entry.name,
+      location: entry.location,
+      title: entry.subtitle,
+      startDate: entry.startDate,
+      endDate: entry.endDate,
+      current: entry.current,
+      bullets: entry.bullets,
+    };
+  });
 }
 
 type ExperienceBlockProps = {
@@ -79,7 +134,12 @@ export function CustomSectionBlocks({
     <>
       {visibleCustomSections.map((section) => (
         <section key={section.id} className={sectionClassName}>
-          <h2 className={headingClassName}>{section.title.trim() || "Section"}</h2>
+          <h2 className={headingClassName}>
+            {formatCustomSectionTitle(
+              section.title,
+              data.atsHeadingCase ?? "title"
+            )}
+          </h2>
           <ExperienceBlock
             data={data}
             experience={customSectionToExperience(section)}
@@ -114,9 +174,7 @@ export function ExperienceBlock({
   return (
     <div className={jobSpacing}>
       {jobs.map((job) => {
-        const companyLine = [job.company, job.location]
-          .filter((s) => s.trim())
-          .join(", ");
+        const companyLine = formatCompanyLocation(job.company, job.location);
         const dateRange = formatDateRange(
           job.startDate,
           job.endDate,
@@ -128,18 +186,33 @@ export function ExperienceBlock({
         }
         return (
           <div key={job.id}>
-            {companyLine && <p className={companyClass}>{companyLine}</p>}
-            {(job.title.trim() || dateRange) && (
-              <div className="flex justify-between mt-0.5">
-                {job.title.trim() && <span className={titleClass}>{job.title}</span>}
-                {dateRange && <span className={dateClass}>{dateRange}</span>}
+            {/*
+              Dates sit on the company line (standard US resume format). Keeping
+              them off the title/bullet band avoids raw PDF extractors interleaving
+              right-aligned dates between bullet lines.
+            */}
+            {(companyLine || dateRange) && (
+              <div className="flex justify-between items-baseline gap-4">
+                {companyLine ? (
+                  <span className={companyClass}>{companyLine}</span>
+                ) : (
+                  <span />
+                )}
+                {dateRange && (
+                  <span className={`${dateClass} whitespace-nowrap`}>
+                    {dateRange}
+                  </span>
+                )}
               </div>
+            )}
+            {job.title.trim() && (
+              <p className={`${titleClass} mt-0.5`}>{job.title}</p>
             )}
             {bullets.length > 0 && (
               <ul className="mt-1.5 space-y-1">
                 {bullets.map((bullet, i) => (
                   <li key={i} className={bulletClass}>
-                    {bullet}
+                    {withAtsBullet(bullet)}
                   </li>
                 ))}
               </ul>
@@ -182,7 +255,7 @@ export function SkillsBlock({
               <ul className="space-y-0.5">
                 {items.map((item, i) => (
                   <li key={i} className={lineClass}>
-                    {item}
+                    {withAtsBullet(item)}
                   </li>
                 ))}
               </ul>
@@ -228,12 +301,14 @@ export function EducationBlock({
           .filter(Boolean);
         return (
           <div key={edu.id}>
-            <div className="flex justify-between">
+            <div className="flex justify-between items-baseline gap-4">
               {edu.institution.trim() && (
                 <span className={institutionClass}>{edu.institution}</span>
               )}
               {edu.location.trim() && (
-                <span className={locationClass}>{edu.location}</span>
+                <span className={`${locationClass} whitespace-nowrap`}>
+                  {edu.location}
+                </span>
               )}
             </div>
             {(edu.details.trim() || edu.graduationDate.trim()) &&
@@ -241,19 +316,21 @@ export function EducationBlock({
                 <ul className="mt-1 space-y-0.5">
                   {detailParts.map((part, i) => (
                     <li key={i} className={detailsClass}>
-                      {part}
+                      {withAtsBullet(part)}
                     </li>
                   ))}
                 </ul>
               ) : (
-                <div className="flex justify-between mt-0.5">
+                <div className="flex justify-between items-baseline gap-4 mt-0.5">
                   {edu.details.trim() ? (
                     <span className={detailsClass}>{edu.details}</span>
                   ) : (
                     <span />
                   )}
                   {edu.graduationDate.trim() && (
-                    <span className={locationClass}>{edu.graduationDate}</span>
+                    <span className={`${locationClass} whitespace-nowrap`}>
+                      {edu.graduationDate}
+                    </span>
                   )}
                 </div>
               ))}

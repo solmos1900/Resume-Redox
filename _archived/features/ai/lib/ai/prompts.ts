@@ -32,6 +32,9 @@ Rules:
 - Use severity "critical" or "warning" primarily
 - Include targetId and fieldPath when pointing at specific fields
 - Do not invent experience; critique what's written
+- Flag duty-only bullets that lack outcomes, metrics, or scope
+- Flag repeated opening verbs across roles (same verb reused too often)
+- Prefer suggestedText rewrites that lead with varied action verbs and quantified results
 - Include an overall score 1-10 in "score"
 
 Resume:
@@ -67,6 +70,10 @@ Rules:
 - Use severity "suggestion" or "praise"
 - Be specific — reference sections and suggest concrete changes
 - Do not invent employers or metrics
+- Push experience bullets toward results (impact, %, $, time saved, scale) not duty lists
+- Encourage varied action verbs across bullets and roles; call out repetitive openers
+- When suggesting rewrites, lead with a strong verb + measurable outcome, then the method
+- Confirm contact has phone, email, city/state location, and a LinkedIn URL when missing
 ${jd ? `\nJob Description:\n${jd.slice(0, 12000)}` : ""}
 
 Resume:
@@ -104,7 +111,9 @@ Return JSON only:
 Rules:
 - Keep all ids unchanged in skillGroups and experience
 - Do not invent employers, degrees, or metrics
-- Reframe existing bullets for the target role
+- Reframe existing bullets for the target role as scannable result statements
+- Each bullet should start with a distinct action verb and include a metric or concrete scope when the source text supports it
+- Avoid repeating the same opening verb across nearby bullets
 - Recommendations should explain JD gaps and changes made
 
 Resume:

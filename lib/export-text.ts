@@ -4,13 +4,12 @@ import { getExportBlocks, formatExportDateRange } from "./export/export-blocks";
 import { useResumeSections } from "./templates/sections";
 import { getExportFilename } from "./export";
 import { downloadBlob } from "./download-history";
+import { formatCompanyLocation } from "./utils";
 
 function formatExperienceLines(jobs: Experience[]): string[] {
   const lines: string[] = [];
   for (const job of jobs) {
-    const companyLine = [job.company, job.location]
-      .filter((s) => s.trim())
-      .join(", ");
+    const companyLine = formatCompanyLocation(job.company, job.location);
     const bullets = job.bullets.filter((b) => b.trim());
     if (!companyLine && !job.title.trim() && bullets.length === 0) continue;
 
@@ -23,7 +22,7 @@ function formatExperienceLines(jobs: Experience[]): string[] {
     if (companyLine) lines.push(companyLine);
     const titleLine = [job.title, dateRange].filter((s) => s.trim()).join("  |  ");
     if (titleLine) lines.push(titleLine);
-    for (const bullet of bullets) lines.push(`  - ${bullet}`);
+    for (const bullet of bullets) lines.push(`• ${bullet.trim().replace(/^[\u2022•●◦\-*–—]\s+/, "")}`);
     lines.push("");
   }
   return lines;
@@ -38,11 +37,16 @@ function buildResumeText(version: ResumeVersion): string {
 
   lines.push(data.contact.fullName || "Untitled");
   if (data.contact.headline.trim()) lines.push(data.contact.headline);
-  if (contactLine) lines.push(contactLine);
+  if (contactLine) {
+    // stacked layout joins with newlines — keep each labeled field on its own line
+    for (const part of contactLine.split("\n")) {
+      if (part.trim()) lines.push(part);
+    }
+  }
   lines.push("");
 
   for (const block of blocks) {
-    lines.push(block.title.toUpperCase());
+    lines.push(block.title);
     if (block.kind === "summary") {
       lines.push(block.body);
       lines.push("");
