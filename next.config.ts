@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Lint stays a separate `npm run lint` / test:lint-config gate. Pre-existing
+  // source findings must not fail `next build` once eslint.config.mjs exists.
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   serverExternalPackages: [
     "@sparticuz/chromium-min",
     "puppeteer-core",
