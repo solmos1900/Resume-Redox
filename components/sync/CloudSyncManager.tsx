@@ -36,19 +36,31 @@ export function CloudSyncManager() {
 
   const unsubscribeRef = useRef<(() => void) | null>(null);
   const timeoutRef = useRef<number | null>(null);
+  /** Bumps on each autosave attempt so a stale completion cannot clobber status. */
+  const saveGenerationRef = useRef(0);
 
   const startAutosave = (uid: string) => {
     unsubscribeRef.current?.();
-    unsubscribeRef.current = useResumeStore.subscribe((state) => {
+    unsubscribeRef.current = useResumeStore.subscribe(() => {
       if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
       setSyncStatus("syncing");
       timeoutRef.current = window.setTimeout(() => {
+        const latest = useResumeStore.getState();
+        const generation = ++saveGenerationRef.current;
         void saveCloudStore(uid, {
-          activeVersionId: state.activeVersionId,
-          versions: state.versions,
+          activeVersionId: latest.activeVersionId,
+          versions: latest.versions,
         })
-          .then(() => setSyncStatus("synced"))
-          .catch(() => setSyncStatus("error"));
+          .then(() => {
+            if (generation === saveGenerationRef.current) {
+              setSyncStatus("synced");
+            }
+          })
+          .catch(() => {
+            if (generation === saveGenerationRef.current) {
+              setSyncStatus("error");
+            }
+          });
       }, SAVE_DEBOUNCE_MS);
     });
   };
