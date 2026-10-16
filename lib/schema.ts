@@ -7,6 +7,8 @@ export const contactSchema = z.object({
   phone: z.string(),
   location: z.string(),
   linkedIn: z.string().optional(),
+  /** Portfolio, GitHub, or personal site — shown as a labeled https URL. */
+  website: z.string().optional().default(""),
   linkedInHyperlink: z.boolean().default(true),
 });
 
@@ -144,6 +146,11 @@ export const DEFAULT_SECTION_ORDER = [
   "education",
 ] as const;
 
+export const atsContactLayoutSchema = z.enum(["stacked", "inline"]);
+/** summary = Summary/SUMMARY; profile = Profile/PROFILE */
+export const atsSummaryHeadingSchema = z.enum(["summary", "profile", "SUMMARY", "PROFILE"]);
+export const atsHeadingCaseSchema = z.enum(["title", "upper"]);
+
 export const resumeVersionSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -154,6 +161,18 @@ export const resumeVersionSchema = z.object({
   sectionOrder: z
     .array(reorderableSectionIdSchema)
     .default([...DEFAULT_SECTION_ORDER]),
+  /**
+   * ATS contact presentation.
+   * inline (default) = phone | email | location | https://www.linkedin.com/... 
+   * stacked = labeled lines (Phone: … / Email: …).
+   */
+  atsContactLayout: atsContactLayoutSchema.default("inline"),
+  /**
+   * Which summary label to use (Summary vs Profile). Accepts legacy SUMMARY/PROFILE.
+   */
+  atsSummaryHeading: atsSummaryHeadingSchema.default("summary"),
+  /** Title Case (default) vs ALL CAPS section headings in the text layer. */
+  atsHeadingCase: atsHeadingCaseSchema.default("title"),
   contact: contactSchema,
   summary: z.string(),
   experience: z.array(experienceSchema),
@@ -186,6 +205,9 @@ export type DesignFontFamily = z.infer<typeof designFontFamilySchema>;
 export type DesignFontSize = z.infer<typeof designFontSizeSchema>;
 export type DesignSpacing = z.infer<typeof designSpacingSchema>;
 export type DesignSettings = z.infer<typeof designSettingsSchema>;
+export type AtsContactLayout = z.infer<typeof atsContactLayoutSchema>;
+export type AtsSummaryHeading = z.infer<typeof atsSummaryHeadingSchema>;
+export type AtsHeadingCase = z.infer<typeof atsHeadingCaseSchema>;
 export type ReorderableSectionId = z.infer<typeof reorderableSectionIdSchema>;
 export type ResumeVersion = z.infer<typeof resumeVersionSchema>;
 export type StoreState = z.infer<typeof storeSchema>;
@@ -199,6 +221,9 @@ export function createEmptyVersion(name: string): ResumeVersion {
     templateId: "classic",
     design: { ...DEFAULT_DESIGN_SETTINGS },
     sectionOrder: [...DEFAULT_SECTION_ORDER],
+    atsContactLayout: "inline",
+    atsSummaryHeading: "summary",
+    atsHeadingCase: "title",
     contact: {
       fullName: "",
       headline: "",
@@ -206,6 +231,7 @@ export function createEmptyVersion(name: string): ResumeVersion {
       phone: "",
       location: "",
       linkedIn: "",
+      website: "",
       linkedInHyperlink: true,
     },
     summary: "",
