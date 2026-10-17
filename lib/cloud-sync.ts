@@ -1,17 +1,58 @@
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "./firebase";
-import { storeSchema, type StoreState } from "./schema";
+import { parseCloudStoreData } from "./cloud-store-parse";
+import type { StoreState } from "./schema";
 
 function userDocRef(uid: string) {
   if (!db) throw new Error("Cloud save is not configured.");
   return doc(db, "resumeStores", uid);
 }
 
-export async function fetchCloudStore(uid: string): Promise<StoreState | null> {
-  const snapshot = await getDoc(userDocRef(uid));
-  if (!snapshot.exists()) return null;
-  const parsed = storeSchema.safeParse(snapshot.data());
-  return parsed.success ? parsed.data : null;
+/**
+ * Result of reading `resumeStores/{uid}`.
+ * Only `missing` means it is safe to seed the cloud from local data.
+ * `invalid` / `error` must never be treated as empty — overwriting would
+ * destroy account resumes (issue #43).
+ */
+export type CloudFetchResult =
+  | { status: "missing" }
+  | { status: "ok"; data: StoreState }
+  | { status: "invalid"; reason: string }
+  | { status: "error"; message: string };
+
+/** Interpret a Firestore snapshot without performing I/O (testable). */
+export function interpretCloudSnapshot(snapshot: {
+  exists: () => boolean;
+  data: () => unknown;
+}): Exclude<CloudFetchResult, { status: "error" }> {
+  if (!snapshot.exists()) return { status: "missing" };
+  const parsed = parseCloudStoreData(snapshot.data());
+  if (parsed) return { status: "ok", data: parsed };
+  return {
+    status: "invalid",
+    reason:
+      "Your account resumes could not be read (unexpected data format). Sync is paused so nothing is overwritten.",
+  };
+}
+
+export function cloudFetchFailure(err: unknown): CloudFetchResult {
+  const message =
+    err instanceof Error
+      ? err.message
+      : "Could not reach cloud storage.";
+  return {
+    status: "error",
+    message: `Cloud sync paused: ${message}. Your local resumes are unchanged.`,
+  };
+}
+
+export async function fetchCloudStore(uid: string): Promise<CloudFetchResult> {
+  try {
+    const snapshot = await getDoc(userDocRef(uid));
+    return interpretCloudSnapshot(snapshot);
+  } catch (err) {
+    return cloudFetchFailure(err);
+  }
 }
 
 type CloudWriter = (uid: string, state: StoreState) => Promise<void>;
