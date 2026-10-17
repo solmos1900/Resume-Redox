@@ -8,26 +8,11 @@ import { fetchCloudStore, saveCloudStore } from "@/lib/cloud-sync";
 import {
   clearSaveDebounceTimer,
   cloudSyncSessionKey,
+  planInitialCloudSync,
 } from "@/lib/cloud-sync-lifecycle";
 import type { StoreState } from "@/lib/schema";
-import { SEED_VERSION_ID } from "@/lib/seed-data";
-import { Modal } from "@/components/ui/Modal";
+
 const SAVE_DEBOUNCE_MS = 1500;
-
-function isUntouchedSeed(state: StoreState): boolean {
-  return state.versions.length === 1 && state.versions[0].id === SEED_VERSION_ID;
-}
-
-/**
- * True when local and cloud hold the same resumes (by id + last-edited
- * time), regardless of array order. Used to skip the conflict dialog when
- * a device has already synced before and nothing has changed since.
- */
-function storesAreInSync(a: StoreState, b: StoreState): boolean {
-  if (a.versions.length !== b.versions.length) return false;
-  const bByid = new Map(b.versions.map((v) => [v.id, v.updatedAt]));
-  return a.versions.every((v) => bByid.get(v.id) === v.updatedAt);
-}
 
 export function CloudSyncManager() {
   const { user } = useAuth();
@@ -38,6 +23,8 @@ export function CloudSyncManager() {
     cloud: StoreState;
     local: StoreState;
   } | null>(null);
+  const [pausedMessage, setPausedMessage] = useState<string | null>(null);
+  const [retryToken, setRetryToken] = useState(0);
 
   const unsubscribeRef = useRef<(() => void) | null>(null);
   const timeoutRef = useRef<number | null>(null);
@@ -85,10 +72,11 @@ export function CloudSyncManager() {
     // pending debounced save so mid-flight edits are not written under the
     // wrong account, and so a same-user re-entry cannot double-save.
     stopAutosave();
+    setPausedMessage(null);
+    setConflict(null);
 
     if (!uid) {
       setSyncStatus("idle");
-      setConflict(null);
       return;
     }
 
@@ -101,10 +89,12 @@ export function CloudSyncManager() {
         activeVersionId: local.activeVersionId,
         versions: local.versions,
       };
-      const cloud = await fetchCloudStore(uid).catch(() => null);
+      const fetchResult = await fetchCloudStore(uid);
       if (cancelled) return;
 
-      if (!cloud) {
+      const plan = planInitialCloudSync(fetchResult, localState);
+
+      if (plan.action === "seed-local") {
         await saveCloudStore(uid, localState).catch(() => undefined);
         if (cancelled) return;
         setSyncStatus("synced");
@@ -112,14 +102,21 @@ export function CloudSyncManager() {
         return;
       }
 
-      if (isUntouchedSeed(localState) || storesAreInSync(localState, cloud)) {
-        useResumeStore.setState(cloud);
+      if (plan.action === "block") {
+        // Do not write. Do not start autosave. Preserve local + cloud.
+        setPausedMessage(plan.message);
+        setSyncStatus("paused");
+        return;
+      }
+
+      if (plan.action === "adopt-cloud") {
+        useResumeStore.setState(plan.cloud);
         setSyncStatus("synced");
         startAutosave(uid);
         return;
       }
 
-      setConflict({ uid, cloud, local: localState });
+      setConflict({ uid, cloud: plan.cloud, local: plan.local });
     })();
 
     return () => {
@@ -128,8 +125,9 @@ export function CloudSyncManager() {
     };
     // Key on uid only — profile-only User object replacements must not
     // re-run initial sync (see #59 / email signup displayName update).
+    // retryToken intentionally re-runs a paused sync after the user retries.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [uid]);
+  }, [uid, retryToken]);
 
   useEffect(
     () => () => {
@@ -138,6 +136,34 @@ export function CloudSyncManager() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
+
+  if (pausedMessage) {
+    return (
+      <div className="fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-md">
+        <div
+          className="rounded-xl border border-amber-200 bg-white px-4 py-3 shadow-lg"
+          role="status"
+        >
+          <p className="text-sm font-semibold text-gray-900">
+            Cloud sync paused
+          </p>
+          <p className="mt-1 text-sm text-gray-600">{pausedMessage}</p>
+          <p className="mt-1 text-xs text-gray-500">
+            Resumes on this device and in your account are both left as-is.
+          </p>
+          <div className="mt-3 flex justify-end">
+            <button
+              type="button"
+              onClick={() => setRetryToken((n) => n + 1)}
+              className="text-sm px-3 py-1.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800"
+            >
+              Try again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!conflict) return null;
 
@@ -156,30 +182,36 @@ export function CloudSyncManager() {
     setConflict(null);
   };
 
-  const count = (n: number) => `${n} resume${n === 1 ? "" : "s"}`;
-
   return (
-    <Modal
-      open
-      hideClose
-      onClose={() => undefined}
-      title="Which resumes should we keep?"
-      description={`Your account has ${count(conflict.cloud.versions.length)} saved, and this device has ${count(conflict.local.versions.length)} that aren't in your account yet.`}
-      footer={
-        <>
-          <button type="button" onClick={keepLocal} className="btn btn-secondary">
-            Keep this device&apos;s
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/40" />
+      <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h2 className="text-lg font-bold text-gray-900">
+            Resumes found in your account
+          </h2>
+          <p className="text-sm text-gray-500 mt-1">
+            This device also has unsaved resumes. Which version should we
+            keep?
+          </p>
+        </div>
+        <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={keepLocal}
+            className="text-sm px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+          >
+            Keep this device&apos;s resumes
           </button>
-          <button type="button" onClick={useCloud} className="btn btn-primary" data-autofocus>
-            Use my account&apos;s
+          <button
+            type="button"
+            onClick={useCloud}
+            className="text-sm px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800"
+          >
+            Use my account&apos;s resumes
           </button>
-        </>
-      }
-    >
-      <p className="text-sm text-ink-muted">
-        Whichever set you don&apos;t choose is overwritten, so pick the one
-        with your latest edits.
-      </p>
-    </Modal>
+        </div>
+      </div>
+    </div>
   );
 }

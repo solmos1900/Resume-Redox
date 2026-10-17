@@ -11,6 +11,7 @@ const SYNC_LABEL = {
   syncing: "Syncing…",
   synced: "All changes synced",
   error: "Sync failed — we'll retry on your next edit",
+  paused: "Sync paused — cloud could not be read safely",
 } as const;
 
 /** "Sync" button when signed out; avatar menu when signed in. Hidden if auth isn't configured. */
@@ -53,7 +54,11 @@ export function AccountMenu({ compact = false }: { compact?: boolean }) {
             {initial}
             <span
               className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full ring-2 ring-white ${
-                syncStatus === "error" ? "bg-red-500" : syncStatus === "syncing" ? "bg-amber-400" : "bg-moss-500"
+                syncStatus === "error" || syncStatus === "paused"
+                  ? "bg-red-500"
+                  : syncStatus === "syncing"
+                    ? "bg-amber-400"
+                    : "bg-moss-500"
               }`}
               aria-hidden
             />
