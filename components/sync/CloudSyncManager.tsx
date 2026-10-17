@@ -9,28 +9,15 @@ import { fetchCloudStore, saveCloudStore } from "@/lib/cloud-sync";
 import {
   clearSaveDebounceTimer,
   cloudSyncSessionKey,
+  planInitialCloudSync,
 } from "@/lib/cloud-sync-lifecycle";
 import { markLocalTrustedForUid } from "@/lib/apply-local-resume-scope";
-import {
-  isUntouchedSeedState,
-  maySilentUploadToEmptyCloud,
-} from "@/lib/local-resume-scope";
+import { maySilentUploadToEmptyCloud } from "@/lib/local-resume-scope";
 import type { StoreState } from "@/lib/schema";
 import { createInitialStore } from "@/lib/seed-data";
 import { Modal } from "@/components/ui/Modal";
 
 const SAVE_DEBOUNCE_MS = 1500;
-
-/**
- * True when local and cloud hold the same resumes (by id + last-edited
- * time), regardless of array order. Used to skip the conflict dialog when
- * a device has already synced before and nothing has changed since.
- */
-function storesAreInSync(a: StoreState, b: StoreState): boolean {
-  if (a.versions.length !== b.versions.length) return false;
-  const bByid = new Map(b.versions.map((v) => [v.id, v.updatedAt]));
-  return a.versions.every((v) => bByid.get(v.id) === v.updatedAt);
-}
 
 export function CloudSyncManager() {
   const { user } = useAuth();
@@ -43,6 +30,8 @@ export function CloudSyncManager() {
     cloud: StoreState;
     local: StoreState;
   } | null>(null);
+  const [pausedMessage, setPausedMessage] = useState<string | null>(null);
+  const [retryToken, setRetryToken] = useState(0);
 
   const unsubscribeRef = useRef<(() => void) | null>(null);
   const timeoutRef = useRef<number | null>(null);
@@ -90,10 +79,11 @@ export function CloudSyncManager() {
     // pending debounced save so mid-flight edits are not written under the
     // wrong account, and so a same-user re-entry cannot double-save.
     stopAutosave();
+    setPausedMessage(null);
+    setConflict(null);
 
     if (!uid) {
       setSyncStatus("idle");
-      setConflict(null);
       return;
     }
 
@@ -106,25 +96,42 @@ export function CloudSyncManager() {
         activeVersionId: local.activeVersionId,
         versions: local.versions,
       };
-      // Legacy untrusted guest is held aside until the user confirms; use it
-      // only for the adopt/conflict dialog, not as the synced store state.
-      const localState: StoreState = pendingAdoptLocal ?? storeLocal;
-      const cloud = await fetchCloudStore(uid).catch(() => null);
+      // Discriminated fetch: missing vs invalid vs error vs ok (#43 / #80).
+      const fetchResult = await fetchCloudStore(uid);
       if (cancelled) return;
 
-      if (!cloud) {
-        if (pendingAdoptLocal) {
-          setConflict({
-            uid,
-            cloud: createInitialStore(),
-            local: pendingAdoptLocal,
-          });
+      // Legacy untrusted guest is held aside until the user confirms (#76 / #82).
+      if (pendingAdoptLocal) {
+        if (
+          fetchResult.status === "invalid" ||
+          fetchResult.status === "error"
+        ) {
+          setPausedMessage(
+            fetchResult.status === "invalid"
+              ? fetchResult.reason
+              : fetchResult.message
+          );
+          setSyncStatus("paused");
           return;
         }
+        setConflict({
+          uid,
+          cloud:
+            fetchResult.status === "ok"
+              ? fetchResult.data
+              : createInitialStore(),
+          local: pendingAdoptLocal,
+        });
+        return;
+      }
+
+      const plan = planInitialCloudSync(fetchResult, storeLocal);
+
+      if (plan.action === "seed-local") {
         // Never upload another account's local data into an empty cloud doc.
         if (
           !maySilentUploadToEmptyCloud({
-            local: localState,
+            local: storeLocal,
             trustForUpload,
           })
         ) {
@@ -135,29 +142,28 @@ export function CloudSyncManager() {
           startAutosave(uid);
           return;
         }
-        await saveCloudStore(uid, localState).catch(() => undefined);
+        await saveCloudStore(uid, storeLocal).catch(() => undefined);
         if (cancelled) return;
         setSyncStatus("synced");
         startAutosave(uid);
         return;
       }
 
-      if (pendingAdoptLocal) {
-        setConflict({ uid, cloud, local: pendingAdoptLocal });
+      if (plan.action === "block") {
+        // Do not write. Do not start autosave. Preserve local + cloud.
+        setPausedMessage(plan.message);
+        setSyncStatus("paused");
         return;
       }
 
-      if (
-        isUntouchedSeedState(localState) ||
-        storesAreInSync(localState, cloud)
-      ) {
-        useResumeStore.setState(cloud);
+      if (plan.action === "adopt-cloud") {
+        useResumeStore.setState(plan.cloud);
         setSyncStatus("synced");
         startAutosave(uid);
         return;
       }
 
-      setConflict({ uid, cloud, local: localState });
+      setConflict({ uid, cloud: plan.cloud, local: plan.local });
     })();
 
     return () => {
@@ -166,11 +172,12 @@ export function CloudSyncManager() {
     };
     // Key on uid only — profile-only User object replacements must not
     // re-run initial sync (see #59 / email signup displayName update).
+    // retryToken intentionally re-runs a paused sync after the user retries.
     // LocalStoreScope remounts this tree when the uid (or guest) scope
     // finishes loading, so trust flags are fresh on each mount without
     // re-listing them as deps (that would re-sync after "keep local").
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [uid]);
+  }, [uid, retryToken]);
 
   useEffect(
     () => () => {
@@ -179,6 +186,34 @@ export function CloudSyncManager() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
+
+  if (pausedMessage) {
+    return (
+      <div className="fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-md">
+        <div
+          className="rounded-xl border border-amber-200 bg-white px-4 py-3 shadow-lg"
+          role="status"
+        >
+          <p className="text-sm font-semibold text-gray-900">
+            Cloud sync paused
+          </p>
+          <p className="mt-1 text-sm text-gray-600">{pausedMessage}</p>
+          <p className="mt-1 text-xs text-gray-500">
+            Resumes on this device and in your account are both left as-is.
+          </p>
+          <div className="mt-3 flex justify-end">
+            <button
+              type="button"
+              onClick={() => setRetryToken((n) => n + 1)}
+              className="text-sm px-3 py-1.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800"
+            >
+              Try again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!conflict) return null;
 

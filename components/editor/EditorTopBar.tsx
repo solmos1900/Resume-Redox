@@ -32,6 +32,7 @@ function SaveIndicator({ updatedAt }: { updatedAt: string }) {
   if (saving) label = "Saving…";
   else if (user && sync === "syncing") label = "Syncing…";
   else if (user && sync === "error") label = "Saved here · sync failed";
+  else if (user && sync === "paused") label = "Saved here · sync paused";
   else if (user) label = "Saved & synced";
 
   return (
