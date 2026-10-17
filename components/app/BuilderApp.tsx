@@ -4,6 +4,7 @@ import { StoreHydration } from "@/components/StoreHydration";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { SignInDialog } from "@/components/auth/SignInDialog";
 import { CloudSyncManager } from "@/components/sync/CloudSyncManager";
+import { LocalStoreScope } from "@/components/sync/LocalStoreScope";
 import { ImportResumeDialog } from "@/components/import/ImportResumeDialog";
 import { HomeDashboard } from "@/components/home/HomeDashboard";
 import { TemplateGallery } from "@/components/gallery/TemplateGallery";
@@ -52,13 +53,19 @@ function Surfaces() {
 /**
  * The resume builder. No sign-in wall: everything works locally from the
  * first second; an account only adds cross-device sync.
+ *
+ * LocalStoreScope re-keys the resume persist bucket to the signed-in uid (or
+ * guest) before CloudSyncManager runs, so account switches cannot upload the
+ * previous user's local resumes (#76).
  */
 export function BuilderApp() {
   return (
     <StoreHydration>
       <AuthProvider>
-        <CloudSyncManager />
-        <Surfaces />
+        <LocalStoreScope>
+          <CloudSyncManager />
+          <Surfaces />
+        </LocalStoreScope>
       </AuthProvider>
     </StoreHydration>
   );
