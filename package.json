@@ -9,6 +9,7 @@
     "build:pdf-assets": "npm run build:export-css && npm run build:pdf-html",
     "build:import-fixtures": "node scripts/generate-import-fixtures.mjs",
     "test:import-fixtures": "tsx scripts/test-import-fixtures.ts",
+    "test:import-parse-security": "tsx scripts/test-import-parse-security.ts",
     "test:next-version": "node scripts/check-next-version.mjs",
     "test:export-pdf-security": "tsx scripts/test-export-pdf-security.ts",
     "test:cloud-sync-lifecycle": "tsx scripts/test-cloud-sync-lifecycle.ts",

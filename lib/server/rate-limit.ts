@@ -122,3 +122,47 @@ export function resetPdfExportRateLimitsForTests(): void {
   pdfUserLimiter.reset();
   pdfIpLimiter.reset();
 }
+
+/** Shared default limiters for resume import parse (per isolate). */
+const importUserStore = new MemoryRateLimitStore();
+const importIpStore = new MemoryRateLimitStore();
+
+const importUserLimiter = createRateLimiter({
+  limit: 10,
+  windowMs: 60_000,
+  store: importUserStore,
+});
+
+const importIpLimiter = createRateLimiter({
+  limit: 20,
+  windowMs: 60_000,
+  store: importIpStore,
+});
+
+export async function checkImportParseRateLimits(input: {
+  uid: string;
+  ip: string | null;
+}): Promise<
+  | { ok: true }
+  | { ok: false; retryAfterSec: number; scope: "user" | "ip" }
+> {
+  const user = await importUserLimiter.check(`import:uid:${input.uid}`);
+  if (!user.allowed) {
+    return { ok: false, retryAfterSec: user.retryAfterSec, scope: "user" };
+  }
+
+  if (input.ip) {
+    const ip = await importIpLimiter.check(`import:ip:${input.ip}`);
+    if (!ip.allowed) {
+      return { ok: false, retryAfterSec: ip.retryAfterSec, scope: "ip" };
+    }
+  }
+
+  return { ok: true };
+}
+
+/** Test helper: reset shared import rate-limit buckets. */
+export function resetImportParseRateLimitsForTests(): void {
+  importUserLimiter.reset();
+  importIpLimiter.reset();
+}

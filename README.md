@@ -43,12 +43,14 @@ Copy [`.env.example`](.env.example) for a full list.
 
 | Variable | Required | Purpose |
 |----------|----------|---------|
-| `NEXT_PUBLIC_FIREBASE_*` | Recommended | Optional sign-in / cloud sync, and guest tokens for server PDF. Without it the app still works fully; PDF uses the print-view fallback. |
-| `FIREBASE_PROJECT_ID` | Recommended | Server verification of Firebase ID tokens for `POST /api/export-pdf`. Falls back to `NEXT_PUBLIC_FIREBASE_PROJECT_ID`. **If neither is set, PDF export denies requests (503)** — fail closed. |
+| `NEXT_PUBLIC_FIREBASE_*` | Recommended | Optional sign-in / cloud sync, and guest tokens for server PDF export + resume import parse. Without it the app still works for editing; PDF uses the print-view fallback and import needs Firebase Anonymous enabled. |
+| `FIREBASE_PROJECT_ID` | Recommended | Server verification of Firebase ID tokens for `POST /api/export-pdf` and `POST /api/import-parse`. Falls back to `NEXT_PUBLIC_FIREBASE_PROJECT_ID`. **If neither is set, those APIs deny requests (503)** — fail closed. |
 | `PDF_EXPORT_MAX_CONCURRENCY` | No (default `2`) | Max concurrent Chromium PDF workers per serverless isolate |
 | `PDF_EXPORT_TIMEOUT_MS` | No (default `45000`) | Hard kill timeout for the PDF worker / browser |
 
 **PDF export security:** `POST /api/export-pdf` requires `Authorization: Bearer <Firebase ID token>` (a signed-in account or a silent anonymous guest session), caps JSON body size (256 KiB) and field sizes, rate-limits per user (5/min) and IP (10/min), and kills timed-out Chromium workers. Rate limits use an **in-memory** store per serverless isolate — they reduce abuse on warm instances but are not a durable global quota across Vercel instances. A Redis-backed limiter can be added later if needed.
+
+**Import parse security:** `POST /api/import-parse` uses the same Firebase bearer auth (including anonymous guest tokens so local-only users keep working). It stream-caps the multipart body (~2.5 MiB) and file (2 MiB), rejects PDFs over 20 pages, caps extracted text length, times out parse work at 15s, and rate-limits per user (10/min) and IP (20/min) with the same in-memory isolate store.
 
 Or from the CLI:
 

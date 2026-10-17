@@ -44,9 +44,10 @@ type AuthContextValue = {
   confirmReset: (oobCode: string, newPassword: string) => Promise<void>;
   signOutUser: () => Promise<void>;
   /**
-   * ID token for server features (PDF export). Uses the signed-in account
-   * when present, otherwise a silent anonymous guest session. Returns null
-   * when Firebase isn't configured or guest sessions are disabled.
+   * ID token for server features (PDF export, resume import parse). Uses the
+   * signed-in account when present, otherwise a silent anonymous guest
+   * session. Returns null when Firebase isn't configured or guest sessions
+   * are disabled.
    */
   getServerToken: () => Promise<string | null>;
 };
