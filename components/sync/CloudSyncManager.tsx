@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useLocalStoreScope } from "@/components/sync/LocalStoreScope";
 import { useResumeStore } from "@/lib/store";
 import { useSyncStatus } from "@/lib/sync-status";
 import { fetchCloudStore, saveCloudStore } from "@/lib/cloud-sync";
@@ -9,14 +10,16 @@ import {
   clearSaveDebounceTimer,
   cloudSyncSessionKey,
 } from "@/lib/cloud-sync-lifecycle";
+import { markLocalTrustedForUid } from "@/lib/apply-local-resume-scope";
+import {
+  isUntouchedSeedState,
+  maySilentUploadToEmptyCloud,
+} from "@/lib/local-resume-scope";
 import type { StoreState } from "@/lib/schema";
-import { SEED_VERSION_ID } from "@/lib/seed-data";
+import { createInitialStore } from "@/lib/seed-data";
 import { Modal } from "@/components/ui/Modal";
-const SAVE_DEBOUNCE_MS = 1500;
 
-function isUntouchedSeed(state: StoreState): boolean {
-  return state.versions.length === 1 && state.versions[0].id === SEED_VERSION_ID;
-}
+const SAVE_DEBOUNCE_MS = 1500;
 
 /**
  * True when local and cloud hold the same resumes (by id + last-edited
@@ -32,6 +35,8 @@ function storesAreInSync(a: StoreState, b: StoreState): boolean {
 export function CloudSyncManager() {
   const { user } = useAuth();
   const uid = cloudSyncSessionKey(user);
+  const { trustForUpload, pendingAdoptLocal, markTrusted } =
+    useLocalStoreScope();
   const setSyncStatus = useSyncStatus((s) => s.set);
   const [conflict, setConflict] = useState<{
     uid: string;
@@ -97,14 +102,39 @@ export function CloudSyncManager() {
     (async () => {
       setSyncStatus("syncing");
       const local = useResumeStore.getState();
-      const localState: StoreState = {
+      const storeLocal: StoreState = {
         activeVersionId: local.activeVersionId,
         versions: local.versions,
       };
+      // Legacy untrusted guest is held aside until the user confirms; use it
+      // only for the adopt/conflict dialog, not as the synced store state.
+      const localState: StoreState = pendingAdoptLocal ?? storeLocal;
       const cloud = await fetchCloudStore(uid).catch(() => null);
       if (cancelled) return;
 
       if (!cloud) {
+        if (pendingAdoptLocal) {
+          setConflict({
+            uid,
+            cloud: createInitialStore(),
+            local: pendingAdoptLocal,
+          });
+          return;
+        }
+        // Never upload another account's local data into an empty cloud doc.
+        if (
+          !maySilentUploadToEmptyCloud({
+            local: localState,
+            trustForUpload,
+          })
+        ) {
+          // Defensive: scoping should have left seed here. Do not push
+          // untrusted non-seed resumes into the cloud.
+          useResumeStore.setState(createInitialStore());
+          setSyncStatus("synced");
+          startAutosave(uid);
+          return;
+        }
         await saveCloudStore(uid, localState).catch(() => undefined);
         if (cancelled) return;
         setSyncStatus("synced");
@@ -112,7 +142,15 @@ export function CloudSyncManager() {
         return;
       }
 
-      if (isUntouchedSeed(localState) || storesAreInSync(localState, cloud)) {
+      if (pendingAdoptLocal) {
+        setConflict({ uid, cloud, local: pendingAdoptLocal });
+        return;
+      }
+
+      if (
+        isUntouchedSeedState(localState) ||
+        storesAreInSync(localState, cloud)
+      ) {
         useResumeStore.setState(cloud);
         setSyncStatus("synced");
         startAutosave(uid);
@@ -128,6 +166,9 @@ export function CloudSyncManager() {
     };
     // Key on uid only — profile-only User object replacements must not
     // re-run initial sync (see #59 / email signup displayName update).
+    // LocalStoreScope remounts this tree when the uid (or guest) scope
+    // finishes loading, so trust flags are fresh on each mount without
+    // re-listing them as deps (that would re-sync after "keep local").
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [uid]);
 
@@ -143,12 +184,18 @@ export function CloudSyncManager() {
 
   const useCloud = () => {
     useResumeStore.setState(conflict.cloud);
+    markLocalTrustedForUid(conflict.uid);
+    markTrusted();
     setSyncStatus("synced");
     startAutosave(conflict.uid);
     setConflict(null);
   };
 
   const keepLocal = () => {
+    // Explicit user choice: this device's snapshot now belongs to this uid.
+    useResumeStore.setState(conflict.local);
+    markLocalTrustedForUid(conflict.uid);
+    markTrusted();
     void saveCloudStore(conflict.uid, conflict.local).then(() =>
       setSyncStatus("synced")
     );
