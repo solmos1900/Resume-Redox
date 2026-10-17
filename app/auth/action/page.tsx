@@ -7,7 +7,7 @@ export default function AuthActionPage() {
     <AuthProvider>
       <Suspense
         fallback={
-          <div className="h-screen flex items-center justify-center bg-gray-100 text-gray-500 text-sm">
+          <div className="h-screen flex items-center justify-center bg-paper-deep text-ink-muted text-sm">
             Loading…
           </div>
         }

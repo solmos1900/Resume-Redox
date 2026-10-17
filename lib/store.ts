@@ -30,6 +30,17 @@ type ResumeStore = {
     jobUrl?: string,
     templateId?: ResumeVersion["templateId"]
   ) => void;
+  /**
+   * Create a new resume and make it active. Optionally reuse the contact
+   * block from another resume (same person, new role). Returns the new id.
+   */
+  createResume: (opts: {
+    name: string;
+    templateId?: ResumeVersion["templateId"];
+    contactFromId?: string | null;
+  }) => string;
+  /** Duplicate any resume, make the copy active, and return its id. */
+  duplicateById: (sourceVersionId: string, name?: string) => string | undefined;
   renameVersion: (id: string, name: string) => void;
   deleteVersion: (id: string) => void;
   /** Add imported resumes as new entries (does not replace existing ones). */
@@ -174,6 +185,34 @@ export const useResumeStore = create<ResumeStore>()(
           versions: [...state.versions, version],
           activeVersionId: version.id,
         }));
+      },
+
+      createResume: ({ name, templateId, contactFromId }) => {
+        const version = createEmptyVersion(name);
+        if (templateId) version.templateId = templateId;
+        const source = contactFromId
+          ? get().getVersionById(contactFromId)
+          : undefined;
+        if (source) {
+          version.contact = { ...source.contact };
+          version.design = { ...getDesignSettings(source) };
+        }
+        set((state) => ({
+          versions: [...state.versions, version],
+          activeVersionId: version.id,
+        }));
+        return version.id;
+      },
+
+      duplicateById: (sourceVersionId, name) => {
+        const source = get().getVersionById(sourceVersionId);
+        if (!source) return undefined;
+        const clone = cloneVersion(source, name ?? `${source.name} (Copy)`);
+        set((state) => ({
+          versions: [...state.versions, clone],
+          activeVersionId: clone.id,
+        }));
+        return clone.id;
       },
 
       renameVersion: (id, name) => {

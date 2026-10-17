@@ -4,7 +4,7 @@ import { useResumeStore } from "@/lib/store";
 import type { Education } from "@/lib/schema";
 import { generateId } from "@/lib/utils";
 import { CollapsibleSection } from "./CollapsibleSection";
-import { RepeatableControls } from "./RepeatableControls";
+import { AddRowButton, EntryCard, TextField, moveItem } from "./fields";
 
 function emptyEducation(): Education {
   return {
@@ -21,108 +21,38 @@ export function EducationForm() {
   const updateActiveVersion = useResumeStore((s) => s.updateActiveVersion);
 
   if (!version) return null;
-
-  const updateEducation = (items: Education[]) => {
-    updateActiveVersion({ education: items });
-  };
-
-  const updateItem = (id: string, updates: Partial<Education>) => {
-    updateEducation(
-      version.education.map((e) => (e.id === id ? { ...e, ...updates } : e))
-    );
-  };
-
-  const moveItem = (index: number, direction: -1 | 1) => {
-    const items = [...version.education];
-    const target = index + direction;
-    if (target < 0 || target >= items.length) return;
-    [items[index], items[target]] = [items[target], items[index]];
-    updateEducation(items);
-  };
+  const items = version.education;
+  const save = (next: Education[]) => updateActiveVersion({ education: next });
+  const patch = (id: string, updates: Partial<Education>) =>
+    save(items.map((e) => (e.id === id ? { ...e, ...updates } : e)));
 
   return (
     <CollapsibleSection
       title="Education"
+      description="Degree, school, and graduation year. Add honors or GPA only if they help."
       sectionId="editor-section-education"
-      action={
-        <button
-          type="button"
-          onClick={() =>
-            updateEducation([...version.education, emptyEducation()])
-          }
-          className="text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
-        >
-          + Add
-        </button>
-      }
+      complete={items.some((e) => e.institution.trim() || e.details.trim())}
     >
-      {version.education.length === 0 && (
-        <p className="text-sm text-gray-500">No education entries yet.</p>
-      )}
-      {version.education.map((edu, index) => (
-        <div
+      {items.map((edu, index) => (
+        <EntryCard
           key={edu.id}
-          className="border border-gray-200 rounded-lg p-3 space-y-2 bg-white"
+          title={edu.details}
+          subtitle={[edu.institution, edu.graduationDate].filter(Boolean).join(" · ")}
+          placeholderTitle="New degree"
+          index={index}
+          count={items.length}
+          onMove={(d) => save(moveItem(items, index, d))}
+          onRemove={() => save(items.filter((e) => e.id !== edu.id))}
         >
-          <div className="flex justify-between items-start">
-            <span className="text-xs font-medium text-gray-500">
-              Entry {index + 1}
-            </span>
-            <RepeatableControls
-              onMoveUp={() => moveItem(index, -1)}
-              onMoveDown={() => moveItem(index, 1)}
-              onRemove={() =>
-                updateEducation(version.education.filter((e) => e.id !== edu.id))
-              }
-              canMoveUp={index > 0}
-              canMoveDown={index < version.education.length - 1}
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <TextField className="col-span-2" label="Degree" value={edu.details} onChange={(v) => patch(edu.id, { details: v })} placeholder="B.S. Computer Science" />
+            <TextField className="col-span-2" label="School" value={edu.institution} onChange={(v) => patch(edu.id, { institution: v })} placeholder="State University" />
+            <TextField label="Location" value={edu.location} onChange={(v) => patch(edu.id, { location: v })} placeholder="Austin, TX" />
+            <TextField label="Graduated" value={edu.graduationDate ?? ""} onChange={(v) => patch(edu.id, { graduationDate: v })} placeholder="May 2023" />
           </div>
-          <label className="block">
-            <span className="text-xs text-gray-600">Institution</span>
-            <input
-              type="text"
-              value={edu.institution}
-              onChange={(e) =>
-                updateItem(edu.id, { institution: e.target.value })
-              }
-              className="mt-1 w-full rounded border px-2 py-1.5 text-sm"
-            />
-          </label>
-          <label className="block">
-            <span className="text-xs text-gray-600">Location</span>
-            <input
-              type="text"
-              value={edu.location}
-              onChange={(e) =>
-                updateItem(edu.id, { location: e.target.value })
-              }
-              className="mt-1 w-full rounded border px-2 py-1.5 text-sm"
-            />
-          </label>
-          <label className="block">
-            <span className="text-xs text-gray-600">Degree / Details</span>
-            <input
-              type="text"
-              value={edu.details}
-              onChange={(e) => updateItem(edu.id, { details: e.target.value })}
-              className="mt-1 w-full rounded border px-2 py-1.5 text-sm"
-            />
-          </label>
-          <label className="block">
-            <span className="text-xs text-gray-600">Graduation Date</span>
-            <input
-              type="text"
-              value={edu.graduationDate}
-              onChange={(e) =>
-                updateItem(edu.id, { graduationDate: e.target.value })
-              }
-              placeholder="May 2023"
-              className="mt-1 w-full rounded border px-2 py-1.5 text-sm"
-            />
-          </label>
-        </div>
+        </EntryCard>
       ))}
+      <AddRowButton onClick={() => save([...items, emptyEducation()])}>Add education</AddRowButton>
     </CollapsibleSection>
   );
 }

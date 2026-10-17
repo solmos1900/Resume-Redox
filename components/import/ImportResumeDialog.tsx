@@ -26,6 +26,8 @@ import {
 } from "@/lib/import/field-status";
 import type { ParsedResumeFields } from "@/lib/import/types";
 import type { Experience } from "@/lib/schema";
+import { SEED_VERSION_ID } from "@/lib/seed-data";
+import { IconUpload, IconX } from "@/components/ui/icons";
 
 type ImportMode = "add" | "replace";
 
@@ -65,7 +67,7 @@ function FillBadge({ status }: { status: FieldFill }) {
       ? "bg-emerald-50 text-emerald-800 border-emerald-100"
       : status === "partial"
         ? "bg-amber-50 text-amber-900 border-amber-100"
-        : "bg-gray-100 text-gray-600 border-gray-200";
+        : "bg-paper-deep text-ink-muted border-line";
   return (
     <span
       className={`inline-flex items-center text-[10px] font-medium uppercase tracking-wide px-1.5 py-0.5 rounded border ${cls}`}
@@ -81,7 +83,7 @@ export function ImportResumeDialog({ open, onClose, initialFile }: Props) {
     (s) => s.replaceActiveWithImported
   );
   const getActiveVersion = useResumeStore((s) => s.getActiveVersion);
-  const setMobileTab = useUiStore((s) => s.setMobileTab);
+  const importTarget = useUiStore((s) => s.importTarget);
   const openEditor = useUiStore((s) => s.openEditor);
   const showToast = useToastStore((s) => s.showToast);
 
@@ -105,6 +107,12 @@ export function ImportResumeDialog({ open, onClose, initialFile }: Props) {
 
   const active = getActiveVersion();
   const activeIsNonEmpty = isResumeNonEmpty(active);
+  // From Home / "new resume" flows, or while viewing the sample, an import
+  // always becomes its own resume. Only an import started from inside the
+  // editor may fill (empty) or replace (confirmed) the open resume.
+  const editsActive = importTarget === "auto" && active?.id !== SEED_VERSION_ID;
+  const fillInPlace = editsActive && !activeIsNonEmpty;
+  const offerReplace = editsActive && activeIsNonEmpty;
 
   const resetParseState = useCallback(() => {
     requestIdRef.current += 1;
@@ -324,9 +332,9 @@ export function ImportResumeDialog({ open, onClose, initialFile }: Props) {
     const quality = getExtractQuality(fields);
     if (quality === "empty") return;
 
-    if (importMode === "replace" && activeIsNonEmpty && !replaceConfirmed) {
+    if (importMode === "replace" && offerReplace && !replaceConfirmed) {
       setError(
-        "Confirm Replace this resume, or choose Import into a new version."
+        "Tick “Yes, replace its content”, or choose Save as a new resume."
       );
       return;
     }
@@ -346,21 +354,21 @@ export function ImportResumeDialog({ open, onClose, initialFile }: Props) {
     const applyReplace = () =>
       replaceActiveWithImported({
         ...version,
-        name: activeIsNonEmpty
+        name: offerReplace
           ? current.name
-          : resumeName.trim() || current.name || version.name,
+          : resumeName.trim() || version.name || current.name,
         templateId: current.templateId,
         design: current.design,
         sectionOrder: current.sectionOrder,
       });
 
-    if (!activeIsNonEmpty) {
+    if (fillInPlace) {
       // Empty resume: fill in place (no second empty shell).
       if (!applyReplace()) {
         setError("Could not update the current resume.");
         return;
       }
-    } else if (importMode === "replace") {
+    } else if (offerReplace && importMode === "replace") {
       if (!applyReplace()) {
         setError("Could not replace the current resume.");
         return;
@@ -369,9 +377,8 @@ export function ImportResumeDialog({ open, onClose, initialFile }: Props) {
       importVersions([version]);
     }
 
-    setMobileTab("edit");
-    openEditor();
-    showToast("Imported — review the letter.");
+    openEditor({ tab: "content" });
+    showToast("Imported! Give it a quick read — file parsing is never perfect.", 6000);
     handleClose();
   };
 
@@ -383,7 +390,7 @@ export function ImportResumeDialog({ open, onClose, initialFile }: Props) {
     !busy &&
     !unreadable &&
     (quality === "complete" || quality === "partial") &&
-    (importMode !== "replace" || !activeIsNonEmpty || replaceConfirmed);
+    (importMode !== "replace" || !offerReplace || replaceConfirmed);
 
   const onDialogKeyDown = (event: ReactKeyboardEvent) => {
     if (event.key === "Escape") {
@@ -393,10 +400,11 @@ export function ImportResumeDialog({ open, onClose, initialFile }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[70] flex items-end justify-center sm:items-center sm:p-6">
       <button
         type="button"
-        className="absolute inset-0 bg-black/40"
+        tabIndex={-1}
+        className="absolute inset-0 animate-fade-in bg-ink/40 backdrop-blur-[2px]"
         onClick={handleClose}
         aria-label="Dismiss import dialog"
       />
@@ -408,23 +416,29 @@ export function ImportResumeDialog({ open, onClose, initialFile }: Props) {
         aria-describedby={liveId}
         tabIndex={-1}
         onKeyDown={onDialogKeyDown}
-        className="relative bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto outline-none"
+        className="relative flex max-h-[92dvh] w-full max-w-lg animate-sheet-up flex-col overflow-hidden rounded-t-[1.5rem] bg-white shadow-pop outline-none sm:rounded-[1.5rem]"
       >
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 id={titleId} className="text-lg font-bold text-gray-900">
-            Import PDF / DOCX
+        <div className="flex items-start gap-4 px-6 pb-2 pt-5 sm:pt-6">
+          <div className="min-w-0 flex-1">
+          <h2 id={titleId} className="font-display text-[22px] font-semibold leading-tight tracking-tight text-ink">
+            {fields ? "Check what we found" : "Import your resume"}
           </h2>
-          <p className="text-sm text-gray-500 mt-1">
-            Read from a file, review mapped fields, then Apply. Nothing is
-            written until you Apply. Cancel or Esc discards the extract.
+          <p className="mt-1.5 text-sm leading-relaxed text-ink-muted">
+            {fields
+              ? "Fix anything that looks off. Nothing is saved until you confirm."
+              : "Upload a PDF or Word file. You'll review everything before it's saved."}
           </p>
+          </div>
+          <button type="button" onClick={handleClose} className="btn-icon -mr-2 -mt-1" aria-label="Close">
+            <IconX />
+          </button>
         </div>
 
         <div id={liveId} className="sr-only" aria-live="polite" aria-atomic="true">
           {liveMessage}
         </div>
 
-        <div className="px-6 py-4 space-y-4">
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-4 scrollbar-thin">
           {/* Upload / drop zone — always available to replace file before Apply */}
           <div
             onDragOver={(e) => {
@@ -433,19 +447,19 @@ export function ImportResumeDialog({ open, onClose, initialFile }: Props) {
             }}
             onDragLeave={() => setDragOver(false)}
             onDrop={onDrop}
-            className={`rounded-xl border-2 border-dashed px-4 py-6 text-center transition-colors ${
-              dragOver
-                ? "border-gray-900 bg-gray-50"
-                : "border-gray-300 bg-white"
-            }`}
+            className={`rounded-2xl border-2 border-dashed px-4 text-center transition-colors ${
+              fields ? "py-3" : "py-8"
+            } ${dragOver ? "border-brand-500 bg-brand-50" : "border-line-strong bg-paper/50"}`}
           >
-            <p className="text-sm font-medium text-gray-900">
-              Drop a PDF or DOCX here
-            </p>
-            <p className="text-xs text-gray-500 mt-1">
-              .pdf / .docx only. Replacing the file restarts the extract without
-              changing your current resume.
-            </p>
+            {!fields && (
+              <>
+                <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-white text-brand-600 shadow-card">
+                  <IconUpload size={22} />
+                </span>
+                <p className="mt-3 text-sm font-semibold text-ink">Drag your resume here</p>
+                <p className="mt-0.5 text-xs text-ink-muted">PDF or Word (.docx), up to 8 MB</p>
+              </>
+            )}
             <input
               ref={fileInputRef}
               type="file"
@@ -460,12 +474,13 @@ export function ImportResumeDialog({ open, onClose, initialFile }: Props) {
             />
             <label
               htmlFor="import-file-input"
-              className="mt-3 inline-flex items-center justify-center min-h-[44px] min-w-[44px] px-4 text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-50 cursor-pointer touch-manipulation"
+              className={`btn cursor-pointer ${fields ? "btn-ghost btn-sm" : "btn-primary mt-4"}`}
             >
-              Choose file
+              {fields ? "Use a different file" : "Choose a file"}
             </label>
             {busy && (
-              <p className="mt-3 text-sm text-gray-700" role="status">
+              <p className="mt-3 flex items-center justify-center gap-2 text-sm text-ink-soft" role="status">
+                <span className="h-2 w-2 animate-pulse rounded-full bg-brand-500" />
                 Reading your file…
               </p>
             )}
@@ -495,11 +510,11 @@ export function ImportResumeDialog({ open, onClose, initialFile }: Props) {
 
           {fields && meta && quality && quality !== "empty" && (
             <div className="space-y-4">
-              <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-600">
-                <span className="font-medium text-gray-800">{meta.fileName}</span>
+              <div className="rounded-lg border border-line bg-paper px-3 py-2 text-xs text-ink-muted">
+                <span className="font-medium text-ink-soft">{meta.fileName}</span>
                 {" · "}
                 {meta.format.toUpperCase()}
-                {" · Extract complete"}
+                {" · Read successfully"}
               </div>
 
               {quality === "partial" && (
@@ -507,37 +522,36 @@ export function ImportResumeDialog({ open, onClose, initialFile }: Props) {
                   className="text-sm text-amber-900 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2"
                   role="status"
                 >
-                  Partial extract — some fields are empty or incomplete. You can
-                  edit mapped fields below, then Apply, or Cancel to keep your
-                  current resume.
+                  We could only read part of this file. Fill in the gaps below
+                  or after you open it in the editor.
                 </div>
               )}
 
               <label className="block">
-                <span className="text-xs font-medium text-gray-600">
-                  Version name
+                <span className="text-xs font-medium text-ink-muted">
+                  Name this resume
                 </span>
                 <input
                   type="text"
                   value={resumeName}
                   onChange={(e) => setResumeName(e.target.value)}
-                  className="mt-1 w-full text-sm border rounded-lg px-3 min-h-[44px]"
+                  className="field mt-1"
                 />
               </label>
 
               <div className="space-y-3">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-xs font-medium text-gray-600 uppercase tracking-wide">
-                    Mapped fields
+                  <p className="text-xs font-medium text-ink-muted uppercase tracking-wide">
+                    What we found
                   </p>
-                  <span className="text-[10px] text-gray-400">
-                    Inline edit before Apply
+                  <span className="text-[10px] text-ink-faint">
+                    Tap any field to fix it
                   </span>
                 </div>
 
-                <section className="space-y-2 rounded-lg border border-gray-200 p-3">
+                <section className="space-y-2 rounded-xl border border-line p-3">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-medium text-gray-900">Contact</h3>
+                    <h3 className="text-sm font-medium text-ink">Contact</h3>
                     <FillBadge status={contactFillStatus(fields.contact)} />
                   </div>
                   <EditableInput
@@ -578,9 +592,9 @@ export function ImportResumeDialog({ open, onClose, initialFile }: Props) {
                   />
                 </section>
 
-                <section className="space-y-2 rounded-lg border border-gray-200 p-3">
+                <section className="space-y-2 rounded-xl border border-line p-3">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-medium text-gray-900">Summary</h3>
+                    <h3 className="text-sm font-medium text-ink">Summary</h3>
                     <FillBadge status={fillStatus(fields.summary)} />
                   </div>
                   <textarea
@@ -591,14 +605,14 @@ export function ImportResumeDialog({ open, onClose, initialFile }: Props) {
                       )
                     }
                     rows={3}
-                    className="w-full text-sm border rounded-lg px-3 py-2 min-h-[88px]"
+                    className="field min-h-[88px]"
                     placeholder="Empty — add a summary or leave blank"
                   />
                 </section>
 
-                <section className="space-y-3 rounded-lg border border-gray-200 p-3">
+                <section className="space-y-3 rounded-xl border border-line p-3">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-medium text-gray-900">
+                    <h3 className="text-sm font-medium text-ink">
                       Experience ({fields.experience.length})
                     </h3>
                     <FillBadge
@@ -606,15 +620,14 @@ export function ImportResumeDialog({ open, onClose, initialFile }: Props) {
                     />
                   </div>
                   {fields.experience.length === 0 ? (
-                    <p className="text-xs text-gray-500">
-                      Empty — no roles mapped. You can still Apply and fill this
-                      in the editor.
+                    <p className="text-xs text-ink-muted">
+                      We didn&apos;t find any jobs. You can add them in the editor.
                     </p>
                   ) : (
                     fields.experience.map((job, index) => (
                       <div
                         key={job.id}
-                        className="space-y-2 border-t border-gray-100 pt-3 first:border-0 first:pt-0"
+                        className="space-y-2 border-t border-line pt-3 first:border-0 first:pt-0"
                       >
                         <EditableInput
                           label="Company"
@@ -629,7 +642,7 @@ export function ImportResumeDialog({ open, onClose, initialFile }: Props) {
                           onChange={(v) => updateJob(index, { title: v })}
                         />
                         <label className="block">
-                          <span className="flex items-center justify-between gap-2 text-xs font-medium text-gray-600">
+                          <span className="flex items-center justify-between gap-2 text-xs font-medium text-ink-muted">
                             Bullets (one per line)
                             <FillBadge
                               status={
@@ -645,7 +658,7 @@ export function ImportResumeDialog({ open, onClose, initialFile }: Props) {
                               updateBullets(index, e.target.value)
                             }
                             rows={Math.max(2, job.bullets.length || 2)}
-                            className="mt-1 w-full text-sm border rounded-lg px-3 py-2 min-h-[88px]"
+                            className="field mt-1 min-h-[88px]"
                           />
                         </label>
                       </div>
@@ -656,8 +669,8 @@ export function ImportResumeDialog({ open, onClose, initialFile }: Props) {
                 {(fields.education.length > 0 ||
                   fields.skillGroups.length > 0 ||
                   fields.customSections.length > 0) && (
-                  <p className="text-xs text-gray-500">
-                    Also mapped (editable in the editor after Apply):{" "}
+                  <p className="text-xs text-ink-muted">
+                    Also found (edit these in the editor):{" "}
                     {[
                       fields.education.length
                         ? `${fields.education.length} education`
@@ -687,19 +700,15 @@ export function ImportResumeDialog({ open, onClose, initialFile }: Props) {
                 </ul>
               )}
 
-              {activeIsNonEmpty && (
+              {offerReplace && (
                 <fieldset className="space-y-2">
-                  <legend className="text-xs font-medium text-gray-600">
+                  <legend className="text-xs font-medium text-ink-muted">
                     How to apply
                   </legend>
-                  <p className="text-xs text-gray-500">
-                    Your current resume has content. Default is{" "}
-                    <span className="font-medium text-gray-700">
-                      Import into a new version
-                    </span>
-                    .
+                  <p className="text-xs text-ink-muted">
+                    The resume you have open already has content.
                   </p>
-                  <label className="flex items-start gap-3 rounded-lg border border-gray-200 p-3 cursor-pointer hover:bg-gray-50 has-[:checked]:border-gray-900 has-[:checked]:bg-gray-50 min-h-[44px]">
+                  <label className="flex items-start gap-3 rounded-xl border border-line p-3 cursor-pointer hover:bg-paper has-[:checked]:border-ink has-[:checked]:bg-paper min-h-[44px]">
                     <input
                       type="radio"
                       name="file-import-mode"
@@ -712,16 +721,15 @@ export function ImportResumeDialog({ open, onClose, initialFile }: Props) {
                       className="mt-1 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0"
                     />
                     <span>
-                      <span className="block text-sm font-medium text-gray-900">
-                        Import into a new version (recommended)
+                      <span className="block text-sm font-medium text-ink">
+                        Save as a new resume (recommended)
                       </span>
-                      <span className="block text-xs text-gray-500 mt-0.5">
-                        Keep the current resume and add this as a new sidebar
-                        version.
+                      <span className="block text-xs text-ink-muted mt-0.5">
+                        Keep the open resume as it is.
                       </span>
                     </span>
                   </label>
-                  <label className="flex items-start gap-3 rounded-lg border border-gray-200 p-3 cursor-pointer hover:bg-gray-50 has-[:checked]:border-gray-900 has-[:checked]:bg-gray-50 min-h-[44px]">
+                  <label className="flex items-start gap-3 rounded-xl border border-line p-3 cursor-pointer hover:bg-paper has-[:checked]:border-ink has-[:checked]:bg-paper min-h-[44px]">
                     <input
                       type="radio"
                       name="file-import-mode"
@@ -734,17 +742,16 @@ export function ImportResumeDialog({ open, onClose, initialFile }: Props) {
                       className="mt-1 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0"
                     />
                     <span>
-                      <span className="block text-sm font-medium text-gray-900">
-                        Replace this resume
+                      <span className="block text-sm font-medium text-ink">
+                        Replace the open resume
                       </span>
-                      <span className="block text-xs text-gray-500 mt-0.5">
-                        Overwrite this resume&apos;s content only (template and
-                        design stay). Requires confirmation.
+                      <span className="block text-xs text-ink-muted mt-0.5">
+                        Overwrites its content. Template and design stay.
                       </span>
                     </span>
                   </label>
                   {importMode === "replace" && (
-                    <label className="flex items-start gap-3 text-xs text-gray-700 min-h-[44px]">
+                    <label className="flex items-start gap-3 text-xs text-ink-soft min-h-[44px]">
                       <input
                         type="checkbox"
                         className="mt-1 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0"
@@ -755,28 +762,32 @@ export function ImportResumeDialog({ open, onClose, initialFile }: Props) {
                         }}
                       />
                       <span className="pt-2 sm:pt-0">
-                        I confirm replacing this resume&apos;s content on Apply.
+                        Yes, replace its content.
                       </span>
                     </label>
                   )}
                 </fieldset>
               )}
 
-              {!activeIsNonEmpty && (
-                <p className="text-xs text-gray-500">
-                  Current resume is empty — Apply fills it as a new version (or
-                  replaces the empty entry).
+              {fillInPlace && (
+                <p className="text-xs text-ink-muted">
+                  This fills in the empty resume you have open.
+                </p>
+              )}
+              {!editsActive && (
+                <p className="text-xs text-ink-muted">
+                  This is saved as a new resume. Nothing you already have is changed.
                 </p>
               )}
             </div>
           )}
         </div>
 
-        <div className="px-6 py-4 border-t border-gray-200 flex flex-col-reverse sm:flex-row justify-end gap-2">
+        <div className="flex flex-col-reverse gap-2 border-t border-line bg-paper/60 px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:flex-row sm:justify-end">
           <button
             type="button"
             onClick={handleClose}
-            className="min-h-[44px] text-sm px-4 border border-gray-300 rounded-lg hover:bg-gray-50 touch-manipulation"
+            className="btn btn-secondary"
           >
             Cancel
           </button>
@@ -784,11 +795,11 @@ export function ImportResumeDialog({ open, onClose, initialFile }: Props) {
             type="button"
             onClick={confirmImport}
             disabled={!canApply}
-            className="min-h-[44px] text-sm px-4 bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:opacity-40 font-medium touch-manipulation"
+            className="btn btn-primary"
           >
-            {importMode === "replace" && activeIsNonEmpty
-              ? "Apply replace"
-              : "Apply"}
+            {importMode === "replace" && offerReplace
+              ? "Replace & open"
+              : "Looks good — open it"}
           </button>
         </div>
       </div>
@@ -809,7 +820,7 @@ function EditableInput({
 }) {
   return (
     <label className="block">
-      <span className="flex items-center justify-between gap-2 text-xs font-medium text-gray-600">
+      <span className="flex items-center justify-between gap-2 text-xs font-medium text-ink-muted">
         {label}
         <FillBadge status={fill} />
       </span>
@@ -817,7 +828,7 @@ function EditableInput({
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="mt-1 w-full text-sm border rounded-lg px-3 min-h-[44px]"
+        className="field mt-1"
         placeholder={fill === "empty" ? "Empty" : undefined}
       />
     </label>

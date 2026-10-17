@@ -1,58 +1,49 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-export type NewResumeDialogMode = "create";
+/**
+ * Top-level surfaces of the builder (/app):
+ * - home:    "My resumes" dashboard + first-run welcome
+ * - gallery: pick a template for a NEW resume
+ * - editor:  edit one resume with live preview
+ */
+export type AppSurface = "home" | "gallery" | "editor";
 
-/** Mobile main-app tabs (lg breakpoint and below). */
-export type MobileTab = "resumes" | "edit" | "preview";
+/** Left-pane tabs in the editor. */
+export type EditorTab = "content" | "design" | "job";
 
-/** Gallery-first home vs the three-pane editor (GF1). */
-export type AppSurface = "gallery" | "editor";
+/** Phone/tablet: one pane at a time. */
+export type MobileTab = "edit" | "preview";
 
 /**
- * Create wall vs non-destructive template swap on the active version (GF2).
- * Not persisted — always reset when opening gallery intentionally.
+ * Where a PDF/DOCX import lands:
+ * - new:  always a brand-new resume (from Home / gallery)
+ * - auto: fill the active resume if it's empty, otherwise ask (from the editor)
  */
-export type GalleryMode = "create" | "change-design";
-
-/** Desktop / compact right-panel tabs (Preview vs Design). */
-export type RightPanelTab = "preview" | "design";
+export type ImportTarget = "new" | "auto";
 
 type UiStore = {
-  /** Create wall (gallery) is the front door; editor is last working surface. */
   appSurface: AppSurface;
-  /** GF2: create a new version vs swap template on the current one. */
-  galleryMode: GalleryMode;
-  openGallery: (mode?: GalleryMode) => void;
-  openEditor: (opts?: { preview?: boolean }) => void;
-  /** True after the user has entered the editor at least once (this browser). */
+  openHome: () => void;
+  openGallery: () => void;
+  openEditor: (opts?: { tab?: EditorTab; preview?: boolean }) => void;
+  /** True after the user has opened the editor at least once (this browser). */
   hasEnteredEditor: boolean;
 
-  /** Right panel Preview / Design tab (desktop + mobile preview pane). */
-  rightPanelTab: RightPanelTab;
-  setRightPanelTab: (tab: RightPanelTab) => void;
+  editorTab: EditorTab;
+  setEditorTab: (tab: EditorTab) => void;
 
-  newResumeDialogOpen: boolean;
-  newResumeDialogMode: NewResumeDialogMode;
-  newResumeSourceId: string | null;
-  openNewResumeDialog: (mode?: NewResumeDialogMode, sourceId?: string) => void;
-  closeNewResumeDialog: () => void;
-
-  /** Phase 2: PDF/DOCX import review dialog */
   importResumeDialogOpen: boolean;
   importResumeInitialFile: File | null;
-  openImportResumeDialog: (file?: File | null) => void;
+  importTarget: ImportTarget;
+  openImportResumeDialog: (file?: File | null, target?: ImportTarget) => void;
   closeImportResumeDialog: () => void;
 
-  /** GF1 chip → GF5 stub sheet */
-  jdPasteSheetOpen: boolean;
-  openJdPasteSheet: () => void;
-  closeJdPasteSheet: () => void;
-
-  /** GF1 chip: pick / duplicate an existing version */
-  versionPickerOpen: boolean;
-  openVersionPicker: () => void;
-  closeVersionPicker: () => void;
+  signInOpen: boolean;
+  /** Optional reason shown at the top of the sign-in dialog. */
+  signInReason: string | null;
+  openSignIn: (reason?: string) => void;
+  closeSignIn: () => void;
 
   mobileTab: MobileTab;
   setMobileTab: (tab: MobileTab) => void;
@@ -61,75 +52,41 @@ type UiStore = {
 export const useUiStore = create<UiStore>()(
   persist(
     (set) => ({
-      // Gallery-first: cold users land on the create wall.
-      appSurface: "gallery",
-      galleryMode: "create",
+      appSurface: "home",
       hasEnteredEditor: false,
-      rightPanelTab: "preview",
 
-      openGallery: (mode = "create") =>
-        set({
-          appSurface: "gallery",
-          galleryMode: mode,
-        }),
-
+      openHome: () => set({ appSurface: "home" }),
+      openGallery: () => set({ appSurface: "gallery" }),
       openEditor: (opts) =>
-        set({
+        set((state) => ({
           appSurface: "editor",
           hasEnteredEditor: true,
-          galleryMode: "create",
-          ...(opts?.preview
-            ? {
-                rightPanelTab: "preview" as const,
-                mobileTab: "preview" as const,
-              }
-            : {}),
-        }),
+          editorTab: opts?.tab ?? state.editorTab,
+          mobileTab: opts?.preview ? "preview" : "edit",
+        })),
 
-      setRightPanelTab: (tab) => set({ rightPanelTab: tab }),
-
-      newResumeDialogOpen: false,
-      newResumeDialogMode: "create",
-      newResumeSourceId: null,
-
-      // + New opens the gallery wall (not the legacy dialog).
-      openNewResumeDialog: (_mode = "create", _sourceId) =>
-        set({
-          appSurface: "gallery",
-          galleryMode: "create",
-          newResumeDialogOpen: false,
-          newResumeDialogMode: "create",
-          newResumeSourceId: null,
-        }),
-
-      closeNewResumeDialog: () =>
-        set({
-          newResumeDialogOpen: false,
-          newResumeSourceId: null,
-        }),
+      editorTab: "content",
+      setEditorTab: (tab) => set({ editorTab: tab }),
 
       importResumeDialogOpen: false,
       importResumeInitialFile: null,
-
-      openImportResumeDialog: (file = null) =>
+      importTarget: "auto",
+      openImportResumeDialog: (file = null, target = "auto") =>
         set({
           importResumeDialogOpen: true,
           importResumeInitialFile: file ?? null,
+          importTarget: target,
         }),
-
       closeImportResumeDialog: () =>
         set({
           importResumeDialogOpen: false,
           importResumeInitialFile: null,
         }),
 
-      jdPasteSheetOpen: false,
-      openJdPasteSheet: () => set({ jdPasteSheetOpen: true }),
-      closeJdPasteSheet: () => set({ jdPasteSheetOpen: false }),
-
-      versionPickerOpen: false,
-      openVersionPicker: () => set({ versionPickerOpen: true }),
-      closeVersionPicker: () => set({ versionPickerOpen: false }),
+      signInOpen: false,
+      signInReason: null,
+      openSignIn: (reason) => set({ signInOpen: true, signInReason: reason ?? null }),
+      closeSignIn: () => set({ signInOpen: false, signInReason: null }),
 
       mobileTab: "edit",
       setMobileTab: (tab) => set({ mobileTab: tab }),
@@ -143,12 +100,13 @@ export const useUiStore = create<UiStore>()(
       }),
       onRehydrateStorage: () => (state) => {
         if (!state) return;
-        if (!state.hasEnteredEditor) {
-          state.appSurface = "gallery";
+        // Returning users resume where they left off; the gallery is never a
+        // place to land cold (older builds persisted "gallery" as the home).
+        if (state.appSurface !== "editor" || !state.hasEnteredEditor) {
+          state.appSurface = "home";
         }
-        // Session-only fields: always land cold gallery in create mode.
-        state.galleryMode = "create";
-        state.rightPanelTab = "preview";
+        state.editorTab = "content";
+        state.mobileTab = "edit";
       },
     }
   )

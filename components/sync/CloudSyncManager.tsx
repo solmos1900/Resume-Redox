@@ -10,8 +10,8 @@ import {
   cloudSyncSessionKey,
 } from "@/lib/cloud-sync-lifecycle";
 import type { StoreState } from "@/lib/schema";
-
-const SEED_VERSION_ID = "seed-technical-pm";
+import { SEED_VERSION_ID } from "@/lib/seed-data";
+import { Modal } from "@/components/ui/Modal";
 const SAVE_DEBOUNCE_MS = 1500;
 
 function isUntouchedSeed(state: StoreState): boolean {
@@ -156,36 +156,30 @@ export function CloudSyncManager() {
     setConflict(null);
   };
 
+  const count = (n: number) => `${n} resume${n === 1 ? "" : "s"}`;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/40" />
-      <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-bold text-gray-900">
-            Resumes found in your account
-          </h2>
-          <p className="text-sm text-gray-500 mt-1">
-            This device also has unsaved resumes. Which version should we
-            keep?
-          </p>
-        </div>
-        <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={keepLocal}
-            className="text-sm px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-          >
-            Keep this device&apos;s resumes
+    <Modal
+      open
+      hideClose
+      onClose={() => undefined}
+      title="Which resumes should we keep?"
+      description={`Your account has ${count(conflict.cloud.versions.length)} saved, and this device has ${count(conflict.local.versions.length)} that aren't in your account yet.`}
+      footer={
+        <>
+          <button type="button" onClick={keepLocal} className="btn btn-secondary">
+            Keep this device&apos;s
           </button>
-          <button
-            type="button"
-            onClick={useCloud}
-            className="text-sm px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800"
-          >
-            Use my account&apos;s resumes
+          <button type="button" onClick={useCloud} className="btn btn-primary" data-autofocus>
+            Use my account&apos;s
           </button>
-        </div>
-      </div>
-    </div>
+        </>
+      }
+    >
+      <p className="text-sm text-ink-muted">
+        Whichever set you don&apos;t choose is overwritten, so pick the one
+        with your latest edits.
+      </p>
+    </Modal>
   );
 }

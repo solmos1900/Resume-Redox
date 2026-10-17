@@ -12,7 +12,8 @@ import {
   withAtsBullet,
 } from "@/lib/utils";
 
-export function useResumeSections(data: ResumeContent) {
+/** Pure helper (no React hooks inside) — safe to call from export builders. */
+export function getResumeSections(data: ResumeContent) {
   // Match PDF ContactLine: inline = primary pipes + URL line; stacked = labeled.
   const primary: string[] = [];
   const urls: string[] = [];
@@ -340,3 +341,6 @@ export function EducationBlock({
     </div>
   );
 }
+
+/** Template-side alias kept for readability inside components. */
+export const useResumeSections = getResumeSections;

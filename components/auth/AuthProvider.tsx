@@ -13,6 +13,7 @@ import {
   createUserWithEmailAndPassword,
   onAuthStateChanged,
   sendPasswordResetEmail,
+  signInAnonymously,
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
@@ -23,6 +24,11 @@ import {
 import { auth, googleProvider, isFirebaseConfigured } from "@/lib/firebase";
 
 type AuthContextValue = {
+  /**
+   * The signed-in account, or null. Anonymous guest sessions (used only to
+   * authorize PDF export) are reported as null — the user is "signed out"
+   * as far as the UI and cloud sync are concerned.
+   */
   user: User | null;
   initializing: boolean;
   configured: boolean;
@@ -37,12 +43,19 @@ type AuthContextValue = {
   verifyResetCode: (oobCode: string) => Promise<string>;
   confirmReset: (oobCode: string, newPassword: string) => Promise<void>;
   signOutUser: () => Promise<void>;
+  /**
+   * ID token for server features (PDF export). Uses the signed-in account
+   * when present, otherwise a silent anonymous guest session. Returns null
+   * when Firebase isn't configured or guest sessions are disabled.
+   */
+  getServerToken: () => Promise<string | null>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [rawUser, setRawUser] = useState<User | null>(null);
+  const user = rawUser && !rawUser.isAnonymous ? rawUser : null;
   const [initializing, setInitializing] = useState(isFirebaseConfigured);
   // Bumped after in-place profile updates (e.g. displayName on signup) so
   // context consumers re-render without replacing the user object identity.
@@ -52,7 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!auth) return;
     const unsubscribe = onAuthStateChanged(auth, (nextUser) => {
-      setUser(nextUser);
+      setRawUser(nextUser);
       setInitializing(false);
     });
     return unsubscribe;
@@ -114,10 +127,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!auth) return;
         await signOut(auth);
       },
+
+      getServerToken: async () => {
+        if (!auth) return null;
+        try {
+          const current = auth.currentUser ?? (await signInAnonymously(auth)).user;
+          return await current.getIdToken();
+        } catch {
+          // Anonymous auth disabled in the Firebase console, offline, etc.
+          return null;
+        }
+      },
     }),
     // profileEpoch is intentionally included so displayName updates propagate.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [user, initializing, profileEpoch]
+    [rawUser, initializing, profileEpoch]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

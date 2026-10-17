@@ -33,7 +33,7 @@ function toFilenameToken(value: string): string {
 export function getExportFilename(version: ResumeVersion): string {
   const roleName = version.name.trim();
   const isGenericName =
-    !roleName || /^new resume$/i.test(roleName) || /^resume$/i.test(roleName);
+    !roleName || /^(new resume|resume|untitled resume)$/i.test(roleName);
 
   if (!isGenericName) {
     const token = toFilenameToken(roleName);
@@ -95,9 +95,12 @@ export function getPrintSession(token: string): PrintSession | null {
 
 export function openPrintPreview(token: string): void {
   const url = `/export/preview?token=${encodeURIComponent(token)}&print=1`;
-  const printWindow = window.open(url, "_blank", "noopener,noreferrer");
+  // No "noopener" feature string: with it, window.open always returns null,
+  // which made every successful print look like a blocked pop-up.
+  const printWindow = window.open(url, "_blank");
   if (!printWindow) {
-    throw new Error("Pop-up blocked. Allow pop-ups to print.");
+    throw new Error("Your browser blocked the print tab. Allow pop-ups for this site and try again.");
   }
+  printWindow.opener = null;
 }
 

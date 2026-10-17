@@ -6,7 +6,7 @@ import type {
 import type { ResumeContent } from "@/lib/templates/types";
 import {
   customSectionToExperience,
-  useResumeSections,
+  getResumeSections,
 } from "@/lib/templates/sections";
 import { normalizeSectionOrder } from "@/lib/templates/section-order";
 import {
@@ -34,7 +34,7 @@ export function getExportBlocks(data: ResumeContent): ExportBlock[] {
     hasSkills,
     hasEducation,
     visibleCustomSections,
-  } = useResumeSections(data);
+  } = getResumeSections(data);
 
   const headingCase = data.atsHeadingCase ?? "title";
   const blocks: ExportBlock[] = [];

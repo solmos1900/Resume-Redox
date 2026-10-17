@@ -53,6 +53,8 @@ Resume Redox already has multi-version + ATS templates. Gaps vs FlowCV were: **e
 
 ## 4. Current baseline (shipped)
 
+> **Update 2026-10-16 — consumer-ready redesign.** Landing page at `/`, builder at `/app`, no sign-in wall (local-first; account = optional sync; anonymous guest token for server PDF with print-view fallback), Home dashboard + live-thumbnail gallery + tabbed editor (Content · Design · Job match), free keyword match, Redox AI positioned as the only paid tier. Journeys and fixes: [USER_JOURNEYS.md](USER_JOURNEYS.md).
+
 | Capability | Status |
 |------------|--------|
 | Live three-pane editor + mobile tabs | Shipped |

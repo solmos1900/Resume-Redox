@@ -19,9 +19,14 @@ declare global {
 
 export default function ExportPreviewClient() {
   const searchParams = useSearchParams();
-  const token = searchParams.get("token");
-  const autoPrint = searchParams.get("print") === "1";
-  const chromiumCapture = searchParams.get("chromium") === "1";
+  // Read once: ExportPreviewShell strips the query string before printing
+  // (so it isn't stamped in headers), and Next syncs useSearchParams with
+  // history.replaceState — reading live would drop the token mid-print.
+  const [{ token, autoPrint, chromiumCapture }] = useState(() => ({
+    token: searchParams.get("token"),
+    autoPrint: searchParams.get("print") === "1",
+    chromiumCapture: searchParams.get("chromium") === "1",
+  }));
   const [session, setSession] = useState<SessionState | "loading">("loading");
 
   useEffect(() => {
@@ -43,17 +48,17 @@ export default function ExportPreviewClient() {
   }, [token, chromiumCapture]);
 
   if (session === "loading") {
-    return <p className="p-6 text-sm text-gray-500">Loading preview…</p>;
+    return <p className="p-6 text-sm text-ink-muted">Loading preview…</p>;
   }
 
   if (!chromiumCapture && !token) {
-    return <p className="p-6 text-sm text-gray-500">Missing export token.</p>;
+    return <p className="p-6 text-sm text-ink-muted">Missing export token.</p>;
   }
 
   if (!session) {
     return (
-      <p className="p-6 text-sm text-gray-500">
-        Export session expired. Close this tab and try Print again.
+      <p className="p-6 text-sm text-ink-muted">
+        This print link has expired. Close this tab and choose Download → Print again.
       </p>
     );
   }
