@@ -12,6 +12,7 @@ import {
 import { normalizeSectionOrder } from "./templates/section-order";
 import { createInitialStore } from "./seed-data";
 import { getDesignSettings, normalizeAccentColor } from "./design";
+import { GUEST_RESUME_STORAGE_KEY } from "./local-resume-scope";
 
 type ResumeStore = {
   activeVersionId: string;
@@ -291,7 +292,9 @@ export const useResumeStore = create<ResumeStore>()(
       },
     }),
     {
-      name: "resume-redox-storage",
+      // Default to the guest bucket. LocalStoreScope re-keys to
+      // `resume-redox-storage:uid:<uid>` after auth resolves (issue #76).
+      name: GUEST_RESUME_STORAGE_KEY,
       skipHydration: true,
       version: 8,
       migrate: (persisted) => {

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useLocalStoreScope } from "@/components/sync/LocalStoreScope";
 import { useResumeStore } from "@/lib/store";
 import { useSyncStatus } from "@/lib/sync-status";
 import { fetchCloudStore, saveCloudStore } from "@/lib/cloud-sync";
@@ -10,13 +11,19 @@ import {
   cloudSyncSessionKey,
   planInitialCloudSync,
 } from "@/lib/cloud-sync-lifecycle";
+import { markLocalTrustedForUid } from "@/lib/apply-local-resume-scope";
+import { maySilentUploadToEmptyCloud } from "@/lib/local-resume-scope";
 import type { StoreState } from "@/lib/schema";
+import { createInitialStore } from "@/lib/seed-data";
+import { Modal } from "@/components/ui/Modal";
 
 const SAVE_DEBOUNCE_MS = 1500;
 
 export function CloudSyncManager() {
   const { user } = useAuth();
   const uid = cloudSyncSessionKey(user);
+  const { trustForUpload, pendingAdoptLocal, markTrusted } =
+    useLocalStoreScope();
   const setSyncStatus = useSyncStatus((s) => s.set);
   const [conflict, setConflict] = useState<{
     uid: string;
@@ -85,17 +92,57 @@ export function CloudSyncManager() {
     (async () => {
       setSyncStatus("syncing");
       const local = useResumeStore.getState();
-      const localState: StoreState = {
+      const storeLocal: StoreState = {
         activeVersionId: local.activeVersionId,
         versions: local.versions,
       };
+      // Discriminated fetch: missing vs invalid vs error vs ok (#43 / #80).
       const fetchResult = await fetchCloudStore(uid);
       if (cancelled) return;
 
-      const plan = planInitialCloudSync(fetchResult, localState);
+      // Legacy untrusted guest is held aside until the user confirms (#76 / #82).
+      if (pendingAdoptLocal) {
+        if (
+          fetchResult.status === "invalid" ||
+          fetchResult.status === "error"
+        ) {
+          setPausedMessage(
+            fetchResult.status === "invalid"
+              ? fetchResult.reason
+              : fetchResult.message
+          );
+          setSyncStatus("paused");
+          return;
+        }
+        setConflict({
+          uid,
+          cloud:
+            fetchResult.status === "ok"
+              ? fetchResult.data
+              : createInitialStore(),
+          local: pendingAdoptLocal,
+        });
+        return;
+      }
+
+      const plan = planInitialCloudSync(fetchResult, storeLocal);
 
       if (plan.action === "seed-local") {
-        await saveCloudStore(uid, localState).catch(() => undefined);
+        // Never upload another account's local data into an empty cloud doc.
+        if (
+          !maySilentUploadToEmptyCloud({
+            local: storeLocal,
+            trustForUpload,
+          })
+        ) {
+          // Defensive: scoping should have left seed here. Do not push
+          // untrusted non-seed resumes into the cloud.
+          useResumeStore.setState(createInitialStore());
+          setSyncStatus("synced");
+          startAutosave(uid);
+          return;
+        }
+        await saveCloudStore(uid, storeLocal).catch(() => undefined);
         if (cancelled) return;
         setSyncStatus("synced");
         startAutosave(uid);
@@ -126,6 +173,9 @@ export function CloudSyncManager() {
     // Key on uid only — profile-only User object replacements must not
     // re-run initial sync (see #59 / email signup displayName update).
     // retryToken intentionally re-runs a paused sync after the user retries.
+    // LocalStoreScope remounts this tree when the uid (or guest) scope
+    // finishes loading, so trust flags are fresh on each mount without
+    // re-listing them as deps (that would re-sync after "keep local").
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [uid, retryToken]);
 
@@ -169,12 +219,18 @@ export function CloudSyncManager() {
 
   const useCloud = () => {
     useResumeStore.setState(conflict.cloud);
+    markLocalTrustedForUid(conflict.uid);
+    markTrusted();
     setSyncStatus("synced");
     startAutosave(conflict.uid);
     setConflict(null);
   };
 
   const keepLocal = () => {
+    // Explicit user choice: this device's snapshot now belongs to this uid.
+    useResumeStore.setState(conflict.local);
+    markLocalTrustedForUid(conflict.uid);
+    markTrusted();
     void saveCloudStore(conflict.uid, conflict.local).then(() =>
       setSyncStatus("synced")
     );
@@ -182,36 +238,30 @@ export function CloudSyncManager() {
     setConflict(null);
   };
 
+  const count = (n: number) => `${n} resume${n === 1 ? "" : "s"}`;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/40" />
-      <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-bold text-gray-900">
-            Resumes found in your account
-          </h2>
-          <p className="text-sm text-gray-500 mt-1">
-            This device also has unsaved resumes. Which version should we
-            keep?
-          </p>
-        </div>
-        <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={keepLocal}
-            className="text-sm px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-          >
-            Keep this device&apos;s resumes
+    <Modal
+      open
+      hideClose
+      onClose={() => undefined}
+      title="Which resumes should we keep?"
+      description={`Your account has ${count(conflict.cloud.versions.length)} saved, and this device has ${count(conflict.local.versions.length)} that aren't in your account yet.`}
+      footer={
+        <>
+          <button type="button" onClick={keepLocal} className="btn btn-secondary">
+            Keep this device&apos;s
           </button>
-          <button
-            type="button"
-            onClick={useCloud}
-            className="text-sm px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800"
-          >
-            Use my account&apos;s resumes
+          <button type="button" onClick={useCloud} className="btn btn-primary" data-autofocus>
+            Use my account&apos;s
           </button>
-        </div>
-      </div>
-    </div>
+        </>
+      }
+    >
+      <p className="text-sm text-ink-muted">
+        Whichever set you don&apos;t choose is overwritten, so pick the one
+        with your latest edits.
+      </p>
+    </Modal>
   );
 }
