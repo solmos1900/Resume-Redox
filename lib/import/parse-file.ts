@@ -1,6 +1,7 @@
 import {
   detectImportFormat,
   extractResumeText,
+  ImportExtractLimitError,
   looksLikeImageOnlyPdf,
 } from "./extract-text";
 import { parseResumeText } from "./parse-resume-text";
@@ -8,12 +9,45 @@ import {
   buildImportVersion,
   summarizeParsedFields,
 } from "./build-import-version";
+import {
+  IMPORT_MAX_PDF_PAGES,
+  IMPORT_MAX_TEXT_CHARS,
+  IMPORT_PARSE_TIMEOUT_MS,
+} from "./import-limits";
 import type { ImportParseError, ImportParseResult } from "./types";
+
+export class ImportParseTimeoutError extends Error {
+  constructor(message = "Import timed out while reading this file.") {
+    super(message);
+    this.name = "ImportParseTimeoutError";
+  }
+}
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new ImportParseTimeoutError());
+    }, ms);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (err) => {
+        clearTimeout(timer);
+        reject(err);
+      }
+    );
+  });
+}
 
 export async function parseResumeFile(input: {
   buffer: Buffer;
   fileName: string;
   mimeType?: string;
+  maxPages?: number;
+  maxTextChars?: number;
+  timeoutMs?: number;
 }): Promise<ImportParseResult | ImportParseError> {
   const format = detectImportFormat(input.fileName, input.mimeType);
   if (!format) {
@@ -24,10 +58,33 @@ export async function parseResumeFile(input: {
     };
   }
 
+  const maxPages = input.maxPages ?? IMPORT_MAX_PDF_PAGES;
+  const maxTextChars = input.maxTextChars ?? IMPORT_MAX_TEXT_CHARS;
+  const timeoutMs = input.timeoutMs ?? IMPORT_PARSE_TIMEOUT_MS;
+
   let text = "";
   try {
-    text = await extractResumeText(input.buffer, format);
+    text = await withTimeout(
+      extractResumeText(input.buffer, format, { maxPages, maxTextChars }),
+      timeoutMs
+    );
   } catch (err) {
+    if (err instanceof ImportExtractLimitError) {
+      return {
+        ok: false,
+        error: err.message,
+        format,
+        fileName: input.fileName,
+      };
+    }
+    if (err instanceof ImportParseTimeoutError) {
+      return {
+        ok: false,
+        error: err.message,
+        format,
+        fileName: input.fileName,
+      };
+    }
     const message =
       err instanceof Error ? err.message : "Could not read this file.";
     return {
@@ -72,6 +129,11 @@ export async function parseResumeFile(input: {
   } else if (summary.bulletCount === 0) {
     warnings.push(
       "Experience titles mapped but no bullets found — add bullets after import if needed."
+    );
+  }
+  if (text.length >= maxTextChars) {
+    warnings.push(
+      "Extracted text hit the length limit — some later content may be missing."
     );
   }
 

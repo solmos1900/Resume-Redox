@@ -1,9 +1,20 @@
 import mammoth from "mammoth";
 import type { ImportSourceFormat } from "./types";
+import {
+  IMPORT_MAX_PDF_PAGES,
+  IMPORT_MAX_TEXT_CHARS,
+} from "./import-limits";
 
 const EMAIL_RE = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i;
 const PHONE_RE =
   /(?:\+?\d{1,3}[\s.-]?)?(?:\(?\d{3}\)?[\s.-]?)\d{3}[\s.-]?\d{4}/;
+
+export class ImportExtractLimitError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ImportExtractLimitError";
+  }
+}
 
 export function detectImportFormat(
   fileName: string,
@@ -21,7 +32,18 @@ export function detectImportFormat(
   return null;
 }
 
-export async function extractTextFromPdf(buffer: Buffer): Promise<string> {
+export type ExtractTextOptions = {
+  maxPages?: number;
+  maxTextChars?: number;
+};
+
+export async function extractTextFromPdf(
+  buffer: Buffer,
+  options: ExtractTextOptions = {}
+): Promise<string> {
+  const maxPages = options.maxPages ?? IMPORT_MAX_PDF_PAGES;
+  const maxTextChars = options.maxTextChars ?? IMPORT_MAX_TEXT_CHARS;
+
   // pdfjs legacy build works in Node without a worker for text extraction.
   const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
   const loadingTask = pdfjs.getDocument({
@@ -29,7 +51,15 @@ export async function extractTextFromPdf(buffer: Buffer): Promise<string> {
     useSystemFonts: true,
   });
   const doc = await loadingTask.promise;
+
+  if (doc.numPages > maxPages) {
+    throw new ImportExtractLimitError(
+      `This PDF has ${doc.numPages} pages (max ${maxPages}). Use a shorter text-based resume.`
+    );
+  }
+
   const pages: string[] = [];
+  let totalChars = 0;
 
   for (let pageNum = 1; pageNum <= doc.numPages; pageNum += 1) {
     const page = await doc.getPage(pageNum);
@@ -60,23 +90,42 @@ export async function extractTextFromPdf(buffer: Buffer): Promise<string> {
       if (y !== null) lastY = y;
     }
     if (currentLine.trim()) lineChunks.push(currentLine.trim());
-    pages.push(lineChunks.join("\n"));
+    const pageText = lineChunks.join("\n");
+    pages.push(pageText);
+    totalChars += pageText.length + (pages.length > 1 ? 2 : 0);
+
+    if (totalChars >= maxTextChars) {
+      break;
+    }
   }
 
-  return pages.join("\n\n").replace(/\u00a0/g, " ").trim();
+  const joined = pages.join("\n\n").replace(/\u00a0/g, " ").trim();
+  if (joined.length > maxTextChars) {
+    return joined.slice(0, maxTextChars);
+  }
+  return joined;
 }
 
-export async function extractTextFromDocx(buffer: Buffer): Promise<string> {
+export async function extractTextFromDocx(
+  buffer: Buffer,
+  options: ExtractTextOptions = {}
+): Promise<string> {
+  const maxTextChars = options.maxTextChars ?? IMPORT_MAX_TEXT_CHARS;
   const result = await mammoth.extractRawText({ buffer });
-  return (result.value ?? "").replace(/\u00a0/g, " ").trim();
+  const text = (result.value ?? "").replace(/\u00a0/g, " ").trim();
+  if (text.length > maxTextChars) {
+    return text.slice(0, maxTextChars);
+  }
+  return text;
 }
 
 export async function extractResumeText(
   buffer: Buffer,
-  format: ImportSourceFormat
+  format: ImportSourceFormat,
+  options: ExtractTextOptions = {}
 ): Promise<string> {
-  if (format === "pdf") return extractTextFromPdf(buffer);
-  return extractTextFromDocx(buffer);
+  if (format === "pdf") return extractTextFromPdf(buffer, options);
+  return extractTextFromDocx(buffer, options);
 }
 
 export function looksLikeImageOnlyPdf(text: string): boolean {

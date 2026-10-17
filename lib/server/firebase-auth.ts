@@ -91,7 +91,7 @@ export async function requireFirebaseUserFromRequest(request: {
       ok: false,
       status: 503,
       error:
-        "PDF export is unavailable: server auth is not configured. Set FIREBASE_PROJECT_ID or NEXT_PUBLIC_FIREBASE_PROJECT_ID.",
+        "Server auth is not configured. Set FIREBASE_PROJECT_ID or NEXT_PUBLIC_FIREBASE_PROJECT_ID.",
     };
   }
 

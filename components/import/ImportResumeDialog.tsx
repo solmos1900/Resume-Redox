@@ -25,8 +25,13 @@ import {
   type FieldFill,
 } from "@/lib/import/field-status";
 import type { ParsedResumeFields } from "@/lib/import/types";
+import {
+  formatImportMaxFileMb,
+  IMPORT_MAX_FILE_BYTES,
+} from "@/lib/import/import-limits";
 import type { Experience } from "@/lib/schema";
 import { SEED_VERSION_ID } from "@/lib/seed-data";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { IconUpload, IconX } from "@/components/ui/icons";
 
 type ImportMode = "add" | "replace";
@@ -78,6 +83,7 @@ function FillBadge({ status }: { status: FieldFill }) {
 }
 
 export function ImportResumeDialog({ open, onClose, initialFile }: Props) {
+  const { getServerToken } = useAuth();
   const importVersions = useResumeStore((s) => s.importVersions);
   const replaceActiveWithImported = useResumeStore(
     (s) => s.replaceActiveWithImported
@@ -145,6 +151,16 @@ export function ImportResumeDialog({ open, onClose, initialFile }: Props) {
       return;
     }
 
+    if (file.size > IMPORT_MAX_FILE_BYTES) {
+      const msg = `File is too large (max ${formatImportMaxFileMb()} MB).`;
+      setError(msg);
+      setUnreadable(true);
+      setMeta(null);
+      setFields(null);
+      setLiveMessage(msg);
+      return;
+    }
+
     // Restart parse without touching current resume data.
     const requestId = ++requestIdRef.current;
     setBusy(true);
@@ -156,10 +172,26 @@ export function ImportResumeDialog({ open, onClose, initialFile }: Props) {
     setLiveMessage("Reading your file…");
 
     try {
+      const idToken = await getServerToken();
+      if (!idToken) {
+        if (requestId !== requestIdRef.current) return;
+        const msg =
+          "Import needs a brief connection to authorize the upload. Check your network and try again.";
+        setError(msg);
+        setUnreadable(true);
+        setFields(null);
+        setMeta(null);
+        setLiveMessage(msg);
+        return;
+      }
+
       const body = new FormData();
       body.append("file", file);
       const res = await fetch("/api/import-parse", {
         method: "POST",
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+        },
         body,
       });
       const data = (await res.json()) as
@@ -178,9 +210,28 @@ export function ImportResumeDialog({ open, onClose, initialFile }: Props) {
       if (requestId !== requestIdRef.current) return;
 
       if (!res.ok || !data.ok) {
-        const msg = !data.ok
+        let msg = !data.ok
           ? data.error
           : "Could not read text from this file. Try another PDF or DOCX.";
+        if (res.status === 401) {
+          msg =
+            "Could not authorize import. Refresh the page and try again.";
+        } else if (res.status === 413) {
+          msg =
+            !data.ok && data.error
+              ? data.error
+              : `File is too large (max ${formatImportMaxFileMb()} MB).`;
+        } else if (res.status === 429) {
+          msg =
+            !data.ok && data.error
+              ? data.error
+              : "Too many import requests. Wait a moment and try again.";
+        } else if (res.status === 503) {
+          msg =
+            !data.ok && data.error
+              ? data.error
+              : "Import is temporarily unavailable. Try again shortly.";
+        }
         setError(msg);
         setUnreadable(true);
         setFields(null);
@@ -457,7 +508,9 @@ export function ImportResumeDialog({ open, onClose, initialFile }: Props) {
                   <IconUpload size={22} />
                 </span>
                 <p className="mt-3 text-sm font-semibold text-ink">Drag your resume here</p>
-                <p className="mt-0.5 text-xs text-ink-muted">PDF or Word (.docx), up to 8 MB</p>
+                <p className="mt-0.5 text-xs text-ink-muted">
+                  PDF or Word (.docx), up to {formatImportMaxFileMb()} MB
+                </p>
               </>
             )}
             <input
