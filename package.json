@@ -13,6 +13,7 @@
     "test:export-pdf-security": "tsx scripts/test-export-pdf-security.ts",
     "test:cloud-sync-lifecycle": "tsx scripts/test-cloud-sync-lifecycle.ts",
     "test:cloud-sync-save-queue": "tsx scripts/test-cloud-sync-save-queue.ts",
+    "test:local-resume-scope": "tsx scripts/test-local-resume-scope.ts",
     "build": "npm run build:pdf-assets && next build",
     "start": "next start",
     "lint": "next lint",
