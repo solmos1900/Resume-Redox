@@ -11,7 +11,12 @@ import type { PageFitResult } from "@/lib/page-fit";
 import { EditorPanel } from "./EditorPanel";
 import { DesignTab } from "./DesignTab";
 import { JobMatchTab } from "./JobMatchTab";
-import { AtsTab } from "./AtsTab";
+import dynamic from "next/dynamic";
+
+// Loaded on first open: it pulls in the resume parser.
+const AtsTab = dynamic(() => import("./AtsTab").then((m) => m.AtsTab), {
+  loading: () => <p className="p-4 text-sm text-ink-muted">Reading your resume like an ATS…</p>,
+});
 import { EditorTopBar } from "./EditorTopBar";
 import { PageFitBadge, PageFitGuide } from "@/components/preview/PageFitGuide";
 import { IconEye, IconLayout, IconPalette, IconPencil, IconShield, IconTarget } from "@/components/ui/icons";
