@@ -23,6 +23,7 @@ const COMPARISON: { label: string; them: string; us: string }[] = [
   { label: "Watermark", them: "Often", us: "Never" },
   { label: "Account required", them: "Before you start", us: "Never — it's optional" },
   { label: "Where your data lives", them: "Their servers", us: "Your browser (sync if you want)" },
+  { label: "ATS check", them: "Often a paid add-on", us: "Free, unlimited" },
   { label: "AI writing help", them: "Bundled into a pricey plan", us: `Optional Pro add-on, ${formatPrice(PRO_PLAN.monthlyPrice)}/mo` },
 ];
 
@@ -69,7 +70,7 @@ const FAQ = [
   },
   {
     q: "Will my resume get through applicant tracking systems (ATS)?",
-    a: "Every template is single-column with real text, standard section headings, and no tables or images — the format parsers read most reliably. The Job match tab also shows which keywords from a posting you're missing.",
+    a: "Every template is single-column with real text, standard section headings, and no tables or images — the format parsers read most reliably. The free ATS check shows exactly what a parser pulls out of your resume and what to fix, and the Job match tab shows which keywords from a posting you're missing.",
   },
   {
     q: "Who can see my resume?",

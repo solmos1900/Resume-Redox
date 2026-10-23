@@ -5,6 +5,11 @@
  *
  * Billing isn't live yet: every "Upgrade" entry point opens the Pro dialog,
  * which collects a waitlist signup. Change prices here only.
+ *
+ * The ATS check (lib/ats-check.ts) is deliberately free and unlimited: it is
+ * deterministic, costs nothing to run, and is the strongest trust signal for
+ * the free builder. To meter it later, gate `runAtsCheck` calls in
+ * components/editor/AtsTab.tsx — the AI "fix it" step is what Pro sells.
  */
 
 export const PRO_PLAN = {
@@ -21,7 +26,7 @@ export const PRO_YEARLY_SAVINGS_PCT = Math.round(
   (1 - PRO_PLAN.yearlyPrice / (PRO_PLAN.monthlyPrice * 12)) * 100
 );
 
-export type ProFeatureId = "tailor" | "spellcheck" | "bullets" | "alerts";
+export type ProFeatureId = "tailor" | "spellcheck" | "bullets" | "alerts" | "atsfix";
 
 export const PRO_FEATURES: {
   id: ProFeatureId;
@@ -46,6 +51,12 @@ export const PRO_FEATURES: {
     title: "Bullet enhancer",
     short: "Turn flat duties into strong, measurable accomplishments.",
     body: "Rewrite any bullet with a stronger action verb and a clear result. You pick from suggestions and nothing changes without your approval.",
+  },
+  {
+    id: "atsfix",
+    title: "One-click ATS fixes",
+    short: "AI resolves the problems the free ATS check finds.",
+    body: "The ATS check is free and shows exactly how a parser reads you. Pro goes further: AI rewrites the flagged parts — missing dates, vague titles, weak keywords — and you approve each change.",
   },
   {
     id: "alerts",

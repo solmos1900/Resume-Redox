@@ -168,8 +168,20 @@ Anonymous guest sessions (J7) are invisible: they never show as "signed in" and 
 - Editor: bottom navigation **Content · Design · Job · Preview**; Download and Sync collapse to icons in the top bar; the preview scales the letter page to the screen while PDF stays full size.
 - Dialogs become bottom sheets. Inputs are 16px so iOS doesn't zoom on focus.
 
+### J14 · See how an ATS reads my resume (free)
+**Path:** Editor → **ATS check** tab (desktop tab bar / phone bottom nav "ATS").
+
+- The resume's plain-text layer (identical to the PDF/Word downloads) is run back through the resume parser used for imports.
+- **Header:** "N of M checks passed" bar, or "Clean parse" when everything lands.
+- **What to fix:** issues ranked Fix → Improve → Tip, each with a *Go* button that jumps to the right section. Examples: missing or unreadable email, jobs the parser lost, missing start dates, mixed date formats, no bullets, emoji, unusual headings.
+- **What it found:** contact fields (with "your resume says …" when the parse differs), work history (title · company · location · dates · bullet count), education, skills.
+- **Raw text an ATS receives**, collapsible.
+- **Fix these with AI · Pro** → upgrade dialog (`atsfix`).
+- Honest footnote: a simulation of common parsing rules; real systems vary.
+
 ### J13 · Discover and join Redox Pro
 **Entry points:** landing (nav *Pro*, the Pro section, Pricing), Home (✨ Pro, *Turn on job alerts*), editor (*Check spelling & grammar*, ✨ on a bullet, *Enhance bullets*, Job match *Score & tailor* / *Email me jobs like this*).
+**Entry point added:** ATS check → *Fix these with AI*.
 **Path:** tap any of them → **upgrade dialog** leading with that feature → monthly/yearly toggle ($5/mo · $48/yr) → email → **Join the waitlist** → "You're on the list."
 
 - Pro features are always visible but clearly marked **Pro**; tapping one never loses work or navigates away.

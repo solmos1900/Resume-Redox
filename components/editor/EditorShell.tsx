@@ -11,14 +11,16 @@ import type { PageFitResult } from "@/lib/page-fit";
 import { EditorPanel } from "./EditorPanel";
 import { DesignTab } from "./DesignTab";
 import { JobMatchTab } from "./JobMatchTab";
+import { AtsTab } from "./AtsTab";
 import { EditorTopBar } from "./EditorTopBar";
 import { PageFitBadge, PageFitGuide } from "@/components/preview/PageFitGuide";
-import { IconEye, IconLayout, IconPalette, IconPencil, IconTarget } from "@/components/ui/icons";
+import { IconEye, IconLayout, IconPalette, IconPencil, IconShield, IconTarget } from "@/components/ui/icons";
 
 const TABS: { id: EditorTab; label: string; icon: typeof IconPencil }[] = [
   { id: "content", label: "Content", icon: IconPencil },
   { id: "design", label: "Design", icon: IconPalette },
   { id: "job", label: "Job match", icon: IconTarget },
+  { id: "ats", label: "ATS check", icon: IconShield },
 ];
 
 function TabBody() {
@@ -28,6 +30,7 @@ function TabBody() {
       {tab === "content" && <EditorPanel />}
       {tab === "design" && <DesignTab />}
       {tab === "job" && <JobMatchTab />}
+      {tab === "ats" && <AtsTab />}
     </div>
   );
 }
@@ -114,7 +117,7 @@ export function EditorShell() {
         <EditorTopBar />
         <div className="flex min-h-0 flex-1">
           <aside className="no-print flex w-[min(540px,44%)] min-w-[400px] flex-col border-r border-line bg-paper">
-            <nav className="flex shrink-0 gap-1 px-5 pb-1 pt-3" aria-label="Editor sections">
+            <nav className="flex shrink-0 gap-1 overflow-x-auto px-5 pb-1 pt-3" aria-label="Editor sections">
               {TABS.map(({ id, label, icon: Icon }) => {
                 const active = editorTab === id;
                 return (
@@ -123,7 +126,7 @@ export function EditorShell() {
                     type="button"
                     onClick={() => setEditorTab(id)}
                     aria-current={active ? "page" : undefined}
-                    className={`inline-flex min-h-[38px] items-center gap-2 rounded-full px-4 text-sm font-medium transition ${
+                    className={`inline-flex min-h-[38px] items-center gap-2 rounded-full px-3.5 text-sm font-medium transition ${
                       active ? "bg-ink text-white shadow-sm" : "text-ink-muted hover:bg-ink/5 hover:text-ink"
                     }`}
                   >
@@ -146,7 +149,7 @@ export function EditorShell() {
   const NAV: { key: string; label: string; icon: typeof IconPencil; active: boolean; onClick: () => void }[] = [
     ...TABS.map((t) => ({
       key: t.id,
-      label: t.id === "job" ? "Job" : t.label,
+      label: t.id === "job" ? "Job" : t.id === "ats" ? "ATS" : t.label,
       icon: t.icon,
       active: mobileTab === "edit" && editorTab === t.id,
       onClick: () => {
@@ -177,7 +180,7 @@ export function EditorShell() {
         )}
       </div>
       <nav
-        className="no-print grid shrink-0 grid-cols-4 border-t border-line bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur"
+        className="no-print grid shrink-0 grid-cols-5 border-t border-line bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur"
         aria-label="Editor navigation"
       >
         {NAV.map(({ key, label, icon: Icon, active, onClick }) => (

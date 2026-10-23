@@ -28,7 +28,8 @@ function formatExperienceLines(jobs: Experience[]): string[] {
   return lines;
 }
 
-function buildResumeText(version: ResumeVersion): string {
+/** Plain-text layer of the resume (same content and order as PDF/DOCX). */
+export function buildResumeText(version: ResumeVersion): string {
   const data = toResumeContent(version);
   const { contactLine } = getResumeSections(data);
   const blocks = getExportBlocks(data);

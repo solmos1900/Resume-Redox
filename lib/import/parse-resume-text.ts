@@ -347,7 +347,12 @@ function parseExperienceBlock(lines: string[]): Experience[] {
       i += 1;
     }
 
-    const companyParts = companyLine.split(",").map((p) => p.trim());
+    // "Company • City, ST" (our export) before the older "Company, City, ST".
+    const bulletSplit = companyLine.split(/\s+[•·|]\s+/);
+    const companyParts =
+      bulletSplit.length > 1
+        ? [bulletSplit[0].trim(), bulletSplit.slice(1).join(", ").trim()]
+        : companyLine.split(",").map((p) => p.trim());
     const company = companyParts[0] ?? companyLine;
     const location = companyParts.slice(1).join(", ");
 

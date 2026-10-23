@@ -33,6 +33,20 @@ function Visual({ id }: { id: ProFeatureId }) {
       </p>
     );
   }
+  if (id === "atsfix") {
+    return (
+      <div className="space-y-1.5 text-[12px]">
+        <p className="flex items-center justify-between gap-2 rounded-lg bg-white/5 px-3 py-2 text-paper/80">
+          <span><span className="text-brand-400">●</span> 2 jobs have no start date</span>
+          <span className="shrink-0 rounded-full bg-white px-2 py-0.5 text-[11px] font-semibold text-ink">Fix with AI</span>
+        </p>
+        <p className="flex items-center justify-between gap-2 rounded-lg bg-white/5 px-3 py-2 text-paper/80">
+          <span><span className="text-moss-500">●</span> Dates unified to “Jan 2022”</span>
+          <span className="shrink-0 text-paper/45">Applied</span>
+        </p>
+      </div>
+    );
+  }
   if (id === "bullets") {
     return (
       <div className="space-y-1.5 text-[12px]">
@@ -80,7 +94,7 @@ export function ProShowcase() {
             </h2>
             <p className="mt-3 text-paper/65">
               Upgrade only if you want AI doing the heavy lifting — tailoring, proofreading,
-              rewriting, and finding jobs for you. {formatPrice(PRO_PLAN.monthlyPrice)}/month or{" "}
+              rewriting, fixing ATS issues, and finding jobs for you. {formatPrice(PRO_PLAN.monthlyPrice)}/month or{" "}
               {formatPrice(PRO_PLAN.yearlyPrice)}/year.
             </p>
           </div>
@@ -90,8 +104,13 @@ export function ProShowcase() {
         </div>
 
         <ul className="mt-12 grid gap-4 md:grid-cols-2">
-          {PRO_FEATURES.map((f) => (
-            <li key={f.id} className="flex flex-col rounded-2xl border border-white/10 bg-white/[0.04] p-6">
+          {PRO_FEATURES.map((f, i) => (
+            <li
+              key={f.id}
+              className={`flex flex-col rounded-2xl border border-white/10 bg-white/[0.04] p-6 ${
+                PRO_FEATURES.length % 2 === 1 && i === PRO_FEATURES.length - 1 ? "md:col-span-2" : ""
+              }`}
+            >
               <h3 className="font-display text-xl font-semibold tracking-tight">{f.title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-paper/65">{f.body}</p>
               <div className="mt-5">
