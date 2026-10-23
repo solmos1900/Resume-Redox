@@ -11,7 +11,7 @@ import type { ProFeatureId } from "./pro";
 export type AppSurface = "home" | "gallery" | "editor";
 
 /** Left-pane tabs in the editor. */
-export type EditorTab = "content" | "design" | "job";
+export type EditorTab = "content" | "design" | "job" | "ats";
 
 /** Phone/tablet: one pane at a time. */
 export type MobileTab = "edit" | "preview";

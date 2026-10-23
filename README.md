@@ -13,6 +13,7 @@ User journeys, what each screen is for, and what changed in the redesign: **[doc
 - **Import** a PDF or Word resume, review every field, then open it
 - **Live templates** — 6 single-column, ATS-safe layouts; thumbnails are real renders of your own resume
 - **Design** — font, size, spacing, accent color, section order, heading style
+- **ATS check** — see exactly what a resume parser extracts from your download and what to fix (free, unlimited)
 - **Job match** — paste a posting, see which key terms you cover; tap to add missing ones (free, runs locally)
 - **Download** — PDF (Chromium text PDF of the same templates), Word, plain text, print; graceful Save-as-PDF fallback
 - **Unlimited resumes** — duplicate, tailor a copy per job, backup/restore as JSON

@@ -11,6 +11,8 @@
 | PDF / Word / TXT downloads, no watermark | ✅ | ✅ |
 | Import PDF/DOCX, optional sync | ✅ | ✅ |
 | Keyword check vs. a job posting (deterministic, local, no AI) | ✅ | ✅ |
+| **ATS check** — what a parser extracts from your resume + prioritized fix list (deterministic, unlimited) | ✅ | ✅ |
+| **One-click ATS fixes** — AI rewrites the issues the ATS check flags | — | ✅ |
 | **AI job match & tailoring** — match score against a posting + one-click tailored resume | — | ✅ |
 | **Spelling & grammar check** — whole-resume pass with one-tap fixes | — | ✅ |
 | **Bullet enhancer** — rewrite a bullet into a measurable accomplishment | — | ✅ |
@@ -26,9 +28,14 @@ Prices, names, and feature copy live in one place: [`lib/pro.ts`](../lib/pro.ts)
 | Home | **✨ Pro** in header; **Job alerts** card under *My resumes* | Upgrade dialog (`alerts`) |
 | Editor · Content | **Check spelling & grammar · Pro** bar (when the resume has content) | Upgrade dialog (`spellcheck`) |
 | Editor · bullets | ✨ on each bullet (hover/focus) and **Enhance bullets · Pro** under each list | Upgrade dialog (`bullets`) |
+| Editor · ATS check | Free parse view + fix list; **Fix these with AI · Pro** under the issues | Upgrade dialog (`atsfix`) |
 | Editor · Job match | Free keyword check, then **AI tools for this job**: locked match score, *Score & tailor my resume*, *Email me jobs like this* | Upgrade dialog (`tailor` / `alerts`) |
 
 The upgrade dialog leads with the feature the user tapped, lists the full plan, has the monthly/yearly toggle, and ends with "Everything else stays free, forever."
+
+### Why the ATS check is free (and unlimited)
+
+It's deterministic (no AI cost), it's the strongest proof that the free builder produces parser-safe resumes, and metering it ("2 free, then pay") would need forced accounts — a local counter is trivially reset — while contradicting the "free forever" promise. Pro monetizes the *fix*, not the diagnosis. If you ever want to meter it, gate `runAtsCheck` in `components/editor/AtsTab.tsx`.
 
 ## Until billing ships: the waitlist
 

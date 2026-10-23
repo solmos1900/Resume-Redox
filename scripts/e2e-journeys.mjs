@@ -108,6 +108,21 @@ await p.waitForTimeout(300);
 ok("accent template shows color swatches", await p.getByLabel(/Accent color #/).first().isVisible());
 await p.screenshot({ path: `${out}/34-design-accent.png` });
 
+// J14: free ATS check shows parsed fields and issues; Go jumps to the section
+await p.getByRole("button", { name: /ATS check/ }).first().click();
+await p.getByText("How an ATS reads your resume").waitFor();
+ok("ATS check shows parsed name", await p.getByText("Contact details it found").isVisible());
+ok("ATS check counts checks", await p.getByText(/\d+ of \d+ checks passed/).isVisible());
+ok("ATS check lists parsed jobs", (await p.getByText("Work history it found").count()) === 1);
+const go = p.getByRole("button", { name: /^Go/ }).first();
+if (await go.count()) {
+  await go.click();
+  await p.waitForTimeout(400);
+  ok("ATS Go jumps to Content", await p.locator("#editor-section-contact").isVisible());
+} else {
+  ok("ATS clean parse", await p.getByText("Clean parse").isVisible());
+}
+
 // J13: Pro entry points open the upgrade dialog; waitlist never fakes success
 await p.getByRole("button", { name: /Content/ }).first().click();
 await p.getByRole("button", { name: /Check spelling & grammar/ }).click();

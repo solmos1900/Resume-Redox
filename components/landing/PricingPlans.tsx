@@ -13,6 +13,7 @@ const FREE_FEATURES = [
   "Unlimited PDF, Word, and text downloads",
   "No watermark, no sign-up",
   "Import from PDF or Word",
+  "ATS check — see how parsers read your resume",
   "Keyword check against a job posting",
   "Optional sync across devices",
 ];
