@@ -163,7 +163,7 @@ Jobs:
 | **C1** | Cover letter sibling doc | Match brand; export PDF |
 | **S1** | Shareable online resume link | Needs auth/hosting; Khalil if GTM |
 | **A1** | Re-enable AI Coach carefully | Archived; privacy + cost + Gregor |
-| **M1** | Monetization (optional) | Redox already gives free multi-version — don’t copy FlowCV’s paywall on versions |
+| **M1** | Monetization — **decided 2026-10-23:** free builder forever; Redox Pro $5/mo or $48/yr for AI only (JD match/tailor, spell check, bullet enhancer, job-alert emails). Marketing + waitlist shipped; billing pending. See [MONETIZATION.md](MONETIZATION.md) | Never paywall versions, templates, or downloads |
 
 ---
 

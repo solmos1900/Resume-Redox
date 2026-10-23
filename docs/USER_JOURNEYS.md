@@ -1,7 +1,7 @@
 # Resume Redox — User Journeys
 
 **Status:** Living doc · v2.0 (2026-10-16) — consumer-ready redesign
-**Promise to the user:** build, design, and download a great resume for free. No paywall at the finish line, no watermark, no account required. Paid tiers, when they come, are only for optional AI features.
+**Promise to the user:** build, design, and download a great resume for free. No paywall at the finish line, no watermark, no account required. The only paid tier is **Redox Pro** ($5/mo or $48/yr) for AI features — see [MONETIZATION.md](MONETIZATION.md).
 
 The bar for every journey: **a first-time visitor understands the benefit and sees their own resume taking shape within 60 seconds.**
 
@@ -119,8 +119,8 @@ Each journey lists the path, what "done" looks like, and — where the old app w
 **Path A:** Home → resume card **⋯ → Tailor a copy for a job** → editor opens on **Job match** with a copy named "… — tailored".
 **Path B:** Editor → **Job match** tab on any resume.
 
-- Paste the posting → **"13 of 20 key terms covered"** with a score ring, *Missing* chips (tap to add to Skills, with a "keep it only if it's true" reminder) and *Already on your resume* chips. Runs locally; nothing leaves the device.
-- Below it, the **Redox AI · Coming soon** card previews the future paid tier (bullet rewrites, summary/cover letter drafts, proofreading) and states that the builder stays free.
+- Paste the posting → free **Keyword check**: "13 of 20 key terms appear on your resume", a coverage bar, *Missing* chips (tap to add to Skills, with a "keep it only if it's true" reminder) and *Already on your resume* chips. Deterministic, runs locally; no AI.
+- Below it, **AI tools for this job (Pro)**: a locked AI match score, *Score & tailor my resume*, and *Email me jobs like this* — each opens the upgrade dialog (J13).
 
 **Was confusing → fixed**
 - "From a job" opened a sheet whose only button was a disabled **"Continue (GF5)"**. → Replaced by a working, free keyword check plus an honest "coming soon" card.
@@ -168,6 +168,15 @@ Anonymous guest sessions (J7) are invisible: they never show as "signed in" and 
 - Editor: bottom navigation **Content · Design · Job · Preview**; Download and Sync collapse to icons in the top bar; the preview scales the letter page to the screen while PDF stays full size.
 - Dialogs become bottom sheets. Inputs are 16px so iOS doesn't zoom on focus.
 
+### J13 · Discover and join Redox Pro
+**Entry points:** landing (nav *Pro*, the Pro section, Pricing), Home (✨ Pro, *Turn on job alerts*), editor (*Check spelling & grammar*, ✨ on a bullet, *Enhance bullets*, Job match *Score & tailor* / *Email me jobs like this*).
+**Path:** tap any of them → **upgrade dialog** leading with that feature → monthly/yearly toggle ($5/mo · $48/yr) → email → **Join the waitlist** → "You're on the list."
+
+- Pro features are always visible but clearly marked **Pro**; tapping one never loses work or navigates away.
+- Every Pro surface restates that the builder and downloads stay free.
+- Signed-in users get their email prefilled. A browser that already joined sees the confirmed state.
+- If the signup can't be saved (Firebase missing or rule not deployed) the user sees an honest error, never a fake success.
+
 ### J12 · Forgot password
 Sign-in dialog → *Forgot password?* (needs the email typed first) → email link → `/auth/action` → set new password → back to `/app`.
 
@@ -190,4 +199,5 @@ npm run test:journeys           # in another (BASE_URL=… to target a deploymen
 | Social preview image (`app/opengraph-image`) | Shared links currently show text-only cards. |
 | Privacy-friendly analytics on J1–J7 funnel steps | To measure the 60-second goal instead of guessing. |
 | More templates (PRD T1: 12–20) | Gallery has 6 real ones; no placeholders are shown. |
-| Redox AI (paid) | The Job match tab and pricing section are the planned entry points. |
+| Redox Pro billing + AI | Marketing, entry points, and waitlist are live; billing and the AI features themselves are not. Checklist in [MONETIZATION.md](MONETIZATION.md). |
+| Deploy the `proWaitlist` Firestore rule | Required for waitlist signups to save. |

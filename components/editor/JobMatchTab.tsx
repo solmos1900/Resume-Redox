@@ -5,17 +5,21 @@ import { useResumeStore } from "@/lib/store";
 import { analyzeJobMatch } from "@/lib/keywords";
 import { generateId } from "@/lib/utils";
 import { useToastStore } from "@/lib/toast-store";
-import { IconCheck, IconPlus, IconSparkle } from "@/components/ui/icons";
+import { useUiStore } from "@/lib/ui-store";
+import { IconCheck, IconLock, IconPlus, IconSparkle, IconTarget } from "@/components/ui/icons";
+import { ProBadge } from "@/components/pro/ProBadge";
+import { PRO_PLAN, formatPrice } from "@/lib/pro";
 import { AutoTextarea, TextField } from "./fields";
 
 /**
- * Tailor a resume to one posting. The keyword check is free and local;
- * the AI card previews the planned paid tier without blocking anything.
+ * Tailor a resume to one posting. The keyword check is free and local
+ * (no AI). AI scoring, one-click tailoring, and job alerts are Redox Pro.
  */
 export function JobMatchTab() {
   const version = useResumeStore((s) => s.getActiveVersion());
   const updateActiveVersion = useResumeStore((s) => s.updateActiveVersion);
   const showToast = useToastStore((s) => s.showToast);
+  const openUpgrade = useUiStore((s) => s.openUpgrade);
 
   const jobText = version?.jobDescription?.text ?? "";
   const jobUrl = version?.jobDescription?.url ?? "";
@@ -74,18 +78,19 @@ export function JobMatchTab() {
 
       {report && report.total > 0 && (
         <section className="animate-fade-up rounded-2xl border border-line bg-white p-4 shadow-card">
-          <div className="flex items-center gap-4">
-            <ScoreRing score={report.score} />
-            <div className="min-w-0">
-              <h2 className="font-display text-[17px] font-semibold tracking-tight">
-                {report.matchedCount} of {report.total} key terms covered
-              </h2>
-              <p className="mt-0.5 text-[13px] leading-relaxed text-ink-muted">
-                {report.score >= 75
-                  ? "Strong overlap. Make sure the top terms appear in your recent bullets, not just Skills."
-                  : "Work the missing terms into bullets or Skills — wherever they're genuinely true."}
-              </p>
-            </div>
+          <div className="flex items-baseline justify-between gap-3">
+            <h2 className="font-display text-[17px] font-semibold tracking-tight">Keyword check</h2>
+            <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-moss-700">Free</span>
+          </div>
+          <p className="mt-0.5 text-[13px] text-ink-muted">
+            <b className="text-ink">{report.matchedCount} of {report.total}</b> key terms from this posting
+            appear on your resume. Work missing ones into bullets or Skills — wherever they&apos;re true.
+          </p>
+          <div className="mt-3 h-2 overflow-hidden rounded-full bg-paper-deep" aria-hidden>
+            <div
+              className="h-full rounded-full bg-moss-500 transition-[width] duration-500"
+              style={{ width: `${report.score}%` }}
+            />
           </div>
 
           {missing.length > 0 && (
@@ -124,57 +129,61 @@ export function JobMatchTab() {
         </section>
       )}
 
-      <section className="relative overflow-hidden rounded-2xl border border-ink bg-ink p-5 text-paper">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-brand-500/30 blur-3xl"
-        />
-        <div className="relative">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-200">
-            <IconSparkle size={13} /> Redox AI · Coming soon
-          </span>
-          <h2 className="mt-3 font-display text-xl font-semibold tracking-tight">
-            Let AI do the tailoring
-          </h2>
-          <ul className="mt-2 space-y-1.5 text-[13px] text-paper/75">
-            <li>• Rewrite bullets to match this posting, in your voice</li>
-            <li>• Draft a summary and cover letter for the role</li>
-            <li>• Catch typos and weak verbs before you hit send</li>
-          </ul>
-          <p className="mt-3 text-[12px] text-paper/55">
-            An optional upgrade. Building, designing, and downloading resumes
-            stays free — forever.
-          </p>
-        </div>
-      </section>
+      <ProJobTools hasPosting={jobText.trim().length > 40} onUpgrade={openUpgrade} />
     </div>
   );
 }
 
-function ScoreRing({ score }: { score: number }) {
-  const r = 22;
-  const c = 2 * Math.PI * r;
-  const color = score >= 75 ? "#3B8A55" : score >= 45 ? "#EE5419" : "#B2320D";
+/** Pro upsell for this posting: AI match score, one-click tailoring, alerts. */
+function ProJobTools({
+  hasPosting,
+  onUpgrade,
+}: {
+  hasPosting: boolean;
+  onUpgrade: (feature: "tailor" | "alerts") => void;
+}) {
   return (
-    <div className="relative h-14 w-14 shrink-0">
-      <svg viewBox="0 0 56 56" className="h-14 w-14 -rotate-90" aria-hidden>
-        <circle cx="28" cy="28" r={r} fill="none" stroke="#ECE7DF" strokeWidth="6" />
-        <circle
-          cx="28"
-          cy="28"
-          r={r}
-          fill="none"
-          stroke={color}
-          strokeWidth="6"
-          strokeLinecap="round"
-          strokeDasharray={c}
-          strokeDashoffset={c * (1 - score / 100)}
-          className="transition-[stroke-dashoffset] duration-500"
-        />
-      </svg>
-      <span className="absolute inset-0 flex items-center justify-center text-sm font-semibold">
-        {score}%
-      </span>
-    </div>
+    <section className="relative overflow-hidden rounded-2xl border border-ink bg-ink p-5 text-paper">
+      <div aria-hidden className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-brand-500/30 blur-3xl" />
+      <div className="relative">
+        <div className="flex items-center gap-2">
+          <ProBadge tone="dark" />
+          <span className="text-[12px] text-paper/60">AI tools for this job</span>
+        </div>
+
+        <div className="mt-4 flex items-center gap-4">
+          <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-[5px] border-white/15">
+            <span className="select-none text-sm font-semibold text-paper/70 blur-[3px]" aria-hidden>
+              82
+            </span>
+            <IconLock size={16} className="absolute text-paper/80" />
+          </div>
+          <div className="min-w-0">
+            <h2 className="font-display text-lg font-semibold tracking-tight">AI match score</h2>
+            <p className="text-[13px] leading-relaxed text-paper/65">
+              Reads the posting like a recruiter: weighs must-haves over nice-to-haves and tells you
+              exactly what to change.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-2 sm:grid-cols-2">
+          <button type="button" onClick={() => onUpgrade("tailor")} className="btn btn-brand w-full">
+            <IconSparkle size={16} /> {hasPosting ? "Score & tailor my resume" : "Score a posting"}
+          </button>
+          <button
+            type="button"
+            onClick={() => onUpgrade("alerts")}
+            className="btn w-full border border-white/20 text-paper hover:bg-white/10"
+          >
+            <IconTarget size={16} /> Email me jobs like this
+          </button>
+        </div>
+        <p className="mt-3 text-[12px] text-paper/50">
+          {PRO_PLAN.name} is {formatPrice(PRO_PLAN.monthlyPrice)}/month. The keyword check above, and the whole
+          builder, stay free.
+        </p>
+      </div>
+    </section>
   );
 }

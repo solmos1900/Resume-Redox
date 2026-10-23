@@ -11,6 +11,8 @@ import { AddCustomSectionControls, CustomSectionsForm } from "./CustomSectionsFo
 import { SkillGroupsForm } from "./SkillGroupsForm";
 import { EducationForm } from "./EducationForm";
 import { EmptyResumeImportCta } from "@/components/import/EmptyResumeImportCta";
+import { AiReviewBar } from "@/components/pro/AiReviewBar";
+import { isResumeNonEmpty } from "@/lib/import/resume-content";
 
 const SECTION_FORMS: Record<ReorderableSectionId, () => ReactNode> = {
   summary: () => <SummaryForm />,
@@ -24,11 +26,13 @@ const SECTION_FORMS: Record<ReorderableSectionId, () => ReactNode> = {
 export function EditorPanel() {
   // Select the stored array (stable reference), normalize outside the selector.
   const storedOrder = useResumeStore((s) => s.getActiveVersion()?.sectionOrder);
+  const hasContent = useResumeStore((s) => isResumeNonEmpty(s.getActiveVersion()));
   const order = normalizeSectionOrder(storedOrder);
 
   return (
     <div className="space-y-3">
       <EmptyResumeImportCta />
+      {hasContent && <AiReviewBar />}
       <ContactForm />
       {order.map((id) => (
         <div key={id} className="contents">

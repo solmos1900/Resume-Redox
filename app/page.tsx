@@ -2,6 +2,9 @@ import Link from "next/link";
 import { Logo } from "@/components/ui/Logo";
 import { LandingCta } from "@/components/landing/LandingCta";
 import { HeroResume } from "@/components/landing/HeroResume";
+import { ProShowcase } from "@/components/landing/ProShowcase";
+import { PricingPlans } from "@/components/landing/PricingPlans";
+import { PRO_PLAN, formatPrice } from "@/lib/pro";
 import {
   IconCheck,
   IconDownload,
@@ -9,7 +12,6 @@ import {
   IconInfinity,
   IconLock,
   IconShield,
-  IconSparkle,
   IconUpload,
   IconX,
 } from "@/components/ui/icons";
@@ -21,6 +23,7 @@ const COMPARISON: { label: string; them: string; us: string }[] = [
   { label: "Watermark", them: "Often", us: "Never" },
   { label: "Account required", them: "Before you start", us: "Never — it's optional" },
   { label: "Where your data lives", them: "Their servers", us: "Your browser (sync if you want)" },
+  { label: "AI writing help", them: "Bundled into a pricey plan", us: `Optional Pro add-on, ${formatPrice(PRO_PLAN.monthlyPrice)}/mo` },
 ];
 
 const STEPS = [
@@ -50,7 +53,15 @@ const SHOWCASE: { id: TemplateId; name: string }[] = [
 const FAQ = [
   {
     q: "Is it actually free?",
-    a: "Yes. Building, designing, unlimited resumes, and PDF/Word/text downloads are free with no watermark. Later we'll offer optional AI features (like tailoring bullets to a job) as a paid add-on — the builder itself stays free.",
+    a: "Yes. Building, designing, unlimited resumes, and PDF/Word/text downloads are free with no watermark — forever. Only the AI features in Redox Pro cost money, and nothing in the free builder will ever move behind that paywall.",
+  },
+  {
+    q: "What do I get with Redox Pro?",
+    a: `AI that does the slow parts: a match score against any job posting plus a one-click tailored resume, spelling and grammar checks, bullet rewrites that turn duties into results, and a recurring email of jobs that match your skills — each with a ready-to-review tailored resume. It's ${formatPrice(PRO_PLAN.monthlyPrice)}/month or ${formatPrice(PRO_PLAN.yearlyPrice)}/year.`,
+  },
+  {
+    q: "Is Pro available now?",
+    a: "Pro is launching soon. Join the waitlist in the pricing section and we'll email you the moment it's live. Joining is free and doesn't commit you to anything.",
   },
   {
     q: "Do I need an account?",
@@ -62,7 +73,7 @@ const FAQ = [
   },
   {
     q: "Who can see my resume?",
-    a: "Only you. Your content stays in your browser unless you turn on sync. Files you import are read to fill in the form and are not stored.",
+    a: "Only you. Your content stays in your browser unless you turn on sync. Files you import are read to fill in the form and are not stored. If you use a Pro AI feature, only the text you ask it to work on is sent to our AI provider to generate suggestions.",
   },
   {
     q: "Can I use it on my phone?",
@@ -74,12 +85,13 @@ export default function LandingPage() {
   return (
     <div className="h-full overflow-y-auto bg-paper text-ink">
       {/* Nav */}
-      <header className="sticky top-0 z-40 border-b border-transparent bg-paper/80 backdrop-blur-md">
+      <header className="sticky top-0 z-40 border-b border-line/60 bg-paper/95 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-8 sm:py-4">
           <Logo href="/" />
           <nav className="hidden items-center gap-1 text-sm font-medium text-ink-muted md:flex" aria-label="Main">
             <a href="#how" className="rounded-full px-3 py-2 hover:text-ink">How it works</a>
             <a href="#templates" className="rounded-full px-3 py-2 hover:text-ink">Templates</a>
+            <a href="#pro" className="rounded-full px-3 py-2 hover:text-ink">Pro</a>
             <a href="#pricing" className="rounded-full px-3 py-2 hover:text-ink">Pricing</a>
             <a href="#faq" className="rounded-full px-3 py-2 hover:text-ink">FAQ</a>
           </nav>
@@ -119,7 +131,12 @@ export default function LandingPage() {
                   <IconUpload size={18} /> Import my old resume
                 </Link>
               </div>
-              <p className="mt-4 text-sm text-ink-faint">Most people finish in about 10 minutes. Works on your phone.</p>
+              <p className="mt-4 text-sm text-ink-faint">
+                Free forever · Works on your phone · Optional AI with{" "}
+                <a href="#pro" className="font-medium text-ink-muted underline-offset-4 hover:text-ink hover:underline">
+                  {PRO_PLAN.name}
+                </a>
+              </p>
             </div>
 
             <div className="relative mx-auto w-full max-w-[440px] lg:max-w-none">
@@ -197,15 +214,15 @@ export default function LandingPage() {
         </section>
 
         {/* Templates */}
-        <section id="templates" className="scroll-mt-20 bg-ink text-paper">
+        <section id="templates" className="scroll-mt-20 border-t border-line bg-paper-deep/60">
           <div className="mx-auto max-w-6xl px-4 py-20 sm:px-8">
             <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
               <div className="max-w-xl">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-paper/50">Templates</p>
+                <p className="eyebrow">Templates</p>
                 <h2 className="mt-3 font-display text-[36px] font-semibold leading-tight tracking-tight sm:text-[44px]">
                   Designed for recruiters. Built for robots.
                 </h2>
-                <p className="mt-3 text-paper/65">
+                <p className="mt-3 text-ink-muted">
                   Clean, single-column layouts that look sharp to humans and parse cleanly in
                   applicant tracking systems. Switch any time without retyping.
                 </p>
@@ -215,71 +232,34 @@ export default function LandingPage() {
             <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-3">
               {SHOWCASE.map((t, i) => (
                 <figure key={t.id} className={i === 1 ? "sm:-translate-y-6" : ""}>
-                  <div className="overflow-hidden rounded-xl bg-white shadow-pop ring-1 ring-white/10">
+                  <div className="overflow-hidden rounded-xl bg-white shadow-lift ring-1 ring-line">
                     <HeroResume templateId={t.id} />
                   </div>
-                  <figcaption className="mt-3 text-sm font-medium text-paper/80">{t.name}</figcaption>
+                  <figcaption className="mt-3 text-sm font-medium text-ink-soft">{t.name}</figcaption>
                 </figure>
               ))}
             </div>
           </div>
         </section>
 
+        <ProShowcase />
+
         {/* Pricing */}
         <section id="pricing" className="scroll-mt-20">
           <div className="mx-auto max-w-6xl px-4 py-20 sm:px-8">
             <p className="eyebrow">Pricing</p>
             <h2 className="mt-3 max-w-2xl font-display text-[36px] font-semibold leading-tight tracking-tight sm:text-[44px]">
-              Everything you need is free. Forever.
+              Free forever. Pro only if you want AI.
             </h2>
-            <div className="mt-10 grid gap-4 md:grid-cols-2">
-              <div className="card relative p-7">
-                <p className="text-sm font-semibold text-ink-muted">Resume Redox</p>
-                <p className="mt-2 font-display text-5xl font-semibold tracking-tight">
-                  $0<span className="text-lg font-medium text-ink-muted"> / forever</span>
-                </p>
-                <ul className="mt-6 space-y-3 text-sm">
-                  {[
-                    "Unlimited resumes and tailored versions",
-                    "All templates, fonts, colors, and layouts",
-                    "Unlimited PDF, Word, and text downloads",
-                    "Import from PDF or Word",
-                    "Job match keyword check",
-                    "Optional cloud sync across devices",
-                  ].map((f) => (
-                    <li key={f} className="flex items-start gap-2.5">
-                      <IconCheck size={17} className="mt-0.5 shrink-0 text-moss-600" /> {f}
-                    </li>
-                  ))}
-                </ul>
-                <LandingCta className="btn btn-primary btn-lg mt-8 w-full" freshLabel="Start building" />
-              </div>
-              <div className="relative overflow-hidden rounded-2xl border border-line bg-paper-deep p-7">
-                <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-52 w-52 rounded-full bg-brand-300/40 blur-3xl" />
-                <div className="relative">
-                  <p className="flex items-center gap-2 text-sm font-semibold text-ink-muted">
-                    <IconSparkle size={16} className="text-brand-600" /> Redox AI
-                    <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-semibold text-brand-700">Coming soon</span>
-                  </p>
-                  <p className="mt-2 font-display text-3xl font-semibold tracking-tight">An optional upgrade</p>
-                  <ul className="mt-6 space-y-3 text-sm text-ink-soft">
-                    {[
-                      "Tailor every bullet to a job posting",
-                      "Draft summaries and cover letters",
-                      "Spot weak verbs, vague claims, and typos",
-                    ].map((f) => (
-                      <li key={f} className="flex items-start gap-2.5">
-                        <IconSparkle size={16} className="mt-0.5 shrink-0 text-brand-500" /> {f}
-                      </li>
-                    ))}
-                  </ul>
-                  <p className="mt-8 flex items-start gap-2 text-[13px] text-ink-muted">
-                    <IconLock size={15} className="mt-0.5 shrink-0" /> Nothing in the free builder will
-                    ever move behind this.
-                  </p>
-                </div>
-              </div>
-            </div>
+            <p className="mt-3 max-w-2xl text-lg text-ink-muted">
+              Building and downloading your resume never costs a thing. Pay for {PRO_PLAN.name} only
+              when you want AI tailoring, proofreading, rewriting, and job alerts.
+            </p>
+            <PricingPlans />
+            <p className="mt-6 flex items-start gap-2 text-[13px] text-ink-muted">
+              <IconLock size={15} className="mt-0.5 shrink-0" /> Our promise: nothing in the free
+              builder will ever move behind the paywall.
+            </p>
           </div>
         </section>
 

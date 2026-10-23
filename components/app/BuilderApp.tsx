@@ -10,6 +10,7 @@ import { HomeDashboard } from "@/components/home/HomeDashboard";
 import { TemplateGallery } from "@/components/gallery/TemplateGallery";
 import { EditorShell } from "@/components/editor/EditorShell";
 import { AppToast } from "@/components/Toast";
+import { UpgradeDialog } from "@/components/pro/UpgradeDialog";
 import { useUiStore } from "@/lib/ui-store";
 import { useEffect } from "react";
 
@@ -45,6 +46,7 @@ function Surfaces() {
 
       <ImportResumeDialog open={importOpen} onClose={closeImport} initialFile={importFile} />
       <SignInDialog />
+      <UpgradeDialog />
       <AppToast />
     </>
   );

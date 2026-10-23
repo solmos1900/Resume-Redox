@@ -93,7 +93,7 @@ await p.getByRole("button", { name: /Job match/ }).click();
 await p.getByPlaceholder("Paste the full job posting here…").fill(
   "We are hiring a Senior Product Manager to own our payments platform roadmap. You will run discovery with customers, define requirements, and partner with engineering on delivery. Experience with SQL, A/B testing, and Figma is a plus. Strong stakeholder management and experimentation skills required. Payments or fintech experience preferred. Product Manager experience 5+ years.");
 await p.waitForTimeout(500);
-ok("job match report shows", await p.getByText(/key terms covered/).isVisible());
+ok("free keyword check shows", await p.getByText(/key terms from this posting/).isVisible());
 await p.screenshot({ path: `${out}/33-job-match.png` });
 const chip = p.locator("button[title^='Mentioned']").first();
 const term = (await chip.innerText()).trim();
@@ -107,6 +107,25 @@ await p.getByRole("button", { name: /Accent Clean/ }).first().click();
 await p.waitForTimeout(300);
 ok("accent template shows color swatches", await p.getByLabel(/Accent color #/).first().isVisible());
 await p.screenshot({ path: `${out}/34-design-accent.png` });
+
+// J13: Pro entry points open the upgrade dialog; waitlist never fakes success
+await p.getByRole("button", { name: /Content/ }).first().click();
+await p.getByRole("button", { name: /Check spelling & grammar/ }).click();
+ok("spell check opens Pro dialog", await p.getByRole("dialog").getByText(/\$\d+/).first().isVisible());
+await p.keyboard.press("Escape");
+await p.getByRole("button", { name: /Job match/ }).click();
+await p.getByRole("button", { name: /Score & tailor my resume/ }).click();
+const dlg = p.getByRole("dialog");
+ok("tailor opens Pro dialog leading with that feature", await dlg.getByText("AI job match & tailoring").first().isVisible());
+await dlg.getByRole("radio", { name: /Monthly/ }).click();
+ok("monthly price shown", await dlg.getByText("/ month").isVisible());
+await dlg.getByPlaceholder("you@email.com").fill("test@example.com");
+await dlg.getByRole("button", { name: "Join the waitlist" }).click();
+await p.waitForTimeout(1500);
+const saved = await dlg.getByText("You're on the list").isVisible();
+const honestError = await dlg.getByRole("alert").isVisible();
+ok(`waitlist: ${saved ? "saved" : "honest error shown"}`, saved || honestError);
+await p.keyboard.press("Escape");
 
 // Back home, dashboard actions
 await p.getByRole("button", { name: /Back to my resumes/ }).click();
@@ -130,6 +149,8 @@ await p.getByRole("button", { name: "Delete", exact: true }).click();
 await p.waitForTimeout(300);
 ok("delete removes it", !(await p.getByText("PM — Stripe").isVisible()));
 await p.screenshot({ path: `${out}/35-home-after.png` });
+
+ok("job alerts card on home", await p.getByRole("button", { name: /Turn on job alerts/ }).isVisible());
 
 // Reload: editor state persists, lands where left off
 await p.getByRole("button", { name: /^Open / }).first().click();

@@ -4,7 +4,7 @@ import "@fontsource-variable/fraunces";
 import "./globals.css";
 
 const SITE_DESCRIPTION =
-  "A free resume builder that doesn't hold your PDF hostage. Unlimited resumes, ATS-friendly templates, and PDF/Word downloads — no paywall, no watermark.";
+  "A free resume builder that doesn't hold your PDF hostage. Unlimited resumes, ATS-friendly templates, and PDF/Word downloads — no paywall, no watermark. Optional AI tailoring, proofreading, and job alerts with Redox Pro.";
 
 export const metadata: Metadata = {
   title: {
