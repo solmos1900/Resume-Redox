@@ -18,7 +18,7 @@ User journeys, what each screen is for, and what changed in the redesign: **[doc
 - **Unlimited resumes** — duplicate, tailor a copy per job, backup/restore as JSON
 - **Mobile-first editor** — bottom navigation, full-size preview a tap away
 
-The only planned paid tier is **Redox AI** (tailoring, rewrites, cover letters); it is teased in the Job match tab and pricing section and is not implemented. Archived AI code lives under [`_archived/`](_archived/README.md).
+**Free forever, paid AI.** The only paid tier is **Redox Pro** ($5/month or $48/year, recurring): AI job match & tailoring, spelling & grammar check, bullet enhancer, and job-alert emails that build a tailored resume. Billing isn't live yet — Pro entry points collect a waitlist (Firestore `proWaitlist`; rule in [docs/MONETIZATION.md](docs/MONETIZATION.md)). Archived AI code lives under [`_archived/`](_archived/README.md).
 
 ## Setup
 

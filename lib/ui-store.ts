@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import type { ProFeatureId } from "./pro";
 
 /**
  * Top-level surfaces of the builder (/app):
@@ -47,6 +48,12 @@ type UiStore = {
 
   mobileTab: MobileTab;
   setMobileTab: (tab: MobileTab) => void;
+
+  /** Redox Pro upgrade / waitlist dialog. */
+  upgradeOpen: boolean;
+  upgradeFeature: ProFeatureId | null;
+  openUpgrade: (feature?: ProFeatureId) => void;
+  closeUpgrade: () => void;
 };
 
 export const useUiStore = create<UiStore>()(
@@ -90,6 +97,11 @@ export const useUiStore = create<UiStore>()(
 
       mobileTab: "edit",
       setMobileTab: (tab) => set({ mobileTab: tab }),
+
+      upgradeOpen: false,
+      upgradeFeature: null,
+      openUpgrade: (feature) => set({ upgradeOpen: true, upgradeFeature: feature ?? null }),
+      closeUpgrade: () => set({ upgradeOpen: false }),
     }),
     {
       name: "resume-redox-ui",

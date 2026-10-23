@@ -13,9 +13,11 @@ import {
   IconArrowLeft,
   IconChevronDown,
   IconPlus,
+  IconSparkle,
   IconTrash,
   IconX,
 } from "@/components/ui/icons";
+import { useUiStore } from "@/lib/ui-store";
 
 export function TextField({
   label,
@@ -256,6 +258,7 @@ export function BulletEditor({
 }) {
   const refs = useRef<(HTMLTextAreaElement | null)[]>([]);
   const focusIndex = useRef<number | null>(null);
+  const openUpgrade = useUiStore((s) => s.openUpgrade);
   const list = bullets.length ? bullets : [""];
 
   useEffect(() => {
@@ -301,7 +304,10 @@ export function BulletEditor({
 
   return (
     <div>
-      <span className="field-label">Bullet points</span>
+      <span className="field-label flex items-center justify-between">
+        Bullet points
+        <span className="font-normal text-ink-faint">Enter = new bullet · paste a list to split</span>
+      </span>
       <ul className="space-y-1.5">
         {list.map((bullet, index) => (
           <li key={index} className="group relative flex items-start gap-2">
@@ -316,18 +322,31 @@ export function BulletEditor({
               onChange={(e) => update(index, e.target.value)}
               onKeyDown={(e) => onKeyDown(index, e)}
               aria-label={`Bullet ${index + 1}`}
-              className="pr-9"
+              className="pr-16"
             />
-            {list.length > 1 && (
-              <button
-                type="button"
-                onClick={() => onChange(list.filter((_, i) => i !== index))}
-                className="absolute right-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full text-ink-faint opacity-60 transition hover:bg-paper hover:text-ink group-focus-within:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
-                aria-label={`Remove bullet ${index + 1}`}
-              >
-                <IconX size={14} />
-              </button>
-            )}
+            <div className="absolute right-1.5 top-1.5 flex items-center gap-0.5 opacity-60 transition group-focus-within:opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
+              {bullet.trim() && (
+                <button
+                  type="button"
+                  onClick={() => openUpgrade("bullets")}
+                  className="flex h-7 w-7 items-center justify-center rounded-full text-brand-600 transition hover:bg-brand-50"
+                  aria-label={`Enhance bullet ${index + 1} with AI (Pro)`}
+                  title="Enhance with AI · Pro"
+                >
+                  <IconSparkle size={14} />
+                </button>
+              )}
+              {list.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => onChange(list.filter((_, i) => i !== index))}
+                  className="flex h-7 w-7 items-center justify-center rounded-full text-ink-faint transition hover:bg-paper hover:text-ink"
+                  aria-label={`Remove bullet ${index + 1}`}
+                >
+                  <IconX size={14} />
+                </button>
+              )}
+            </div>
           </li>
         ))}
       </ul>
@@ -342,7 +361,14 @@ export function BulletEditor({
         >
           <IconPlus size={14} /> Add bullet
         </button>
-        <span className="text-[11px] text-ink-faint">Enter = new bullet · paste a list to split</span>
+        <button
+          type="button"
+          onClick={() => openUpgrade("bullets")}
+          className="inline-flex items-center gap-1 text-[13px] font-medium text-brand-700 hover:text-brand-800"
+        >
+          <IconSparkle size={14} /> Enhance bullets
+          <span className="rounded-full bg-brand-100 px-1.5 text-[10px] font-bold uppercase tracking-wide">Pro</span>
+        </button>
       </div>
     </div>
   );

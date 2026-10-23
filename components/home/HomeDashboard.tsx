@@ -14,6 +14,8 @@ import { AccountMenu } from "@/components/auth/AccountMenu";
 import { Logo } from "@/components/ui/Logo";
 import { Menu, MenuDivider, MenuItem } from "@/components/ui/Menu";
 import { Modal } from "@/components/ui/Modal";
+import { ProBadge } from "@/components/pro/ProBadge";
+import { PRO_PLAN, formatPrice } from "@/lib/pro";
 import {
   IconArchive,
   IconArrowRight,
@@ -24,6 +26,7 @@ import {
   IconLayout,
   IconPencil,
   IconPlus,
+  IconSparkle,
   IconTarget,
   IconTrash,
   IconUpload,
@@ -57,6 +60,7 @@ export function HomeDashboard() {
   const openGallery = useUiStore((s) => s.openGallery);
   const openImport = useUiStore((s) => s.openImportResumeDialog);
   const showToast = useToastStore((s) => s.showToast);
+  const openUpgrade = useUiStore((s) => s.openUpgrade);
 
   const [renaming, setRenaming] = useState<ResumeVersion | null>(null);
   const [renameValue, setRenameValue] = useState("");
@@ -112,6 +116,15 @@ export function HomeDashboard() {
       <header className="relative z-30 flex shrink-0 items-center justify-between gap-3 px-4 py-3 sm:px-8 sm:py-4">
         <Logo href="/" />
         <div className="flex items-center gap-1 sm:gap-2">
+          <button
+            type="button"
+            onClick={() => openUpgrade()}
+            className="btn btn-ghost btn-sm text-brand-700"
+            aria-label={`${PRO_PLAN.name}: AI features`}
+          >
+            <IconSparkle size={16} />
+            <span className="hidden sm:inline">Pro</span>
+          </button>
           <AccountMenu />
           <Menu
             width="w-72"
@@ -350,6 +363,8 @@ export function HomeDashboard() {
             ))}
           </ul>
 
+          {!isFirstRun && <JobAlertsCard onClick={() => openUpgrade("alerts")} />}
+
           <p className="mt-14 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-ink-muted">
             <span className="inline-block h-1.5 w-1.5 rounded-full bg-moss-500" aria-hidden />
             Saved privately in this browser. Drop a PDF or Word file anywhere on
@@ -442,6 +457,34 @@ export function HomeDashboard() {
         }
       />
     </div>
+  );
+}
+
+function JobAlertsCard({ onClick }: { onClick: () => void }) {
+  return (
+    <section className="relative mt-14 overflow-hidden rounded-2xl bg-ink p-6 text-paper sm:p-8">
+      <div aria-hidden className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-brand-500/30 blur-3xl" />
+      <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+        <div className="max-w-xl">
+          <ProBadge tone="dark" />
+          <h2 className="mt-3 font-display text-2xl font-semibold tracking-tight sm:text-3xl">
+            Let the right jobs come to you.
+          </h2>
+          <p className="mt-2 text-sm leading-relaxed text-paper/65">
+            Get a recurring email of open roles that match the skills on your resume. Tap one and we
+            build a tailored resume for it — scored and ready to review.
+          </p>
+        </div>
+        <div className="flex shrink-0 flex-col items-start gap-2">
+          <button type="button" onClick={onClick} className="btn btn-brand btn-lg">
+            <IconSparkle size={18} /> Turn on job alerts
+          </button>
+          <span className="text-xs text-paper/50">
+            Included in {PRO_PLAN.name} · {formatPrice(PRO_PLAN.monthlyPrice)}/month
+          </span>
+        </div>
+      </div>
+    </section>
   );
 }
 
